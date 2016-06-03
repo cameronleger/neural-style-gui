@@ -1,8 +1,44 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<GridPane fx:controller="com.cameronleger.neuralstylegui.Controller"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
-</GridPane>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox>
+         <children>
+            <Label alignment="CENTER" maxHeight="1.7976931348623157E308" text="Style Path:">
+               <HBox.margin>
+                  <Insets left="4.0" right="4.0" />
+               </HBox.margin>
+            </Label>
+            <TextField fx:id="stylePath" HBox.hgrow="ALWAYS" />
+         </children>
+         <VBox.margin>
+            <Insets bottom="4.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox>
+         <children>
+            <Label maxHeight="1.7976931348623157E308" text="Content Path:">
+               <HBox.margin>
+                  <Insets left="4.0" right="4.0" />
+               </HBox.margin>
+            </Label>
+            <TextField fx:id="contentPath" HBox.hgrow="ALWAYS" />
+         </children>
+         <VBox.margin>
+            <Insets bottom="4.0" />
+         </VBox.margin>
+      </HBox>
+      <TextArea fx:id="log" wrapText="true" VBox.vgrow="ALWAYS" />
+   </children>
+   <padding>
+      <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+   </padding>
+</VBox>
