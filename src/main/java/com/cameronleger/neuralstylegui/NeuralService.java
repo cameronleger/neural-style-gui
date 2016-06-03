@@ -5,8 +5,15 @@ import com.cameronleger.neuralstyle.NeuralStyle;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
+import java.util.concurrent.Executors;
+
 public class NeuralService extends Service {
     private NeuralStyle neuralStyle;
+
+    public NeuralService() {
+        // only allow one of these to run at a time
+//        setExecutor(Executors.newSingleThreadExecutor(Thread::new));
+    }
 
     public NeuralStyle getNeuralStyle() {
         return neuralStyle;
@@ -21,7 +28,7 @@ public class NeuralService extends Service {
         if (neuralStyle == null || !neuralStyle.checkArguments())
             return null;
 
-        final NeuralStyle neuralStyleForTask = neuralStyle;
+        final NeuralStyle neuralStyleForTask = getNeuralStyle();
         return new Task<Image>() {
             @Override protected Image call() throws InterruptedException {
                 updateMessage("Starting neural-style.");
@@ -32,7 +39,7 @@ public class NeuralService extends Service {
                     Thread.sleep(300);
                     updateProgress(i + 1, 10);
                 }
-                return neuralStyleForTask.outputImage;
+                return null;
             }
 
             @Override protected void succeeded() {

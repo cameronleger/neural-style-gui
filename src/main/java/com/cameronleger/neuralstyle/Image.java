@@ -3,13 +3,13 @@ package com.cameronleger.neuralstyle;
 import java.io.File;
 
 public class Image {
-    private File path;
+    private File file;
 
-    public Image(File path) {
-        this.path = path;
+    public Image(File file) {
+        this.file = file;
     }
 
-    public File getPath() {
-        return path;
+    public File getFile() {
+        return file;
     }
 }

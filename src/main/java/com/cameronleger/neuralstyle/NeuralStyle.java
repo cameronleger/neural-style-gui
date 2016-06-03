@@ -5,38 +5,78 @@ import java.io.File;
 import java.io.InputStreamReader;
 
 public class NeuralStyle {
-    public static String executable = "th";
-    public static File neuralStylePath = new File("/home/cameron/neural-style");
-    public Image styleImage;
-    public Image contentImage;
-    public Image outputImage;
+    private static String executable = "th";
+    private static File neuralStylePath = new File("/home/cameron/neural-style");
+    private File styleImage;
+    private File contentImage;
+    private File outputFolder;
 
-    public NeuralStyle() {
+    public static String getExecutable() {
+        return executable;
+    }
 
+    public static void setExecutable(String executable) {
+        NeuralStyle.executable = executable;
+    }
+
+    public static File getNeuralStylePath() {
+        return neuralStylePath;
+    }
+
+    public static void setNeuralStylePath(File neuralStylePath) {
+        NeuralStyle.neuralStylePath = neuralStylePath;
+    }
+
+    public File getStyleImage() {
+        return styleImage;
+    }
+
+    public void setStyleImage(File styleImage) {
+        this.styleImage = styleImage;
+    }
+
+    public File getContentImage() {
+        return contentImage;
+    }
+
+    public void setContentImage(File contentImage) {
+        this.contentImage = contentImage;
+    }
+
+    public File getOutputFolder() {
+        return outputFolder;
+    }
+
+    public void setOutputFolder(File outputFolder) {
+        this.outputFolder = outputFolder;
     }
 
     public boolean checkArguments() {
-        if (neuralStylePath == null || !neuralStylePath.isDirectory())
-            return false;
-        if (styleImage == null || styleImage.getPath() == null || !styleImage.getPath().isFile())
-            return false;
-        if (contentImage == null || contentImage.getPath() == null || !contentImage.getPath().isFile())
-            return false;
-        if (outputImage == null || outputImage.getPath() == null || outputImage.getPath().isDirectory())
-            return false;
-        return true;
+        return FileUtils.checkFileExists(getStyleImage()) &&
+                FileUtils.checkFileExists(getContentImage()) &&
+                FileUtils.checkFolderExists(getNeuralStylePath()) &&
+                FileUtils.checkFolderExists(getOutputFolder());
+    }
+
+    public File getOutputImage() {
+        if (!checkArguments())
+            return null;
+        File styleOutputFolder = new File(getOutputFolder(), FileUtils.getFileName(getStyleImage()));
+//        if (!styleOutputFolder.exists() && !styleOutputFolder.mkdir())
+//            return null;
+        return new File(styleOutputFolder, FileUtils.getFileName(getContentImage()) + ".jpg");
     }
 
     private String[] buildCommand() {
         return new String[] {
-                executable,
+                getExecutable(),
                 "neural_style.lua",
                 "-style_image",
-                styleImage.getPath().getAbsolutePath(),
+                getStyleImage().getAbsolutePath(),
                 "-content_image",
-                contentImage.getPath().getAbsolutePath(),
+                getContentImage().getAbsolutePath(),
                 "-output_image",
-                outputImage.getPath().getAbsolutePath()
+                getOutputImage().getAbsolutePath()
         };
     }
 
@@ -51,7 +91,7 @@ public class NeuralStyle {
 
         try {
             String line;
-            Process p = Runtime.getRuntime().exec(buildCommand(), null, neuralStylePath);
+            Process p = Runtime.getRuntime().exec(buildCommand(), null, getNeuralStylePath());
             BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 

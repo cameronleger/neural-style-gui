@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <children>
       <HBox>
          <children>
-            <Label alignment="CENTER" maxHeight="1.7976931348623157E308" text="Style Path:">
+            <Button fx:id="styleFileButton" mnemonicParsing="false" text="%styleFileButton">
                <HBox.margin>
-                  <Insets left="4.0" right="4.0" />
+                  <Insets left="4.0" />
                </HBox.margin>
-            </Label>
-            <TextField fx:id="stylePath" HBox.hgrow="ALWAYS" />
+            </Button>
+            <TextField fx:id="stylePath" editable="false" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="4.0" />
+               </HBox.margin></TextField>
          </children>
          <VBox.margin>
             <Insets bottom="4.0" />
@@ -25,18 +27,38 @@
       </HBox>
       <HBox>
          <children>
-            <Label maxHeight="1.7976931348623157E308" text="Content Path:">
+            <Button fx:id="contentFileButton" mnemonicParsing="false" text="%contentFileButton">
                <HBox.margin>
-                  <Insets left="4.0" right="4.0" />
+                  <Insets left="4.0" />
                </HBox.margin>
-            </Label>
-            <TextField fx:id="contentPath" HBox.hgrow="ALWAYS" />
+            </Button>
+            <TextField fx:id="contentPath" editable="false" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="4.0" />
+               </HBox.margin></TextField>
          </children>
          <VBox.margin>
             <Insets bottom="4.0" />
          </VBox.margin>
       </HBox>
-      <TextArea fx:id="logTextArea" wrapText="true" VBox.vgrow="ALWAYS" />
+      <HBox layoutX="14.0" layoutY="44.0">
+         <children>
+            <Button fx:id="outputFolderButton" mnemonicParsing="false" text="%outputFolderButton">
+               <HBox.margin>
+                  <Insets left="4.0" />
+               </HBox.margin>
+            </Button>
+            <TextField fx:id="outputPath" editable="false" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="4.0" />
+               </HBox.margin>
+            </TextField>
+         </children>
+         <VBox.margin>
+            <Insets bottom="4.0" />
+         </VBox.margin>
+      </HBox>
+      <TextArea fx:id="logTextArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" />
    </children>
    <padding>
       <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
