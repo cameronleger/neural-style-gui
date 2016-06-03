@@ -28,7 +28,7 @@ public class NeuralService extends Service {
         if (neuralStyle == null || !neuralStyle.checkArguments())
             return null;
 
-        final NeuralStyle neuralStyleForTask = getNeuralStyle();
+//        final NeuralStyle neuralStyleForTask = getNeuralStyle();
         return new Task<Image>() {
             @Override protected Image call() throws InterruptedException {
                 updateMessage("Starting neural-style.");

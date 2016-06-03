@@ -1,20 +1,32 @@
 package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.NeuralStyle;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.reactfx.EventStreams;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainController implements Initializable {
     private NeuralService neuralService = new NeuralService();
@@ -35,9 +47,21 @@ public class MainController implements Initializable {
     @FXML
     private Button outputFolderButton;
     @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private ImageView imageView;
+    @FXML
+    private Label statusLabel;
+    @FXML
     private TextArea logTextArea;
 
     private static FileChooser imageFileChooser = new FileChooser();
+    static {
+        imageFileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg"));
+    }
     private static DirectoryChooser directoryChooser = new DirectoryChooser();
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -47,18 +71,16 @@ public class MainController implements Initializable {
         assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
         assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
+        assert startButton != null : "fx:id=\"startButton\" was not injected.";
+        assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
+        assert imageView != null : "fx:id=\"imageView\" was not injected.";
+        assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
         assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
 
         bundle = resources;
 
-        imageFileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg"));
-
         setupButtonListeners();
         setupServiceListeners();
-
-//        neuralService.setNeuralStyle(neuralStyle);
-//        neuralService.start();
     }
 
     public void setStage(Stage stage) {
@@ -77,6 +99,12 @@ public class MainController implements Initializable {
                 neuralStyle.setStyleImage(styleFile);
                 stylePath.setText(styleFile.getAbsolutePath());
                 imageFileChooser.setInitialDirectory(styleFile.getParentFile());
+
+                try {
+                    imageView.setImage(new Image(new FileInputStream(styleFile)));
+                } catch (FileNotFoundException e) {
+                    Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, e);
+                }
 
                 File outputImage = neuralStyle.getOutputImage();
                 if (outputImage != null)
@@ -111,37 +139,63 @@ public class MainController implements Initializable {
                     System.out.println(outputImage.getAbsolutePath());
             }
         });
+
+        EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            neuralService.setNeuralStyle(neuralStyle);
+            if (!neuralService.isRunning()) {
+                neuralService.reset();
+                neuralService.start();
+            }
+        });
+
+        EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            if (neuralService.isRunning())
+                neuralService.cancel();
+        });
     }
 
     private void setupServiceListeners() {
         // easily bind some properties
-//        stylePath.textProperty().bind(neuralService.messageProperty());
+        logTextArea.textProperty().bind(neuralService.messageProperty());
 
         // handle each Worker.State
-//        neuralService.stateProperty().addListener(new ChangeListener<Worker.State>() {
-//            public void changed(ObservableValue<? extends Worker.State> observableValue,
-//                                Worker.State oldState, Worker.State newState) {
-//                switch (newState) {
-//                    case SCHEDULED:
-//                        contentPath.setText("SCHEDULED");
-//                        break;
-//                    case READY:
-//                        contentPath.setText("READY");
-//                        break;
-//                    case RUNNING:
-//                        contentPath.setText("RUNNING");
-//                        break;
-//                    case SUCCEEDED:
-//                        contentPath.setText("SUCCEEDED");
-//                        break;
-//                    case CANCELLED:
-//                        contentPath.setText("CANCELLED");
-//                        break;
-//                    case FAILED:
-//                        contentPath.setText("FAILED");
-//                        break;
-//                }
-//            }
-//        });
+        neuralService.stateProperty().addListener(new ChangeListener<Worker.State>() {
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> observableValue,
+                                Worker.State oldState, Worker.State newState) {
+                switch (newState) {
+                    case SCHEDULED:
+                        statusLabel.setText("Scheduled");
+                        break;
+                    case READY:
+                        statusLabel.setText("Ready to Run");
+                        break;
+                    case RUNNING:
+                        statusLabel.setText("Running");
+                        break;
+                    case SUCCEEDED:
+                        statusLabel.setText("Finished");
+                        break;
+                    case CANCELLED:
+                        statusLabel.setText("Cancelled");
+                        break;
+                    case FAILED:
+                        statusLabel.setText("Failed");
+                        break;
+                }
+            }
+        });
+
+        final ColorAdjust highlighted = new ColorAdjust(0, 0, 0.3, 0);
+        neuralService.runningProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean isRunning) {
+                if (isRunning) {
+                    statusLabel.setEffect(highlighted);
+                } else {
+                    statusLabel.setEffect(null);
+                }
+            }
+        });
     }
 }

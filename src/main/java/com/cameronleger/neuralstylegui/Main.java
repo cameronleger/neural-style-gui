@@ -34,8 +34,8 @@ public class Main extends Application {
             root = loader.load();
             controller = loader.getController();
             controller.setStage(primaryStage);
-        } catch (Exception ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception e) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
             exit();
             return;
         }
@@ -48,10 +48,12 @@ public class Main extends Application {
                 }
             });
             primaryStage.setTitle(bundle.getString("title"));
-            primaryStage.setScene(new Scene(root, 600, 275));
+            primaryStage.setScene(new Scene(root));
+            primaryStage.setMinHeight(300);
+            primaryStage.setMinWidth(500);
             primaryStage.show();
-        } catch (Exception ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception e) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 }

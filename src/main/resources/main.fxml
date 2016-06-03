@@ -2,65 +2,96 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
-   <children>
-      <HBox>
+<SplitPane dividerPositions="0.3183475091130012" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
+   <items>
+      <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
+        <columnConstraints>
+          <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="30.0" />
+          <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
+            <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="30.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints valignment="CENTER" vgrow="NEVER" />
+          <RowConstraints valignment="CENTER" vgrow="NEVER" />
+          <RowConstraints valignment="CENTER" vgrow="NEVER" />
+        </rowConstraints>
          <children>
-            <Button fx:id="styleFileButton" mnemonicParsing="false" text="%styleFileButton">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin>
-            </Button>
-            <TextField fx:id="stylePath" editable="false" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin></TextField>
+            <Label text="Label" />
+            <Slider GridPane.columnIndex="1" />
+            <TextField GridPane.columnIndex="2" />
          </children>
-         <VBox.margin>
-            <Insets bottom="4.0" />
-         </VBox.margin>
-      </HBox>
-      <HBox>
-         <children>
-            <Button fx:id="contentFileButton" mnemonicParsing="false" text="%contentFileButton">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin>
-            </Button>
-            <TextField fx:id="contentPath" editable="false" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin></TextField>
-         </children>
-         <VBox.margin>
-            <Insets bottom="4.0" />
-         </VBox.margin>
-      </HBox>
-      <HBox layoutX="14.0" layoutY="44.0">
-         <children>
-            <Button fx:id="outputFolderButton" mnemonicParsing="false" text="%outputFolderButton">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin>
-            </Button>
-            <TextField fx:id="outputPath" editable="false" HBox.hgrow="ALWAYS">
-               <HBox.margin>
-                  <Insets left="4.0" />
-               </HBox.margin>
-            </TextField>
-         </children>
-         <VBox.margin>
-            <Insets bottom="4.0" />
-         </VBox.margin>
-      </HBox>
-      <TextArea fx:id="logTextArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS" />
-   </children>
-   <padding>
-      <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-   </padding>
-</VBox>
+         <padding>
+            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+         </padding>
+      </GridPane>
+      <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+         <center>
+            <ImageView fx:id="imageView" fitHeight="500.0" fitWidth="500.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
+               <BorderPane.margin>
+                  <Insets bottom="4.0" top="4.0" />
+               </BorderPane.margin>
+            </ImageView>
+         </center>
+         <bottom>
+            <VBox BorderPane.alignment="CENTER">
+               <children>
+                  <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" VBox.vgrow="NEVER">
+                     <VBox.margin>
+                        <Insets bottom="4.0" />
+                     </VBox.margin>
+                  </Label>
+                  <TextArea fx:id="logTextArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" wrapText="true" VBox.vgrow="ALWAYS" />
+               </children>
+            </VBox>
+         </bottom>
+         <top>
+            <GridPane hgap="4.0" vgap="4.0" BorderPane.alignment="CENTER">
+              <columnConstraints>
+                <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" />
+                <ColumnConstraints hgrow="ALWAYS" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                  <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+              </rowConstraints>
+               <children>
+                  <Button fx:id="styleFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%styleFileButton" />
+                  <Button fx:id="contentFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFileButton" GridPane.rowIndex="1" />
+                  <Button fx:id="outputFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputFolderButton" GridPane.rowIndex="2" />
+                  <TextField fx:id="stylePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" />
+                  <TextField fx:id="contentPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
+                     <children>
+                        <Button fx:id="startButton" defaultButton="true" mnemonicParsing="false" text="%startButton" />
+                        <Button fx:id="stopButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
+                           <HBox.margin>
+                              <Insets left="4.0" />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
+               </children>
+            </GridPane>
+         </top>
+         <padding>
+            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+         </padding>
+      </BorderPane>
+   </items>
+</SplitPane>
