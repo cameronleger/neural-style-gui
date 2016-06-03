@@ -9,6 +9,7 @@ public class NeuralStyle {
     public static File neuralStylePath = new File("/home/cameron/neural-style");
     public Image styleImage;
     public Image contentImage;
+    public Image outputImage;
 
     public NeuralStyle() {
 
@@ -21,6 +22,8 @@ public class NeuralStyle {
             return false;
         if (contentImage == null || contentImage.getPath() == null || !contentImage.getPath().isFile())
             return false;
+        if (outputImage == null || outputImage.getPath() == null || outputImage.getPath().isDirectory())
+            return false;
         return true;
     }
 
@@ -31,7 +34,9 @@ public class NeuralStyle {
                 "-style_image",
                 styleImage.getPath().getAbsolutePath(),
                 "-content_image",
-                contentImage.getPath().getAbsolutePath()
+                contentImage.getPath().getAbsolutePath(),
+                "-output_image",
+                outputImage.getPath().getAbsolutePath()
         };
     }
 
