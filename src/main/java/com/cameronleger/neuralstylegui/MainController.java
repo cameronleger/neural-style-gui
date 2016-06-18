@@ -12,7 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.DirectoryChooser;
@@ -29,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainController implements Initializable {
+    private static final Logger log = Logger.getLogger(MainController.class.getName());
     private NeuralService neuralService = new NeuralService();
     private NeuralStyle neuralStyle = new NeuralStyle();
     private Stage stage;
@@ -65,6 +65,7 @@ public class MainController implements Initializable {
     private static DirectoryChooser directoryChooser = new DirectoryChooser();
 
     public void initialize(URL location, ResourceBundle resources) {
+        log.log(Level.FINER, "Checking that all FXML items were injected.");
         assert stylePath != null : "fx:id=\"stylePath\" was not injected.";
         assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
@@ -76,25 +77,41 @@ public class MainController implements Initializable {
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
         assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
+        log.log(Level.FINER, "All FXML items were injected.");
 
         bundle = resources;
 
+        log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
+        log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
+        log.log(Level.FINER, "Setting neural service log handler.");
+        neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
     }
 
-    public void setStage(Stage stage) {
+    void setStage(Stage stage) {
         this.stage = stage;
     }
 
-    public void stopService() {
+    void stopService() {
         neuralService.cancel();
     }
 
+    private void toggleStartButton() {
+        File outputImage = neuralStyle.getOutputImage();
+        if (outputImage != null) {
+            log.log(Level.FINE, "Output image available: {0}", outputImage.getAbsolutePath());
+            startButton.setDisable(false);
+        }
+    }
+
     private void setupButtonListeners() {
+        log.log(Level.FINER, "Setting Style File listener.");
         EventStreams.eventsOf(styleFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing style file chooser.");
             imageFileChooser.setTitle(bundle.getString("styleFileChooser"));
             File styleFile = imageFileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
                 neuralStyle.setStyleImage(styleFile);
                 stylePath.setText(styleFile.getAbsolutePath());
@@ -103,98 +120,119 @@ public class MainController implements Initializable {
                 try {
                     imageView.setImage(new Image(new FileInputStream(styleFile)));
                 } catch (FileNotFoundException e) {
-                    Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, e);
+                    log.log(Level.SEVERE, e.toString(), e);
                 }
 
-                File outputImage = neuralStyle.getOutputImage();
-                if (outputImage != null)
-                    System.out.println(outputImage.getAbsolutePath());
+                toggleStartButton();
             }
         });
 
+        log.log(Level.FINER, "Setting Content File listener.");
         EventStreams.eventsOf(contentFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing content file chooser.");
             imageFileChooser.setTitle(bundle.getString("contentFileChooser"));
             File contentFile = imageFileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "Content file chosen: {0}", contentFile);
             if (contentFile != null) {
                 neuralStyle.setContentImage(contentFile);
                 contentPath.setText(contentFile.getAbsolutePath());
                 imageFileChooser.setInitialDirectory(contentFile.getParentFile());
 
-                File outputImage = neuralStyle.getOutputImage();
-                if (outputImage != null)
-                    System.out.println(outputImage.getAbsolutePath());
+                toggleStartButton();
             }
         });
 
+        log.log(Level.FINER, "Setting Output Folder listener.");
         EventStreams.eventsOf(outputFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing output folder chooser.");
             directoryChooser.setTitle(bundle.getString("outputFolderChooser"));
             File outputFolder = directoryChooser.showDialog(stage);
+            log.log(Level.FINE, "Output folder chosen: {0}", outputFolder);
             if (outputFolder != null) {
                 neuralStyle.setOutputFolder(outputFolder);
                 outputPath.setText(outputFolder.getAbsolutePath());
                 directoryChooser.setInitialDirectory(outputFolder);
 
-                File outputImage = neuralStyle.getOutputImage();
-                if (outputImage != null)
-                    System.out.println(outputImage.getAbsolutePath());
+                toggleStartButton();
             }
         });
 
+        log.log(Level.FINER, "Setting Start listener.");
         EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINE, "Start button hit.");
             neuralService.setNeuralStyle(neuralStyle);
             if (!neuralService.isRunning()) {
+                log.log(Level.FINE, "Starting neural service.");
+                logTextArea.clear();
                 neuralService.reset();
                 neuralService.start();
             }
         });
 
+        log.log(Level.FINER, "Setting Stop listener.");
         EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINE, "Stop button hit.");
             if (neuralService.isRunning())
+                log.log(Level.FINE, "Cancelling neural service.");
                 neuralService.cancel();
         });
     }
 
     private void setupServiceListeners() {
-        // easily bind some properties
-        logTextArea.textProperty().bind(neuralService.messageProperty());
-
         // handle each Worker.State
+        log.log(Level.FINER, "Setting state listener.");
         neuralService.stateProperty().addListener(new ChangeListener<Worker.State>() {
             @Override
             public void changed(ObservableValue<? extends Worker.State> observableValue,
                                 Worker.State oldState, Worker.State newState) {
                 switch (newState) {
                     case SCHEDULED:
+                        log.log(Level.FINER, "Neural service: Scheduled.");
                         statusLabel.setText("Scheduled");
+                        startButton.setDisable(true);
+                        stopButton.setDisable(false);
                         break;
                     case READY:
+                        log.log(Level.FINER, "Neural service: Ready.");
                         statusLabel.setText("Ready to Run");
+                        startButton.setDisable(false);
+                        stopButton.setDisable(true);
                         break;
                     case RUNNING:
+                        log.log(Level.FINER, "Neural service: Running.");
                         statusLabel.setText("Running");
+                        startButton.setDisable(true);
+                        stopButton.setDisable(false);
                         break;
                     case SUCCEEDED:
+                        log.log(Level.FINER, "Neural service: Succeeded.");
                         statusLabel.setText("Finished");
+                        startButton.setDisable(false);
+                        stopButton.setDisable(true);
                         break;
                     case CANCELLED:
+                        log.log(Level.FINER, "Neural service: Cancelled.");
                         statusLabel.setText("Cancelled");
+                        startButton.setDisable(false);
+                        stopButton.setDisable(true);
                         break;
                     case FAILED:
+                        log.log(Level.FINER, "Neural service: Failed.");
                         statusLabel.setText("Failed");
+                        startButton.setDisable(false);
+                        stopButton.setDisable(true);
                         break;
                 }
             }
         });
 
+        log.log(Level.FINER, "Setting running listener.");
         final ColorAdjust highlighted = new ColorAdjust(0, 0, 0.3, 0);
-        neuralService.runningProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean isRunning) {
-                if (isRunning) {
-                    statusLabel.setEffect(highlighted);
-                } else {
-                    statusLabel.setEffect(null);
-                }
+        neuralService.runningProperty().addListener((observableValue, aBoolean, isRunning) -> {
+            if (isRunning) {
+                statusLabel.setEffect(highlighted);
+            } else {
+                statusLabel.setEffect(null);
             }
         });
     }

@@ -62,12 +62,12 @@ public class NeuralStyle {
         if (!checkArguments())
             return null;
         File styleOutputFolder = new File(getOutputFolder(), FileUtils.getFileName(getStyleImage()));
-//        if (!styleOutputFolder.exists() && !styleOutputFolder.mkdir())
-//            return null;
+        if (!styleOutputFolder.exists() && !styleOutputFolder.mkdir())
+            return null;
         return new File(styleOutputFolder, FileUtils.getFileName(getContentImage()) + ".jpg");
     }
 
-    private String[] buildCommand() {
+    public String[] buildCommand() {
         return new String[] {
                 getExecutable(),
                 "neural_style.lua",
@@ -78,40 +78,5 @@ public class NeuralStyle {
                 "-output_image",
                 getOutputImage().getAbsolutePath()
         };
-    }
-
-    public void start() {
-        if (!checkArguments())
-            return;
-
-        for (String s : buildCommand()) {
-            System.out.print(s);
-            System.out.print(" ");
-        }
-
-        try {
-            String line;
-            Process p = Runtime.getRuntime().exec(buildCommand(), null, getNeuralStylePath());
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-            System.out.println("Input:");
-            while ((line = input.readLine()) != null) {
-                System.out.println(line);
-            }
-            input.close();
-
-            System.out.println("Error:");
-            while ((line = error.readLine()) != null) {
-                System.out.println(line);
-            }
-            error.close();
-
-            System.out.println("Exit: " + String.valueOf(p.waitFor()));
-            System.out.println("Done.");
-        }
-        catch (Exception err) {
-            err.printStackTrace();
-        }
     }
 }

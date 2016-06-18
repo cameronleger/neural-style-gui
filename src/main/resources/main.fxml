@@ -78,8 +78,8 @@
                   <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
                      <children>
-                        <Button fx:id="startButton" defaultButton="true" mnemonicParsing="false" text="%startButton" />
-                        <Button fx:id="stopButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
+                        <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
+                        <Button fx:id="stopButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
                            <HBox.margin>
                               <Insets left="4.0" />
                            </HBox.margin>
