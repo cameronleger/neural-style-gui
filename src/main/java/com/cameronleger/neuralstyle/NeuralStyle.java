@@ -4,7 +4,6 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NeuralStyle {
@@ -16,7 +15,7 @@ public class NeuralStyle {
     private File outputFolder;
     private int iterations = 1000;
     private int iterationsPrint = 10;
-    private int iterationsSave = 100;
+    private int iterationsSave = 15;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -114,17 +113,20 @@ public class NeuralStyle {
     }
 
     public File[] getOutputImageIterations() {
-        log.log(Level.FINE, "Checking for image iterations.");
-        File outputFolder = getOutputFolder();
+        // Unix-like searching for image iterations
         String outputImageBase = FileUtils.getFileName(getOutputImage());
-        log.log(Level.FINE, "Output folder:" + outputFolder);
-        log.log(Level.FINE, "Image output basename:" + outputImageBase);
-        log.log(Level.FINE, "Wildcard filter:" +
-                String.format("%s_*.jpg", new File(outputFolder, outputImageBase).getAbsolutePath()));
+        FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.jpg", outputImageBase));
+        File[] files = getOutputFolder().listFiles(fileFilter);
 
-        FileFilter fileFilter = new WildcardFileFilter(
-                String.format("%s_*.jpg", new File(outputFolder, outputImageBase).getAbsolutePath()));
-        return outputFolder.listFiles(fileFilter);
+        // sort the files by the iteration progress
+        if (files != null && files.length > 1) {
+            int[] fileIters = new int[files.length];
+            for (int i = 0; i < files.length; i++)
+                fileIters[i] = FileUtils.parseImageIteration(files[i]);
+            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
+        }
+
+        return files;
     }
 
     public String[] buildCommand() {

@@ -15,11 +15,14 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.reactfx.EventStreams;
+import org.reactfx.util.FxTimer;
+import org.reactfx.util.Timer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +33,7 @@ public class MainController implements Initializable {
     private NeuralStyle neuralStyle = new NeuralStyle();
     private Stage stage;
     private ResourceBundle bundle;
+    private Timer imageTimer;
 
     @FXML
     private TextField stylePath;
@@ -87,6 +91,8 @@ public class MainController implements Initializable {
         setupServiceListeners();
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
+        log.log(Level.FINER, "Setting image timer.");
+        setupImageTimer();
 
         // TODO: Temporary time saver
         setStyleFile(new File("/home/cameron/input/75171b3cdec4b3727d8e71f68434c084.jpg"));
@@ -99,9 +105,24 @@ public class MainController implements Initializable {
         this.stage = stage;
     }
 
+    void startService() {
+        if (!neuralService.isRunning()) {
+            log.log(Level.FINE, "Starting neural service.");
+            neuralStyle.generateUniqueText();
+            neuralService.setNeuralStyle(neuralStyle);
+            logTextArea.clear();
+            neuralService.reset();
+            neuralService.start();
+            imageTimer.restart();
+        }
+    }
+
     void stopService() {
-        if (neuralService.isRunning())
+        if (neuralService.isRunning()) {
+            log.log(Level.FINE, "Cancelling neural service.");
             neuralService.cancel();
+            imageTimer.stop();
+        }
     }
 
     private void toggleStartButton() {
@@ -180,23 +201,13 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Start listener.");
         EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Start button hit.");
-            if (!neuralService.isRunning()) {
-                log.log(Level.FINE, "Starting neural service.");
-                neuralStyle.generateUniqueText();
-                neuralService.setNeuralStyle(neuralStyle);
-                logTextArea.clear();
-                neuralService.reset();
-                neuralService.start();
-            }
+            startService();
         });
 
         log.log(Level.FINER, "Setting Stop listener.");
         EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Stop button hit.");
-            if (neuralService.isRunning()) {
-                log.log(Level.FINE, "Cancelling neural service.");
-                neuralService.cancel();
-            }
+            stopService();
         });
     }
 
@@ -233,18 +244,21 @@ public class MainController implements Initializable {
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         progress.setProgress(100);
+                        imageTimer.stop();
                         break;
                     case CANCELLED:
                         log.log(Level.FINER, "Neural service: Cancelled.");
                         statusLabel.setText("Cancelled");
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
+                        imageTimer.stop();
                         break;
                     case FAILED:
                         log.log(Level.FINER, "Neural service: Failed.");
                         statusLabel.setText("Failed");
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
+                        imageTimer.stop();
                         break;
                 }
             }
@@ -262,6 +276,24 @@ public class MainController implements Initializable {
                 statusLabel.setEffect(highlighted);
             } else {
                 statusLabel.setEffect(null);
+            }
+        });
+    }
+
+    private void setupImageTimer() {
+        imageTimer = FxTimer.createPeriodic(Duration.ofSeconds(1), () -> {
+            log.log(Level.FINER, "Timer: checking service");
+            if (neuralService == null || !neuralService.isRunning())
+                return;
+            NeuralStyle neuralStyle = neuralService.getNeuralStyle();
+            if (neuralStyle == null)
+                return;
+
+            log.log(Level.FINER, "Timer: checking images");
+            // Check for generated image iterations to show
+            File[] images = neuralStyle.getOutputImageIterations();
+            if (images != null && images.length > 0) {
+                setImageView(images[images.length - 1]);
             }
         });
     }

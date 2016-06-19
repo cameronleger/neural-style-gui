@@ -99,13 +99,6 @@ class NeuralService extends Service {
                                 updateProgress(progress, total);
                             }
 
-                            // TODO: Setup timer in app to check this instead
-                            // Check for generated image iterations to show
-                            File[] imageIters = neuralStyleForTask.getOutputImageIterations();
-                            if (imageIters != null)
-                                for (File file : imageIters)
-                                        log.log(Level.FINE, String.format("Possible image to show: %s", file));
-
                             // Kill the task if stopped by user
                             if (isCancelled()) {
                                 p.destroy();
