@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
@@ -9,7 +10,6 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -26,56 +26,57 @@
             <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="20.0" />
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
         </rowConstraints>
          <children>
-            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%iterationsLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647">
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%itersLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647">
                <font>
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <Label text="%iterationsPrintLabel" GridPane.rowIndex="1" />
+            <Label text="%itersPrintLabel" GridPane.rowIndex="1" />
             <Slider fx:id="printIterSlider" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <TextField fx:id="printIterField" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-            <Label text="%iterationsSaveLabel" GridPane.rowIndex="2" />
+            <Label text="%itersSaveLabel" GridPane.rowIndex="2" />
             <Slider fx:id="saveIterSlider" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <TextField fx:id="saveIterField" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-            <Label text="%iterationsMaxLabel" GridPane.rowIndex="3" />
+            <Label text="%itersMaxLabel" GridPane.rowIndex="3" />
             <Slider fx:id="maxIterSlider" majorTickUnit="500.0" max="2500.0" min="1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1000.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             <TextField fx:id="maxIterField" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%sizeLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Label text="%sizeOutputLabel" GridPane.rowIndex="5" />
+            <Slider fx:id="outputSizeSlider" majorTickUnit="200.0" max="1000.0" min="0.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="500.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <TextField fx:id="outputSizeField" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+            <Label text="%sizeStyleLabel" GridPane.rowIndex="6" />
+            <Slider fx:id="styleSizeSlider" majorTickUnit="1.0" max="3.0" showTickMarks="true" snapToTicks="true" value="1.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <TextField fx:id="styleSizeField" GridPane.columnIndex="2" GridPane.rowIndex="6" />
          </children>
          <padding>
             <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
          </padding>
       </GridPane>
-      <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-         <center>
-            <ImageView fx:id="imageView" fitHeight="500.0" fitWidth="500.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
-               <BorderPane.margin>
-                  <Insets bottom="4.0" top="4.0" />
-               </BorderPane.margin>
-            </ImageView>
-         </center>
-         <bottom>
-            <VBox BorderPane.alignment="CENTER">
-               <children>
-                  <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" VBox.vgrow="NEVER">
-                     <VBox.margin>
-                        <Insets bottom="4.0" />
-                     </VBox.margin>
-                  </Label>
-                  <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" progress="0.0" />
-                  <TextArea fx:id="logTextArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" wrapText="true" VBox.vgrow="ALWAYS" />
-               </children>
-            </VBox>
-         </bottom>
-         <top>
-            <GridPane hgap="4.0" vgap="4.0" BorderPane.alignment="CENTER">
+      <VBox prefHeight="200.0" prefWidth="100.0">
+         <children>
+            <GridPane hgap="4.0" vgap="4.0" VBox.vgrow="NEVER">
               <columnConstraints>
                 <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" />
                 <ColumnConstraints hgrow="ALWAYS" />
@@ -105,10 +106,26 @@
                   </HBox>
                </children>
             </GridPane>
-         </top>
-         <padding>
-            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-         </padding>
-      </BorderPane>
+            <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+               <children>
+                  <ImageView fx:id="imageView" fitHeight="300.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" smooth="false" HBox.hgrow="ALWAYS">
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </children>
+               <VBox.margin>
+                  <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+               </VBox.margin>
+            </HBox>
+            <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" VBox.vgrow="NEVER">
+               <VBox.margin>
+                  <Insets bottom="4.0" />
+               </VBox.margin>
+            </Label>
+            <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" progress="0.0" VBox.vgrow="NEVER" />
+            <TextArea fx:id="logTextArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" wrapText="true" VBox.vgrow="NEVER" />
+         </children>
+      </VBox>
    </items>
 </SplitPane>

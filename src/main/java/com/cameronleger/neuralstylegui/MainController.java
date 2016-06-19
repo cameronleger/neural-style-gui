@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -61,6 +62,14 @@ public class MainController implements Initializable {
     private Slider maxIterSlider;
     @FXML
     private TextField maxIterField;
+    @FXML
+    private Slider styleSizeSlider;
+    @FXML
+    private TextField styleSizeField;
+    @FXML
+    private Slider outputSizeSlider;
+    @FXML
+    private TextField outputSizeField;
 
     @FXML
     private Button startButton;
@@ -69,6 +78,9 @@ public class MainController implements Initializable {
 
     @FXML
     private ImageView imageView;
+    private MovingImageView outputImageView;
+    @FXML
+    private HBox imageViewSizer;
 
     @FXML
     private ProgressBar progress;
@@ -98,15 +110,21 @@ public class MainController implements Initializable {
         assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
         assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
         assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
+        assert styleSizeSlider != null : "fx:id=\"styleSizeSlider\" was not injected.";
+        assert styleSizeField != null : "fx:id=\"styleSizeField\" was not injected.";
+        assert outputSizeSlider != null : "fx:id=\"outputSizeSlider\" was not injected.";
+        assert outputSizeField != null : "fx:id=\"outputSizeField\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
+        assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
         assert progress != null : "fx:id=\"progress\" was not injected.";
         assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
         log.log(Level.FINER, "All FXML items were injected.");
 
         bundle = resources;
+        outputImageView = new MovingImageView(imageView);
 
         log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
@@ -114,10 +132,10 @@ public class MainController implements Initializable {
         setupFieldListeners();
         log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
+        log.log(Level.FINER, "Setting image listeners.");
+        setupImageListeners();
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
-        log.log(Level.FINER, "Setting image timer.");
-        setupImageTimer();
 
         // TODO: Temporary time saver
         setStyleFile(new File("/home/cameron/input/75171b3cdec4b3727d8e71f68434c084.jpg"));
@@ -160,7 +178,7 @@ public class MainController implements Initializable {
 
     private void setImageView(File styleFile) {
         try {
-            imageView.setImage(new Image(new FileInputStream(styleFile)));
+            outputImageView.setImage(new Image(new FileInputStream(styleFile)));
         } catch (FileNotFoundException e) {
             log.log(Level.SEVERE, e.toString(), e);
         }
@@ -226,6 +244,7 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Start listener.");
         EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Start button hit.");
+            outputImageView.reset();
             startService();
         });
 
@@ -253,6 +272,21 @@ public class MainController implements Initializable {
                 }
             }
         };
+        StringConverter<Number> doubleConverter = new StringConverter<Number>() {
+            @Override
+            public String toString(Number t) {
+                return String.valueOf(t.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                try {
+                    return Double.parseDouble(string);
+                } catch (Exception e) {
+                    return 0;
+                }
+            }
+        };
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
@@ -268,6 +302,16 @@ public class MainController implements Initializable {
         maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
         EventStreams.changesOf(maxIterSlider.valueProperty())
                 .subscribe(numberChange -> neuralStyle.setIterations(numberChange.getNewValue().intValue()));
+
+        // keep output size slider and text field synced and the slider updates the style
+        outputSizeField.textProperty().bindBidirectional(outputSizeSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(outputSizeSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setOutputSize(numberChange.getNewValue().intValue()));
+
+        // keep style size slider and text field synced and the slider updates the style
+        styleSizeField.textProperty().bindBidirectional(styleSizeSlider.valueProperty(), doubleConverter);
+        EventStreams.changesOf(styleSizeSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setStyleSize(numberChange.getNewValue().doubleValue()));
     }
 
     private void setupServiceListeners() {
@@ -339,8 +383,12 @@ public class MainController implements Initializable {
         });
     }
 
-    private void setupImageTimer() {
-        imageTimer = FxTimer.createPeriodic(Duration.ofSeconds(1), () -> {
+    private void setupImageListeners() {
+        imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
+        imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
+
+        log.log(Level.FINER, "Setting image timer.");
+        imageTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
             log.log(Level.FINER, "Timer: checking service");
             if (neuralService == null || !neuralService.isRunning())
                 return;

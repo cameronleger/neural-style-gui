@@ -16,6 +16,8 @@ public class NeuralStyle {
     private int iterations = 1000;
     private int iterationsPrint = 10;
     private int iterationsSave = 10;
+    private int outputSize = 500;
+    private double styleSize = 1.0;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -86,6 +88,22 @@ public class NeuralStyle {
         this.iterationsSave = iterationsSave;
     }
 
+    public int getOutputSize() {
+        return outputSize;
+    }
+
+    public void setOutputSize(int outputSize) {
+        this.outputSize = outputSize;
+    }
+
+    public double getStyleSize() {
+        return styleSize;
+    }
+
+    public void setStyleSize(double styleSize) {
+        this.styleSize = styleSize;
+    }
+
     public void generateUniqueText() {
         uniqueText = String.valueOf(System.nanoTime());
     }
@@ -144,7 +162,11 @@ public class NeuralStyle {
                 "-save_iter",
                 String.valueOf(getIterationsSave()),
                 "-num_iterations",
-                String.valueOf(getIterations())
+                String.valueOf(getIterations()),
+                "-image_size",
+                String.valueOf(getOutputSize()),
+                "-style_scale",
+                String.valueOf(getStyleSize())
         };
     }
 }
