@@ -1,15 +1,23 @@
 package com.cameronleger.neuralstyle;
 
-import java.io.BufferedReader;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+
 import java.io.File;
-import java.io.InputStreamReader;
+import java.io.FileFilter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NeuralStyle {
+    private static final Logger log = Logger.getLogger(NeuralStyle.class.getName());
     private static String executable = "th";
     private static File neuralStylePath = new File("/home/cameron/neural-style");
     private File styleImage;
     private File contentImage;
     private File outputFolder;
+    private int iterations = 1000;
+    private int iterationsPrint = 10;
+    private int iterationsSave = 100;
+    private String uniqueText;
 
     public static String getExecutable() {
         return executable;
@@ -43,28 +51,80 @@ public class NeuralStyle {
         this.contentImage = contentImage;
     }
 
-    public File getOutputFolder() {
+    public File getGeneralOutputFolder() {
         return outputFolder;
+    }
+
+    public File getOutputFolder() {
+        return new File(getGeneralOutputFolder(), FileUtils.getFileName(getStyleImage()));
     }
 
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
     }
 
+    public int getIterations() {
+        return iterations;
+    }
+
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
+    }
+
+    public int getIterationsPrint() {
+        return iterationsPrint;
+    }
+
+    public void setIterationsPrint(int iterationsPrint) {
+        this.iterationsPrint = iterationsPrint;
+    }
+
+    public int getIterationsSave() {
+        return iterationsSave;
+    }
+
+    public void setIterationsSave(int iterationsSave) {
+        this.iterationsSave = iterationsSave;
+    }
+
+    public void generateUniqueText() {
+        uniqueText = String.valueOf(System.nanoTime());
+    }
+
+    private String getUniqueText() {
+        if (uniqueText == null)
+            generateUniqueText();
+        return uniqueText;
+    }
+
     public boolean checkArguments() {
         return FileUtils.checkFileExists(getStyleImage()) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
-                FileUtils.checkFolderExists(getOutputFolder());
+                FileUtils.checkFolderExists(getGeneralOutputFolder());
     }
 
     public File getOutputImage() {
         if (!checkArguments())
             return null;
-        File styleOutputFolder = new File(getOutputFolder(), FileUtils.getFileName(getStyleImage()));
+        File styleOutputFolder = getOutputFolder();
         if (!styleOutputFolder.exists() && !styleOutputFolder.mkdir())
             return null;
-        return new File(styleOutputFolder, FileUtils.getFileName(getContentImage()) + ".jpg");
+        return new File(styleOutputFolder, FileUtils.getFileName(getContentImage()) + "_u" + getUniqueText() + ".jpg");
+    }
+
+    public File[] getOutputImageIterations() {
+        log.log(Level.FINE, "Checking for image iterations.");
+        File outputFolder = getOutputFolder();
+        String outputImageBase = FileUtils.getFileName(getOutputImage());
+        log.log(Level.FINE, "Output folder:" + outputFolder);
+        log.log(Level.FINE, "Image output basename:" + outputImageBase);
+        log.log(Level.FINE, "Wildcard filter:" +
+                String.format("%s_*.jpg", new File(outputFolder, outputImageBase).getAbsolutePath()));
+
+        FileFilter fileFilter = new WildcardFileFilter(
+                String.format("%s_*.jpg", new File(outputFolder, outputImageBase).getAbsolutePath()));
+        return outputFolder.listFiles(fileFilter);
     }
 
     public String[] buildCommand() {
@@ -76,7 +136,13 @@ public class NeuralStyle {
                 "-content_image",
                 getContentImage().getAbsolutePath(),
                 "-output_image",
-                getOutputImage().getAbsolutePath()
+                getOutputImage().getAbsolutePath(),
+                "-print_iter",
+                String.valueOf(getIterationsPrint()),
+                "-save_iter",
+                String.valueOf(getIterationsSave()),
+                "-num_iterations",
+                String.valueOf(getIterations())
         };
     }
 }

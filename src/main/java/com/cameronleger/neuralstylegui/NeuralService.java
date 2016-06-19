@@ -6,20 +6,19 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class NeuralService extends Service {
     private static final Logger log = Logger.getLogger(NeuralService.class.getName());
+    private static final Pattern iterationPattern = Pattern.compile("Iteration (\\d+) / (\\d+)");
     private NeuralStyle neuralStyle;
-
-    NeuralService() {
-        // only allow one of these to run at a time
-//        setExecutor(Executors.newSingleThreadExecutor(Thread::new));
-    }
 
     NeuralStyle getNeuralStyle() {
         return neuralStyle;
@@ -33,8 +32,28 @@ class NeuralService extends Service {
         log.addHandler(handler);
     }
 
+    private static int parseIterationProgress(String logLine) {
+        int progress = -1;
+        if (logLine == null)
+            return progress;
+        Matcher matcher = iterationPattern.matcher(logLine);
+        if (matcher.matches())
+            progress = Integer.parseInt(matcher.group(1));
+        return progress;
+    }
+
+    private static int parseIterationTotal(String logLine) {
+        int total = -1;
+        if (logLine == null)
+            return total;
+        Matcher matcher = iterationPattern.matcher(logLine);
+        if (matcher.matches())
+            total = Integer.parseInt(matcher.group(2));
+        return total;
+    }
+
     @Override
-    protected Task<Image> createTask() {
+    protected Task<File> createTask() {
         log.log(Level.FINE, "Getting neural style for task.");
         final NeuralStyle neuralStyleForTask = getNeuralStyle();
 
@@ -50,8 +69,8 @@ class NeuralService extends Service {
         for (String buildCommandPart : buildCommand)
             log.log(Level.FINE, buildCommandPart);
 
-        return new Task<Image>() {
-            @Override protected Image call() throws InterruptedException {
+        return new Task<File>() {
+            @Override protected File call() throws InterruptedException {
                 updateMessage("Starting neural-style.");
                 log.log(Level.FINE, "Starting neural-style process.");
 
@@ -68,7 +87,26 @@ class NeuralService extends Service {
                     log.log(Level.FINE, "Gathering input.");
                     try {
                         while ((line = input.readLine()) != null) {
+                            // Log progress
                             log.log(Level.INFO, line);
+
+                            // Check for an iteration progress update
+                            int progress = parseIterationProgress(line.trim());
+                            if (progress != -1) {
+                                int total = parseIterationTotal(line.trim());
+                                if (total <= 0)
+                                    total = neuralStyleForTask.getIterations();
+                                updateProgress(progress, total);
+                            }
+
+                            // TODO: Setup timer in app to check this instead
+                            // Check for generated image iterations to show
+                            File[] imageIters = neuralStyleForTask.getOutputImageIterations();
+                            if (imageIters != null)
+                                for (File file : imageIters)
+                                        log.log(Level.FINE, String.format("Possible image to show: %s", file));
+
+                            // Kill the task if stopped by user
                             if (isCancelled()) {
                                 p.destroy();
                                 return null;
@@ -80,23 +118,14 @@ class NeuralService extends Service {
                     }
 
                     exitCode = p.waitFor();
-                    log.log(Level.FINE, "Neural-style process exit code: " + String.valueOf(exitCode));
+                    log.log(Level.FINE, String.format("Neural-style process exit code: %s", exitCode));
                 } catch (Exception e) {
                     log.log(Level.SEVERE, e.toString(), e);
                 }
 
                 if (exitCode != 1)
                     throw new RuntimeException("Exit Code: " + String.valueOf(exitCode));
-                return null;
-
-//                updateProgress(0, 10);
-//                for (int i = 0; i < 10; i++) {
-//                    if (isCancelled())
-//                        break;
-//                    Thread.sleep(300);
-//                    updateProgress(i + 1, 10);
-//                }
-//                return null;
+                return neuralStyleForTask.getOutputImage();
             }
 
             @Override protected void succeeded() {

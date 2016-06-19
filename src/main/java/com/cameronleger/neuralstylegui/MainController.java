@@ -7,10 +7,7 @@ import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -53,6 +50,8 @@ public class MainController implements Initializable {
     @FXML
     private ImageView imageView;
     @FXML
+    private ProgressBar progress;
+    @FXML
     private Label statusLabel;
     @FXML
     private TextArea logTextArea;
@@ -76,6 +75,7 @@ public class MainController implements Initializable {
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
+        assert progress != null : "fx:id=\"progress\" was not injected.";
         assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
         log.log(Level.FINER, "All FXML items were injected.");
 
@@ -87,6 +87,12 @@ public class MainController implements Initializable {
         setupServiceListeners();
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
+
+        // TODO: Temporary time saver
+        setStyleFile(new File("/home/cameron/input/75171b3cdec4b3727d8e71f68434c084.jpg"));
+        setContentFile(new File("/home/cameron/input/cloudy.jpg"));
+        setOutputFolder(new File("/home/cameron/output/TESTING"));
+        toggleStartButton();
     }
 
     void setStage(Stage stage) {
@@ -94,7 +100,8 @@ public class MainController implements Initializable {
     }
 
     void stopService() {
-        neuralService.cancel();
+        if (neuralService.isRunning())
+            neuralService.cancel();
     }
 
     private void toggleStartButton() {
@@ -105,6 +112,32 @@ public class MainController implements Initializable {
         }
     }
 
+    private void setImageView(File styleFile) {
+        try {
+            imageView.setImage(new Image(new FileInputStream(styleFile)));
+        } catch (FileNotFoundException e) {
+            log.log(Level.SEVERE, e.toString(), e);
+        }
+    }
+
+    private void setStyleFile(File styleFile) {
+        neuralStyle.setStyleImage(styleFile);
+        stylePath.setText(styleFile.getAbsolutePath());
+        imageFileChooser.setInitialDirectory(styleFile.getParentFile());
+    }
+
+    private void setContentFile(File contentFile) {
+        neuralStyle.setContentImage(contentFile);
+        contentPath.setText(contentFile.getAbsolutePath());
+        imageFileChooser.setInitialDirectory(contentFile.getParentFile());
+    }
+
+    private void setOutputFolder(File outputFolder) {
+        neuralStyle.setOutputFolder(outputFolder);
+        outputPath.setText(outputFolder.getAbsolutePath());
+        directoryChooser.setInitialDirectory(outputFolder);
+    }
+
     private void setupButtonListeners() {
         log.log(Level.FINER, "Setting Style File listener.");
         EventStreams.eventsOf(styleFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
@@ -113,16 +146,8 @@ public class MainController implements Initializable {
             File styleFile = imageFileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
-                neuralStyle.setStyleImage(styleFile);
-                stylePath.setText(styleFile.getAbsolutePath());
-                imageFileChooser.setInitialDirectory(styleFile.getParentFile());
-
-                try {
-                    imageView.setImage(new Image(new FileInputStream(styleFile)));
-                } catch (FileNotFoundException e) {
-                    log.log(Level.SEVERE, e.toString(), e);
-                }
-
+                setStyleFile(styleFile);
+                setImageView(styleFile);
                 toggleStartButton();
             }
         });
@@ -134,10 +159,8 @@ public class MainController implements Initializable {
             File contentFile = imageFileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Content file chosen: {0}", contentFile);
             if (contentFile != null) {
-                neuralStyle.setContentImage(contentFile);
-                contentPath.setText(contentFile.getAbsolutePath());
-                imageFileChooser.setInitialDirectory(contentFile.getParentFile());
-
+                setContentFile(contentFile);
+                setImageView(contentFile);
                 toggleStartButton();
             }
         });
@@ -149,10 +172,7 @@ public class MainController implements Initializable {
             File outputFolder = directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Output folder chosen: {0}", outputFolder);
             if (outputFolder != null) {
-                neuralStyle.setOutputFolder(outputFolder);
-                outputPath.setText(outputFolder.getAbsolutePath());
-                directoryChooser.setInitialDirectory(outputFolder);
-
+                setOutputFolder(outputFolder);
                 toggleStartButton();
             }
         });
@@ -160,9 +180,10 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Start listener.");
         EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Start button hit.");
-            neuralService.setNeuralStyle(neuralStyle);
             if (!neuralService.isRunning()) {
                 log.log(Level.FINE, "Starting neural service.");
+                neuralStyle.generateUniqueText();
+                neuralService.setNeuralStyle(neuralStyle);
                 logTextArea.clear();
                 neuralService.reset();
                 neuralService.start();
@@ -172,9 +193,10 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Stop listener.");
         EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Stop button hit.");
-            if (neuralService.isRunning())
+            if (neuralService.isRunning()) {
                 log.log(Level.FINE, "Cancelling neural service.");
                 neuralService.cancel();
+            }
         });
     }
 
@@ -191,6 +213,7 @@ public class MainController implements Initializable {
                         statusLabel.setText("Scheduled");
                         startButton.setDisable(true);
                         stopButton.setDisable(false);
+                        progress.setProgress(0);
                         break;
                     case READY:
                         log.log(Level.FINER, "Neural service: Ready.");
@@ -209,6 +232,7 @@ public class MainController implements Initializable {
                         statusLabel.setText("Finished");
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
+                        progress.setProgress(100);
                         break;
                     case CANCELLED:
                         log.log(Level.FINER, "Neural service: Cancelled.");
@@ -224,6 +248,11 @@ public class MainController implements Initializable {
                         break;
                 }
             }
+        });
+
+        log.log(Level.FINER, "Setting progress listener.");
+        neuralService.progressProperty().addListener((observable, oldValue, newValue) -> {
+            progress.setProgress(newValue.doubleValue());
         });
 
         log.log(Level.FINER, "Setting running listener.");
