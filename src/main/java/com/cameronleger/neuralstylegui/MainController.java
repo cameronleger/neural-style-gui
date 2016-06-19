@@ -14,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.reactfx.EventStreams;
 import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
@@ -47,12 +48,28 @@ public class MainController implements Initializable {
     private Button contentFileButton;
     @FXML
     private Button outputFolderButton;
+
+    @FXML
+    private Slider printIterSlider;
+    @FXML
+    private TextField printIterField;
+    @FXML
+    private Slider saveIterSlider;
+    @FXML
+    private TextField saveIterField;
+    @FXML
+    private Slider maxIterSlider;
+    @FXML
+    private TextField maxIterField;
+
     @FXML
     private Button startButton;
     @FXML
     private Button stopButton;
+
     @FXML
     private ImageView imageView;
+
     @FXML
     private ProgressBar progress;
     @FXML
@@ -75,6 +92,12 @@ public class MainController implements Initializable {
         assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
         assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
+        assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
+        assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
+        assert saveIterSlider != null : "fx:id=\"saveIterSlider\" was not injected.";
+        assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
+        assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
+        assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
@@ -87,6 +110,8 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
+        log.log(Level.FINER, "Setting field listeners.");
+        setupFieldListeners();
         log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
         log.log(Level.FINER, "Setting neural service log handler.");
@@ -209,6 +234,40 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Stop button hit.");
             stopService();
         });
+    }
+
+    private void setupFieldListeners() {
+        // useful to keep sliders synced to text fields
+        StringConverter<Number> intConverter = new StringConverter<Number>() {
+            @Override
+            public String toString(Number t) {
+                return String.valueOf(t.intValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                try {
+                    return Integer.parseInt(string);
+                } catch (Exception e) {
+                    return 0;
+                }
+            }
+        };
+
+        // keep print slider and text field synced and the slider updates the style
+        printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(printIterSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setIterationsPrint(numberChange.getNewValue().intValue()));
+
+        // keep save slider and text field synced and the slider updates the style
+        saveIterField.textProperty().bindBidirectional(saveIterSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(saveIterSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setIterationsSave(numberChange.getNewValue().intValue()));
+
+        // keep max slider and text field synced and the slider updates the style
+        maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(maxIterSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setIterations(numberChange.getNewValue().intValue()));
     }
 
     private void setupServiceListeners() {

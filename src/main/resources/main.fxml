@@ -15,24 +15,39 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<SplitPane dividerPositions="0.3183475091130012" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
+<SplitPane dividerPositions="0.25" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
       <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
         <columnConstraints>
-          <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="30.0" />
+          <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
           <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
-            <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="30.0" />
+            <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="20.0" />
         </columnConstraints>
         <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
         </rowConstraints>
          <children>
-            <Label text="Label" />
-            <Slider GridPane.columnIndex="1" />
-            <TextField GridPane.columnIndex="2" />
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%iterationsLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Label text="%iterationsPrintLabel" GridPane.rowIndex="1" />
+            <Slider fx:id="printIterSlider" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField fx:id="printIterField" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Label text="%iterationsSaveLabel" GridPane.rowIndex="2" />
+            <Slider fx:id="saveIterSlider" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <TextField fx:id="saveIterField" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <Label text="%iterationsMaxLabel" GridPane.rowIndex="3" />
+            <Slider fx:id="maxIterSlider" majorTickUnit="500.0" max="2500.0" min="1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1000.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <TextField fx:id="maxIterField" GridPane.columnIndex="2" GridPane.rowIndex="3" />
          </children>
          <padding>
             <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />

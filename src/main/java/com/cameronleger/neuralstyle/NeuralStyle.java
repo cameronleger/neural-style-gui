@@ -15,7 +15,7 @@ public class NeuralStyle {
     private File outputFolder;
     private int iterations = 1000;
     private int iterationsPrint = 10;
-    private int iterationsSave = 15;
+    private int iterationsSave = 10;
     private String uniqueText;
 
     public static String getExecutable() {

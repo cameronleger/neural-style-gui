@@ -1,6 +1,5 @@
 package com.cameronleger.neuralstylegui;
 
-import com.cameronleger.neuralstyle.Image;
 import com.cameronleger.neuralstyle.NeuralStyle;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
