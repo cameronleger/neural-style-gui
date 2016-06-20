@@ -70,6 +70,18 @@ public class MainController implements Initializable {
     private Slider outputSizeSlider;
     @FXML
     private TextField outputSizeField;
+    @FXML
+    private Slider styleWeightSlider;
+    @FXML
+    private TextField styleWeightField;
+    @FXML
+    private Slider contentWeightSlider;
+    @FXML
+    private TextField contentWeightField;
+    @FXML
+    private Slider tvWeightSlider;
+    @FXML
+    private TextField tvWeightField;
 
     @FXML
     private Button startButton;
@@ -98,30 +110,7 @@ public class MainController implements Initializable {
 
     public void initialize(URL location, ResourceBundle resources) {
         log.log(Level.FINER, "Checking that all FXML items were injected.");
-        assert stylePath != null : "fx:id=\"stylePath\" was not injected.";
-        assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
-        assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
-        assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
-        assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
-        assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
-        assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
-        assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
-        assert saveIterSlider != null : "fx:id=\"saveIterSlider\" was not injected.";
-        assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
-        assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
-        assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
-        assert styleSizeSlider != null : "fx:id=\"styleSizeSlider\" was not injected.";
-        assert styleSizeField != null : "fx:id=\"styleSizeField\" was not injected.";
-        assert outputSizeSlider != null : "fx:id=\"outputSizeSlider\" was not injected.";
-        assert outputSizeField != null : "fx:id=\"outputSizeField\" was not injected.";
-        assert startButton != null : "fx:id=\"startButton\" was not injected.";
-        assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
-        assert imageView != null : "fx:id=\"imageView\" was not injected.";
-        assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
-        assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
-        assert progress != null : "fx:id=\"progress\" was not injected.";
-        assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
-        log.log(Level.FINER, "All FXML items were injected.");
+        checkInjections();
 
         bundle = resources;
         outputImageView = new MovingImageView(imageView);
@@ -200,6 +189,39 @@ public class MainController implements Initializable {
         neuralStyle.setOutputFolder(outputFolder);
         outputPath.setText(outputFolder.getAbsolutePath());
         directoryChooser.setInitialDirectory(outputFolder);
+    }
+
+    private void checkInjections() {
+        assert stylePath != null : "fx:id=\"stylePath\" was not injected.";
+        assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
+        assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
+        assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
+        assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
+        assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
+        assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
+        assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
+        assert saveIterSlider != null : "fx:id=\"saveIterSlider\" was not injected.";
+        assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
+        assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
+        assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
+        assert styleSizeSlider != null : "fx:id=\"styleSizeSlider\" was not injected.";
+        assert styleSizeField != null : "fx:id=\"styleSizeField\" was not injected.";
+        assert outputSizeSlider != null : "fx:id=\"outputSizeSlider\" was not injected.";
+        assert outputSizeField != null : "fx:id=\"outputSizeField\" was not injected.";
+        assert styleWeightSlider != null : "fx:id=\"styleWeightSlider\" was not injected.";
+        assert styleWeightField != null : "fx:id=\"styleWeightField\" was not injected.";
+        assert contentWeightSlider != null : "fx:id=\"contentWeightSlider\" was not injected.";
+        assert contentWeightField != null : "fx:id=\"contentWeightField\" was not injected.";
+        assert tvWeightSlider != null : "fx:id=\"tvWeightSlider\" was not injected.";
+        assert tvWeightField != null : "fx:id=\"tvWeightField\" was not injected.";
+        assert startButton != null : "fx:id=\"startButton\" was not injected.";
+        assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
+        assert imageView != null : "fx:id=\"imageView\" was not injected.";
+        assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
+        assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
+        assert progress != null : "fx:id=\"progress\" was not injected.";
+        assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
+        log.log(Level.FINER, "All FXML items were injected.");
     }
 
     private void setupButtonListeners() {
@@ -312,6 +334,21 @@ public class MainController implements Initializable {
         styleSizeField.textProperty().bindBidirectional(styleSizeSlider.valueProperty(), doubleConverter);
         EventStreams.changesOf(styleSizeSlider.valueProperty())
                 .subscribe(numberChange -> neuralStyle.setStyleSize(numberChange.getNewValue().doubleValue()));
+
+        // keep output weight slider and text field synced and the slider updates the style
+        contentWeightField.textProperty().bindBidirectional(contentWeightSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(contentWeightSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setContentWeight(numberChange.getNewValue().intValue()));
+
+        // keep style weight slider and text field synced and the slider updates the style
+        styleWeightField.textProperty().bindBidirectional(styleWeightSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(styleWeightSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setStyleWeight(numberChange.getNewValue().intValue()));
+
+        // keep TV weight slider and text field synced and the slider updates the style
+        tvWeightField.textProperty().bindBidirectional(tvWeightSlider.valueProperty(), doubleConverter);
+        EventStreams.changesOf(tvWeightSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setTvWeight(numberChange.getNewValue().doubleValue()));
     }
 
     private void setupServiceListeners() {

@@ -18,6 +18,9 @@ public class NeuralStyle {
     private int iterationsSave = 10;
     private int outputSize = 500;
     private double styleSize = 1.0;
+    private int contentWeight = 5;
+    private int styleWeight = 100;
+    private double tvWeight = 0.001;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -104,6 +107,30 @@ public class NeuralStyle {
         this.styleSize = styleSize;
     }
 
+    public int getContentWeight() {
+        return contentWeight;
+    }
+
+    public void setContentWeight(int contentWeight) {
+        this.contentWeight = contentWeight;
+    }
+
+    public int getStyleWeight() {
+        return styleWeight;
+    }
+
+    public void setStyleWeight(int styleWeight) {
+        this.styleWeight = styleWeight;
+    }
+
+    public double getTvWeight() {
+        return tvWeight;
+    }
+
+    public void setTvWeight(double tvWeight) {
+        this.tvWeight = tvWeight;
+    }
+
     public void generateUniqueText() {
         uniqueText = String.valueOf(System.nanoTime());
     }
@@ -166,7 +193,16 @@ public class NeuralStyle {
                 "-image_size",
                 String.valueOf(getOutputSize()),
                 "-style_scale",
-                String.valueOf(getStyleSize())
+                String.valueOf(getStyleSize()),
+                "-content_weight",
+                String.valueOf(getContentWeight()),
+                "-style_weight",
+                String.valueOf(getStyleWeight()),
+                "-tv_weight",
+                String.valueOf(getTvWeight()),
+                "-backend",
+                "cudnn",
+                "-cudnn_autotune"
         };
     }
 }

@@ -115,7 +115,7 @@ class NeuralService extends Service {
                     log.log(Level.SEVERE, e.toString(), e);
                 }
 
-                if (exitCode != 1)
+                if (exitCode != 0)
                     throw new RuntimeException("Exit Code: " + String.valueOf(exitCode));
                 return neuralStyleForTask.getOutputImage();
             }
