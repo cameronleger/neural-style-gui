@@ -4,6 +4,8 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class NeuralStyle {
@@ -21,6 +23,10 @@ public class NeuralStyle {
     private int contentWeight = 5;
     private int styleWeight = 100;
     private double tvWeight = 0.001;
+    private int originalColors = 0;
+    private String init = "image";
+    private String pooling = "max";
+    private boolean normalizeGradients = false;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -131,6 +137,38 @@ public class NeuralStyle {
         this.tvWeight = tvWeight;
     }
 
+    public int getOriginalColors() {
+        return originalColors;
+    }
+
+    public void setOriginalColors(int originalColors) {
+        this.originalColors = originalColors;
+    }
+
+    public String getInit() {
+        return init;
+    }
+
+    public void setInit(String init) {
+        this.init = init;
+    }
+
+    public String getPooling() {
+        return pooling;
+    }
+
+    public void setPooling(String pooling) {
+        this.pooling = pooling;
+    }
+
+    public boolean isNormalizeGradients() {
+        return normalizeGradients;
+    }
+
+    public void setNormalizeGradients(boolean normalizeGradients) {
+        this.normalizeGradients = normalizeGradients;
+    }
+
     public void generateUniqueText() {
         uniqueText = String.valueOf(System.nanoTime());
     }
@@ -175,34 +213,47 @@ public class NeuralStyle {
     }
 
     public String[] buildCommand() {
-        return new String[] {
-                getExecutable(),
-                "neural_style.lua",
-                "-style_image",
-                getStyleImage().getAbsolutePath(),
-                "-content_image",
-                getContentImage().getAbsolutePath(),
-                "-output_image",
-                getOutputImage().getAbsolutePath(),
-                "-print_iter",
-                String.valueOf(getIterationsPrint()),
-                "-save_iter",
-                String.valueOf(getIterationsSave()),
-                "-num_iterations",
-                String.valueOf(getIterations()),
-                "-image_size",
-                String.valueOf(getOutputSize()),
-                "-style_scale",
-                String.valueOf(getStyleSize()),
-                "-content_weight",
-                String.valueOf(getContentWeight()),
-                "-style_weight",
-                String.valueOf(getStyleWeight()),
-                "-tv_weight",
-                String.valueOf(getTvWeight()),
-                "-backend",
-                "cudnn",
-                "-cudnn_autotune"
-        };
+        ArrayList<String> commandList = new ArrayList<>(
+                Arrays.asList(new String[] {
+                        getExecutable(),
+                        "neural_style.lua",
+                        "-style_image",
+                        getStyleImage().getAbsolutePath(),
+                        "-content_image",
+                        getContentImage().getAbsolutePath(),
+                        "-output_image",
+                        getOutputImage().getAbsolutePath(),
+                        "-print_iter",
+                        String.valueOf(getIterationsPrint()),
+                        "-save_iter",
+                        String.valueOf(getIterationsSave()),
+                        "-num_iterations",
+                        String.valueOf(getIterations()),
+                        "-image_size",
+                        String.valueOf(getOutputSize()),
+                        "-style_scale",
+                        String.valueOf(getStyleSize()),
+                        "-content_weight",
+                        String.valueOf(getContentWeight()),
+                        "-style_weight",
+                        String.valueOf(getStyleWeight()),
+                        "-tv_weight",
+                        String.valueOf(getTvWeight()),
+                        "-original_colors",
+                        String.valueOf(getOriginalColors()),
+                        "-init",
+                        getInit(),
+                        "-pooling",
+                        getPooling(),
+                        "-backend",
+                        "cudnn",
+                        "-cudnn_autotune"
+                }));
+
+        if(isNormalizeGradients())
+            commandList.add("-normalize_gradients");
+
+        String[] command = new String[commandList.size()];
+        return commandList.toArray(command);
     }
 }

@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Slider?>
@@ -35,11 +39,13 @@
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
@@ -134,6 +140,38 @@
                <tooltip>
                   <Tooltip text="%weightTvTooltip" />
                </tooltip></TextField>
+            <Label text="%initLabel" GridPane.rowIndex="11" />
+            <ChoiceBox fx:id="initChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="image" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="11">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="image" />
+                        <String fx:value="random" />
+                    </FXCollections>
+                </items>
+                <tooltip>
+                    <Tooltip text="%initTooltip" />
+                </tooltip></ChoiceBox>
+            <Label text="%poolingLabel" GridPane.rowIndex="12" />
+            <ChoiceBox fx:id="poolingChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="max" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="12">
+               <items>
+                  <FXCollections fx:factory="observableArrayList">
+                     <String fx:value="max" />
+                     <String fx:value="avg" />
+                  </FXCollections>
+               </items>
+               <tooltip>
+                  <Tooltip text="%poolingTooltip" />
+               </tooltip>
+            </ChoiceBox>
+            <CheckBox fx:id="originalColors" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13">
+                <tooltip>
+                    <Tooltip text="%originalColorsTooltip" />
+                </tooltip></CheckBox>
+            <CheckBox fx:id="normalizeGradients" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="14">
+               <tooltip>
+                  <Tooltip text="%normalizeGradientsTooltip" />
+               </tooltip>
+            </CheckBox>
          </children>
          <padding>
             <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -171,9 +209,9 @@
                   </HBox>
                </children>
             </GridPane>
-            <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+            <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="400.0" VBox.vgrow="ALWAYS">
                <children>
-                  <ImageView fx:id="imageView" fitHeight="300.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" smooth="false" HBox.hgrow="ALWAYS">
+                  <ImageView fx:id="imageView" fitHeight="400.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" smooth="false" HBox.hgrow="ALWAYS">
                      <viewport>
                         <Rectangle2D />
                      </viewport>

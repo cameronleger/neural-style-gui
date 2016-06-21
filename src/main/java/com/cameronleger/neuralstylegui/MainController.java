@@ -62,6 +62,7 @@ public class MainController implements Initializable {
     private Slider maxIterSlider;
     @FXML
     private TextField maxIterField;
+
     @FXML
     private Slider styleSizeSlider;
     @FXML
@@ -82,6 +83,14 @@ public class MainController implements Initializable {
     private Slider tvWeightSlider;
     @FXML
     private TextField tvWeightField;
+    @FXML
+    private ChoiceBox<String> initChoice;
+    @FXML
+    private ChoiceBox<String> poolingChoice;
+    @FXML
+    private CheckBox originalColors;
+    @FXML
+    private CheckBox normalizeGradients;
 
     @FXML
     private Button startButton;
@@ -214,6 +223,10 @@ public class MainController implements Initializable {
         assert contentWeightField != null : "fx:id=\"contentWeightField\" was not injected.";
         assert tvWeightSlider != null : "fx:id=\"tvWeightSlider\" was not injected.";
         assert tvWeightField != null : "fx:id=\"tvWeightField\" was not injected.";
+        assert initChoice != null : "fx:id=\"initChoice\" was not injected.";
+        assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
+        assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
+        assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
@@ -349,6 +362,26 @@ public class MainController implements Initializable {
         tvWeightField.textProperty().bindBidirectional(tvWeightSlider.valueProperty(), doubleConverter);
         EventStreams.changesOf(tvWeightSlider.valueProperty())
                 .subscribe(numberChange -> neuralStyle.setTvWeight(numberChange.getNewValue().doubleValue()));
+
+        // init choicebox updates the style
+        EventStreams.changesOf(initChoice.valueProperty())
+                .subscribe(stringChange -> neuralStyle.setInit(stringChange.getNewValue()));
+
+        // pooling choicebox updates the style
+        EventStreams.changesOf(poolingChoice.valueProperty())
+                .subscribe(stringChange -> neuralStyle.setPooling(stringChange.getNewValue()));
+
+        // original colors checkbox updates the style
+        EventStreams.changesOf(originalColors.selectedProperty()).subscribe(booleanChange -> {
+            if (booleanChange.getNewValue())
+                neuralStyle.setOriginalColors(1);
+            else
+                neuralStyle.setOriginalColors(0);
+        });
+
+        // normalize gradients checkbox updates the style
+        EventStreams.changesOf(normalizeGradients.selectedProperty())
+                .subscribe(booleanChange -> neuralStyle.setNormalizeGradients(booleanChange.getNewValue()));
     }
 
     private void setupServiceListeners() {
