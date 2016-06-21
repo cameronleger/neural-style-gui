@@ -93,6 +93,21 @@ public class MainController implements Initializable {
     private CheckBox normalizeGradients;
 
     @FXML
+    private Slider gpuSlider;
+    @FXML
+    private TextField gpuField;
+    @FXML
+    private ChoiceBox<String> optimizerChoice;
+    @FXML
+    private ChoiceBox<String> backendChoice;
+    @FXML
+    private Slider learningRateSlider;
+    @FXML
+    private TextField learningRateField;
+    @FXML
+    private CheckBox autotune;
+
+    @FXML
     private Button startButton;
     @FXML
     private Button stopButton;
@@ -227,6 +242,13 @@ public class MainController implements Initializable {
         assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
         assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
         assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
+        assert gpuSlider != null : "fx:id=\"gpuSlider\" was not injected.";
+        assert gpuField != null : "fx:id=\"gpuField\" was not injected.";
+        assert backendChoice != null : "fx:id=\"backendChoice\" was not injected.";
+        assert optimizerChoice != null : "fx:id=\"optimizerChoice\" was not injected.";
+        assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
+        assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
+        assert autotune != null : "fx:id=\"autotune\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
@@ -382,6 +404,46 @@ public class MainController implements Initializable {
         // normalize gradients checkbox updates the style
         EventStreams.changesOf(normalizeGradients.selectedProperty())
                 .subscribe(booleanChange -> neuralStyle.setNormalizeGradients(booleanChange.getNewValue()));
+
+        // keep gpu slider and text field synced and the slider updates the style
+        gpuField.textProperty().bindBidirectional(gpuSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(gpuSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setGpu(numberChange.getNewValue().intValue()));
+
+        // backend choicebox updates the style and toggles autotune
+        EventStreams.changesOf(backendChoice.valueProperty()).subscribe(stringChange -> {
+            String backend = stringChange.getNewValue();
+            neuralStyle.setBackend(backend);
+            if (backend.equalsIgnoreCase("cudnn")) {
+                autotune.setDisable(false);
+            } else {
+                autotune.setDisable(true);
+                autotune.setSelected(false);
+            }
+        });
+
+        // optimizer choicebox updates the style and toggles learning rate
+        EventStreams.changesOf(optimizerChoice.valueProperty()).subscribe(stringChange -> {
+            String optimizer = stringChange.getNewValue();
+            neuralStyle.setOptimizer(optimizer);
+            if (optimizer.equalsIgnoreCase("adam")) {
+                learningRateSlider.setDisable(false);
+                learningRateField.setDisable(false);
+            } else {
+                learningRateSlider.setDisable(true);
+                learningRateField.setDisable(true);
+                learningRateField.setText("10");
+            }
+        });
+
+        // keep learning rate slider and text field synced and the slider updates the style
+        learningRateField.textProperty().bindBidirectional(learningRateSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(learningRateSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setLearningRate(numberChange.getNewValue().intValue()));
+
+        // autotune checkbox updates the style
+        EventStreams.changesOf(autotune.selectedProperty())
+                .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange.getNewValue()));
     }
 
     private void setupServiceListeners() {

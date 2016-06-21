@@ -27,6 +27,11 @@ public class NeuralStyle {
     private String init = "image";
     private String pooling = "max";
     private boolean normalizeGradients = false;
+    private int gpu = 0;
+    private String backend = "nn";
+    private String optimizer = "lbfgs";
+    private int learningRate = 10;
+    private boolean autotune = false;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -169,6 +174,46 @@ public class NeuralStyle {
         this.normalizeGradients = normalizeGradients;
     }
 
+    public int getGpu() {
+        return gpu;
+    }
+
+    public void setGpu(int gpu) {
+        this.gpu = gpu;
+    }
+
+    public String getBackend() {
+        return backend;
+    }
+
+    public void setBackend(String backend) {
+        this.backend = backend;
+    }
+
+    public String getOptimizer() {
+        return optimizer;
+    }
+
+    public void setOptimizer(String optimizer) {
+        this.optimizer = optimizer;
+    }
+
+    public int getLearningRate() {
+        return learningRate;
+    }
+
+    public void setLearningRate(int learningRate) {
+        this.learningRate = learningRate;
+    }
+
+    public boolean isAutotune() {
+        return autotune;
+    }
+
+    public void setAutotune(boolean autotune) {
+        this.autotune = autotune;
+    }
+
     public void generateUniqueText() {
         uniqueText = String.valueOf(System.nanoTime());
     }
@@ -245,13 +290,21 @@ public class NeuralStyle {
                         getInit(),
                         "-pooling",
                         getPooling(),
+                        "-gpu",
+                        String.valueOf(getGpu()),
                         "-backend",
-                        "cudnn",
-                        "-cudnn_autotune"
+                        getBackend(),
+                        "-optimizer",
+                        getOptimizer(),
+                        "-learning_rate",
+                        String.valueOf(getLearningRate()),
                 }));
 
         if(isNormalizeGradients())
             commandList.add("-normalize_gradients");
+
+        if(isAutotune())
+            commandList.add("-cudnn_autotune");
 
         String[] command = new String[commandList.size()];
         return commandList.toArray(command);
