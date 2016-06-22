@@ -2,6 +2,7 @@ package com.cameronleger.neuralstylegui;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
@@ -10,12 +11,14 @@ import javafx.scene.image.ImageView;
 public class MovingImageView {
     private ImageView imageView;
     private double width, height;
-    private double[] scales = new double[] {0.25, 0.5, 1, 1.5, 2, 4};
-    private int scale = 2;
+    private double scale = 1;
 
     public MovingImageView(ImageView imageView) {
         this.imageView = imageView;
+        setupListeners();
+    }
 
+    private void setupListeners() {
         ObjectProperty<Point2D> mouseDown = new SimpleObjectProperty<>();
 
         imageView.setOnMousePressed(e -> {
@@ -31,22 +34,15 @@ public class MovingImageView {
 
         imageView.setOnScroll(e -> {
             if (e.getDeltaY() < 0)
-                scale = Math.min(scale + 1, scales.length - 1);
+                scale = Math.min(scale + 0.25, 3);
             else
-                scale = Math.max(scale - 1, 0);
-
-            double newWidth = width * scales[scale];
-            double newHeight = height * scales[scale];
-
-            double offsetX = (width - newWidth) / 2;
-            double offsetY = (height - newHeight) / 2;
-
-            imageView.setViewport(new Rectangle2D(offsetX, offsetY, newWidth, newHeight));
+                scale = Math.max(scale - 0.25, 0.25);
+            scaleImageViewport(scale);
         });
 
         imageView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
-                reset();
+                fitToView();
             }
         });
     }
@@ -56,12 +52,33 @@ public class MovingImageView {
         if (width != image.getWidth() || height != image.getHeight()) {
             width = image.getWidth();
             height = image.getHeight();
-            reset();
+            fitToView();
         }
     }
 
-    public void reset() {
-        imageView.setViewport(new Rectangle2D(0, 0, width, height));
+    public void fitToView() {
+        Bounds layoutBounds = imageView.getLayoutBounds();
+        if (width > height)
+            scale = width / layoutBounds.getWidth();
+        else
+            scale = height / layoutBounds.getHeight();
+        scaleImageViewport(scale);
+    }
+
+    public void scaleImageViewport(double scale) {
+        this.scale = scale;
+        Bounds layoutBounds = imageView.getLayoutBounds();
+        double layoutWidth = layoutBounds.getWidth();
+        double layoutHeight = layoutBounds.getHeight();
+
+        // center the image's x&y
+        double newWidth = layoutWidth * scale;
+        double newHeight = layoutHeight * scale;
+        double offsetX = (this.width - newWidth) / 2;
+        double offsetY = (this.height - newHeight) / 2;
+
+        imageView.setViewport(new Rectangle2D(offsetX, offsetY,
+                layoutWidth * scale, layoutHeight * scale));
     }
 
     private void shift(Point2D delta) {

@@ -18,11 +18,12 @@ public class NeuralStyle {
     private int iterations = 1000;
     private int iterationsPrint = 10;
     private int iterationsSave = 10;
+    private int seed = -1;
     private int outputSize = 500;
     private double styleSize = 1.0;
     private int contentWeight = 5;
     private int styleWeight = 100;
-    private double tvWeight = 0.001;
+    private double tvWeight = 0.0001;
     private int originalColors = 0;
     private String init = "image";
     private String pooling = "max";
@@ -100,6 +101,14 @@ public class NeuralStyle {
 
     public void setIterationsSave(int iterationsSave) {
         this.iterationsSave = iterationsSave;
+    }
+
+    public int getSeed() {
+        return seed;
+    }
+
+    public void setSeed(int seed) {
+        this.seed = seed;
     }
 
     public int getOutputSize() {
@@ -274,6 +283,8 @@ public class NeuralStyle {
                         String.valueOf(getIterationsSave()),
                         "-num_iterations",
                         String.valueOf(getIterations()),
+                        "-seed",
+                        String.valueOf(getSeed()),
                         "-image_size",
                         String.valueOf(getOutputSize()),
                         "-style_scale",

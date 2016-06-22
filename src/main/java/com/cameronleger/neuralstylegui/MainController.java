@@ -62,6 +62,10 @@ public class MainController implements Initializable {
     private Slider maxIterSlider;
     @FXML
     private TextField maxIterField;
+    @FXML
+    private Slider seedSlider;
+    @FXML
+    private TextField seedField;
 
     @FXML
     private Slider styleSizeSlider;
@@ -111,6 +115,10 @@ public class MainController implements Initializable {
     private Button startButton;
     @FXML
     private Button stopButton;
+    @FXML
+    private Button imageViewModeFit;
+    @FXML
+    private Button imageViewModeActual;
 
     @FXML
     private ImageView imageView;
@@ -228,6 +236,8 @@ public class MainController implements Initializable {
         assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
         assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
         assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
+        assert seedSlider != null : "fx:id=\"seedSlider\" was not injected.";
+        assert seedField != null : "fx:id=\"seedField\" was not injected.";
         assert styleSizeSlider != null : "fx:id=\"styleSizeSlider\" was not injected.";
         assert styleSizeField != null : "fx:id=\"styleSizeField\" was not injected.";
         assert outputSizeSlider != null : "fx:id=\"outputSizeSlider\" was not injected.";
@@ -251,6 +261,8 @@ public class MainController implements Initializable {
         assert autotune != null : "fx:id=\"autotune\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
+        assert imageViewModeFit != null : "fx:id=\"imageViewModeFit\" was not injected.";
+        assert imageViewModeActual != null : "fx:id=\"imageViewModeActual\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
         assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
@@ -301,7 +313,7 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Start listener.");
         EventStreams.eventsOf(startButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Start button hit.");
-            outputImageView.reset();
+            outputImageView.fitToView();
             startService();
         });
 
@@ -309,6 +321,16 @@ public class MainController implements Initializable {
         EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Stop button hit.");
             stopService();
+        });
+
+        log.log(Level.FINER, "Setting Fit View listener.");
+        EventStreams.eventsOf(imageViewModeFit, ActionEvent.ACTION).subscribe(actionEvent -> {
+            outputImageView.fitToView();
+        });
+
+        log.log(Level.FINER, "Setting Actual Size listener.");
+        EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent -> {
+            outputImageView.scaleImageViewport(1);
         });
     }
 
@@ -359,6 +381,11 @@ public class MainController implements Initializable {
         maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
         EventStreams.changesOf(maxIterSlider.valueProperty())
                 .subscribe(numberChange -> neuralStyle.setIterations(numberChange.getNewValue().intValue()));
+
+        // keep seed slider and text field synced and the slider updates the style
+        seedField.textProperty().bindBidirectional(seedSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(seedSlider.valueProperty())
+                .subscribe(numberChange -> neuralStyle.setSeed(numberChange.getNewValue().intValue()));
 
         // keep output size slider and text field synced and the slider updates the style
         outputSizeField.textProperty().bindBidirectional(outputSizeSlider.valueProperty(), intConverter);
