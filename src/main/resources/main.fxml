@@ -15,6 +15,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -272,28 +273,28 @@
                   <TextField fx:id="stylePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" />
                   <TextField fx:id="contentPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
-                     <children>
-                        <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
-                        <Button fx:id="stopButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
-                           <HBox.margin>
-                              <Insets left="4.0" />
-                           </HBox.margin>
-                        </Button>
-                        <Button fx:id="imageViewModeFit" mnemonicParsing="false" text="%imageViewModeFit">
-                           <HBox.margin>
-                              <Insets left="12.0" />
-                           </HBox.margin>
-                        </Button>
-                        <Button fx:id="imageViewModeActual" mnemonicParsing="false" text="%imageViewModeActual">
-                           <HBox.margin>
-                              <Insets left="4.0" />
-                           </HBox.margin>
-                        </Button>
-                     </children>
-                  </HBox>
                </children>
             </GridPane>
+            <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+               <children>
+                  <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
+                  <Button fx:id="stopButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
+                     <HBox.margin>
+                        <Insets left="4.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="imageViewModeFit" mnemonicParsing="false" text="%imageViewModeFit">
+                     <HBox.margin>
+                        <Insets left="12.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="imageViewModeActual" mnemonicParsing="false" text="%imageViewModeActual">
+                     <HBox.margin>
+                        <Insets left="4.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
             <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="500.0" VBox.vgrow="ALWAYS">
                <children>
                   <ImageView fx:id="imageView" fitHeight="400.0" fitWidth="400.0" pickOnBounds="true" smooth="false" HBox.hgrow="ALWAYS">
@@ -311,10 +312,24 @@
                   <Insets bottom="4.0" />
                </VBox.margin>
             </Label>
-            <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" progress="0.0" VBox.vgrow="NEVER">
-               <VBox.margin>
-                  <Insets bottom="4.0" />
-               </VBox.margin></ProgressBar>
+            <HBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="200.0" VBox.vgrow="NEVER">
+               <children>
+                  <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" progress="0.0" HBox.hgrow="ALWAYS" />
+                  <AnchorPane fx:id="vramPane" maxHeight="-Infinity" maxWidth="-Infinity">
+                     <children>
+                        <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" text="%vramLabel" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0">
+                           <padding>
+                              <Insets right="4.0" />
+                           </padding>
+                        </Label>
+                        <ProgressBar fx:id="vramBar" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="200.0" progress="0.0" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                     <HBox.margin>
+                        <Insets left="12.0" />
+                     </HBox.margin>
+                  </AnchorPane>
+               </children>
+            </HBox>
             <TextArea fx:id="logTextArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" wrapText="true" VBox.vgrow="NEVER" />
          </children>
          <padding>

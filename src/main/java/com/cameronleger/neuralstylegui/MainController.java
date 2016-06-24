@@ -31,11 +31,13 @@ import java.util.logging.Logger;
 
 public class MainController implements Initializable {
     private static final Logger log = Logger.getLogger(MainController.class.getName());
+    private NvidiaService nvidiaService = new NvidiaService();
     private NeuralService neuralService = new NeuralService();
     private NeuralStyle neuralStyle = new NeuralStyle();
     private Stage stage;
     private ResourceBundle bundle;
     private Timer imageTimer;
+    private Timer nvidiaTimer;
 
     @FXML
     private TextField stylePath;
@@ -49,6 +51,9 @@ public class MainController implements Initializable {
     private Button contentFileButton;
     @FXML
     private Button outputFolderButton;
+
+    @FXML
+    private ProgressBar vramBar;
 
     @FXML
     private Slider printIterSlider;
@@ -155,6 +160,8 @@ public class MainController implements Initializable {
         setupServiceListeners();
         log.log(Level.FINER, "Setting image listeners.");
         setupImageListeners();
+        log.log(Level.FINER, "Setting nvidia listener.");
+        setupNvidiaListener();
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
 
@@ -230,6 +237,7 @@ public class MainController implements Initializable {
         assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
         assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
+        assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
         assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
         assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
         assert saveIterSlider != null : "fx:id=\"saveIterSlider\" was not injected.";
@@ -434,8 +442,11 @@ public class MainController implements Initializable {
 
         // keep gpu slider and text field synced and the slider updates the style
         gpuField.textProperty().bindBidirectional(gpuSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(gpuSlider.valueProperty())
-                .subscribe(numberChange -> neuralStyle.setGpu(numberChange.getNewValue().intValue()));
+        EventStreams.changesOf(gpuSlider.valueProperty()).subscribe(numberChange ->  {
+                int device = numberChange.getNewValue().intValue();
+                neuralStyle.setGpu(device);
+                nvidiaService.setDevice(device);
+            });
 
         // backend choicebox updates the style and toggles autotune
         EventStreams.changesOf(backendChoice.valueProperty()).subscribe(stringChange -> {
@@ -562,5 +573,26 @@ public class MainController implements Initializable {
                 setImageView(images[images.length - 1]);
             }
         });
+    }
+
+    private void setupNvidiaListener() {
+        log.log(Level.FINER, "Setting nvidia ram listener.");
+        nvidiaService.progressProperty().addListener((observable, oldValue, newValue) -> {
+            double progress = newValue.doubleValue();
+            if (progress > 0)
+                vramBar.setProgress(progress);
+        });
+
+        log.log(Level.FINER, "Setting nvidia timer.");
+        nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
+            log.log(Level.FINER, "Timer: checking service");
+            if (nvidiaService == null || nvidiaService.isRunning())
+                return;
+
+            log.log(Level.FINER, "Timer: starting service");
+            nvidiaService.restart();
+            nvidiaTimer.restart();
+        });
+        nvidiaTimer.restart();
     }
 }
