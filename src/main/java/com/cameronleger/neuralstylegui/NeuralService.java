@@ -117,7 +117,7 @@ class NeuralService extends Service {
 
                 if (exitCode != 0)
                     throw new RuntimeException("Exit Code: " + String.valueOf(exitCode));
-                return neuralStyleForTask.getOutputImage();
+                return neuralStyleForTask.getTempOutputImage();
             }
 
             @Override protected void succeeded() {

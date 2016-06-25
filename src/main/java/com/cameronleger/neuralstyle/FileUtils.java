@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class FileUtils {
-    private static final Pattern iterationPattern = Pattern.compile(".*_(\\d+)\\.jpg");
+    private static final Pattern iterationPattern = Pattern.compile(".*_(\\d+)\\.png");
 
     static boolean checkFileExists(File file) {
         return file != null && file.exists() && file.isFile();

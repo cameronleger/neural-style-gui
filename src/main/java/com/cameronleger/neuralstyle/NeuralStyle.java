@@ -4,14 +4,17 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NeuralStyle {
     private static final Logger log = Logger.getLogger(NeuralStyle.class.getName());
     private static String executable = "th";
     private static File neuralStylePath = new File("/home/cameron/neural-style");
+    private File tempDir;
     private File styleImage;
     private File contentImage;
     private File outputFolder;
@@ -69,10 +72,6 @@ public class NeuralStyle {
 
     public File getGeneralOutputFolder() {
         return outputFolder;
-    }
-
-    public File getOutputFolder() {
-        return new File(getGeneralOutputFolder(), FileUtils.getFileName(getStyleImage()));
     }
 
     public void setOutputFolder(File outputFolder) {
@@ -223,6 +222,21 @@ public class NeuralStyle {
         this.autotune = autotune;
     }
 
+    public File getTempDir() {
+        if (tempDir == null) {
+            try {
+                tempDir = File.createTempFile("neuralStyle", null);
+                if (!tempDir.delete())
+                    throw new IOException("Unable to delete temporary file.");
+                if (!tempDir.mkdir())
+                    throw new IOException("Unable to create temporary directory.");
+            } catch (Exception e) {
+                log.log(Level.SEVERE, e.toString(), e);
+            }
+        }
+        return tempDir;
+    }
+
     public void generateUniqueText() {
         uniqueText = String.valueOf(System.nanoTime());
     }
@@ -237,23 +251,28 @@ public class NeuralStyle {
         return FileUtils.checkFileExists(getStyleImage()) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
-                FileUtils.checkFolderExists(getGeneralOutputFolder());
+                FileUtils.checkFolderExists(getTempDir());
     }
 
-    public File getOutputImage() {
+    public File getTempOutputImage() {
         if (!checkArguments())
             return null;
-        File styleOutputFolder = getOutputFolder();
-        if (!styleOutputFolder.exists() && !styleOutputFolder.mkdir())
+        File tempOutputDir = getTempDir();
+        if (tempOutputDir == null)
             return null;
-        return new File(styleOutputFolder, FileUtils.getFileName(getContentImage()) + "_u" + getUniqueText() + ".jpg");
+        return new File(tempOutputDir, getUniqueText() + ".png");
     }
 
-    public File[] getOutputImageIterations() {
+    public File[] getTempOutputImageIterations() {
+        File tempOutputImage = getTempOutputImage();
+        File tempOutputDir = getTempDir();
+        if (tempOutputImage == null || tempOutputDir == null)
+            return null;
+
         // Unix-like searching for image iterations
-        String outputImageBase = FileUtils.getFileName(getOutputImage());
-        FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.jpg", outputImageBase));
-        File[] files = getOutputFolder().listFiles(fileFilter);
+        String outputImageBase = FileUtils.getFileName(tempOutputImage);
+        FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
+        File[] files = tempOutputDir.listFiles(fileFilter);
 
         // sort the files by the iteration progress
         if (files != null && files.length > 1) {
@@ -261,7 +280,12 @@ public class NeuralStyle {
             for (int i = 0; i < files.length; i++)
                 fileIters[i] = FileUtils.parseImageIteration(files[i]);
             FileUtils.quickSort(fileIters, files, 0, files.length - 1);
+
+            // check that the latest file is valid (could still be written to)
+            if (files[files.length - 1].length() / files[files.length - 2].length() <= 0.5)
+                files[files.length - 1] = files[files.length - 2];
         }
+
 
         return files;
     }
@@ -276,7 +300,7 @@ public class NeuralStyle {
                         "-content_image",
                         getContentImage().getAbsolutePath(),
                         "-output_image",
-                        getOutputImage().getAbsolutePath(),
+                        getTempOutputImage().getAbsolutePath(),
                         "-print_iter",
                         String.valueOf(getIterationsPrint()),
                         "-save_iter",

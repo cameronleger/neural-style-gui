@@ -7,6 +7,7 @@ import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
@@ -24,10 +25,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class MainController implements Initializable {
     private static final Logger log = Logger.getLogger(MainController.class.getName());
@@ -46,11 +50,15 @@ public class MainController implements Initializable {
     @FXML
     private TextField outputPath;
     @FXML
+    private TextField outputName;
+    @FXML
     private Button styleFileButton;
     @FXML
     private Button contentFileButton;
     @FXML
     private Button outputFolderButton;
+    @FXML
+    private Button outputImageButton;
 
     @FXML
     private ProgressBar vramBar;
@@ -197,7 +205,7 @@ public class MainController implements Initializable {
     }
 
     private void toggleStartButton() {
-        File outputImage = neuralStyle.getOutputImage();
+        File outputImage = neuralStyle.getTempOutputImage();
         if (outputImage != null) {
             log.log(Level.FINE, "Output image available: {0}", outputImage.getAbsolutePath());
             startButton.setDisable(false);
@@ -234,9 +242,11 @@ public class MainController implements Initializable {
         assert stylePath != null : "fx:id=\"stylePath\" was not injected.";
         assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
+        assert outputName != null : "fx:id=\"outputName\" was not injected.";
         assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
         assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
+        assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
         assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
         assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
         assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
@@ -316,6 +326,51 @@ public class MainController implements Initializable {
                 setOutputFolder(outputFolder);
                 toggleStartButton();
             }
+        });
+
+        log.log(Level.FINER, "Setting Output Image listener.");
+        EventStreams.eventsOf(outputImageButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINE, "Output Image button hit, checking images.");
+
+            Tooltip tooltip = new Tooltip();
+            // Check for generated image iterations to show
+            File outputFolder = neuralStyle.getGeneralOutputFolder();
+            File[] images = neuralStyle.getTempOutputImageIterations();
+            if (outputFolder == null) {
+                tooltip.setText("Unable to save the image without an output folder.");
+            } else if (images == null) {
+                tooltip.setText("Unable to check for image iterations.");
+            } else if (images.length <= 0) {
+                tooltip.setText("No image iterations to save.");
+            } else {
+                File latestImage = images[images.length - 1];
+                String uniqueText = String.valueOf(System.nanoTime());
+                String possibleFileName = outputName.getText();
+
+                File savedImage;
+                if (possibleFileName != null && !possibleFileName.isEmpty()) {
+                    savedImage = new File(outputFolder, possibleFileName + ".png");
+                    if (savedImage.exists() && savedImage.isFile())
+                        savedImage = new File(outputFolder, possibleFileName + "_" + uniqueText + ".png");
+                } else
+                    savedImage = new File(outputFolder, uniqueText + ".png");
+
+                try {
+                    Files.copy(latestImage.toPath(), savedImage.toPath(), REPLACE_EXISTING);
+                    tooltip.setText(String.format("Saved image as:\n%s", savedImage.getName()));
+                } catch (Exception e) {
+                    log.log(Level.SEVERE, e.toString(), e);
+                    tooltip.setText("Exception saving the image, please check the log.");
+                }
+            }
+            tooltip.setAutoHide(true);
+
+            Point2D p = outputImageButton.localToScene(0.0, 0.0);
+            tooltip.show(outputImageButton,
+                    p.getX() + outputImageButton.getScene().getX() +
+                            outputImageButton.getScene().getWindow().getX() + outputImageButton.getWidth(),
+                    p.getY() + outputImageButton.getScene().getY() +
+                            outputImageButton.getScene().getWindow().getY());
         });
 
         log.log(Level.FINER, "Setting Start listener.");
@@ -568,7 +623,7 @@ public class MainController implements Initializable {
 
             log.log(Level.FINER, "Timer: checking images");
             // Check for generated image iterations to show
-            File[] images = neuralStyle.getOutputImageIterations();
+            File[] images = neuralStyle.getTempOutputImageIterations();
             if (images != null && images.length > 0) {
                 setImageView(images[images.length - 1]);
             }
