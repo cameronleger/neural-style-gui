@@ -172,12 +172,6 @@ public class MainController implements Initializable {
         setupNvidiaListener();
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
-
-        // TODO: Temporary time saver
-        setStyleFile(new File("/home/cameron/input/75171b3cdec4b3727d8e71f68434c084.jpg"));
-        setContentFile(new File("/home/cameron/input/cloudy.jpg"));
-        setOutputFolder(new File("/home/cameron/output/TESTING"));
-        toggleStartButton();
     }
 
     void setStage(Stage stage) {
@@ -206,10 +200,7 @@ public class MainController implements Initializable {
 
     private void toggleStartButton() {
         File outputImage = neuralStyle.getTempOutputImage();
-        if (outputImage != null) {
-            log.log(Level.FINE, "Output image available: {0}", outputImage.getAbsolutePath());
-            startButton.setDisable(false);
-        }
+        startButton.setDisable(outputImage == null || neuralService.isRunning());
     }
 
     private void setImageView(File styleFile) {
@@ -298,7 +289,6 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
                 setStyleFile(styleFile);
-                setImageView(styleFile);
                 toggleStartButton();
             }
         });
@@ -311,7 +301,6 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Content file chosen: {0}", contentFile);
             if (contentFile != null) {
                 setContentFile(contentFile);
-                setImageView(contentFile);
                 toggleStartButton();
             }
         });
@@ -337,11 +326,11 @@ public class MainController implements Initializable {
             File outputFolder = neuralStyle.getGeneralOutputFolder();
             File[] images = neuralStyle.getTempOutputImageIterations();
             if (outputFolder == null) {
-                tooltip.setText("Unable to save the image without an output folder.");
+                tooltip.setText(bundle.getString("outputImageNoOutputFolder"));
             } else if (images == null) {
-                tooltip.setText("Unable to check for image iterations.");
+                tooltip.setText(bundle.getString("outputImageNullIterations"));
             } else if (images.length <= 0) {
-                tooltip.setText("No image iterations to save.");
+                tooltip.setText(bundle.getString("outputImageNoIterations"));
             } else {
                 File latestImage = images[images.length - 1];
                 String uniqueText = String.valueOf(System.nanoTime());
@@ -357,10 +346,10 @@ public class MainController implements Initializable {
 
                 try {
                     Files.copy(latestImage.toPath(), savedImage.toPath(), REPLACE_EXISTING);
-                    tooltip.setText(String.format("Saved image as:\n%s", savedImage.getName()));
+                    tooltip.setText(bundle.getString("outputImageSavedImage") + "\n" + savedImage.getName());
                 } catch (Exception e) {
                     log.log(Level.SEVERE, e.toString(), e);
-                    tooltip.setText("Exception saving the image, please check the log.");
+                    tooltip.setText(bundle.getString("outputImageNoSavedImage"));
                 }
             }
             tooltip.setAutoHide(true);
@@ -549,26 +538,26 @@ public class MainController implements Initializable {
                 switch (newState) {
                     case SCHEDULED:
                         log.log(Level.FINER, "Neural service: Scheduled.");
-                        statusLabel.setText("Scheduled");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusScheduled"));
                         startButton.setDisable(true);
                         stopButton.setDisable(false);
                         progress.setProgress(0);
                         break;
                     case READY:
                         log.log(Level.FINER, "Neural service: Ready.");
-                        statusLabel.setText("Ready to Run");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusReady"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         break;
                     case RUNNING:
                         log.log(Level.FINER, "Neural service: Running.");
-                        statusLabel.setText("Running");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusRunning"));
                         startButton.setDisable(true);
                         stopButton.setDisable(false);
                         break;
                     case SUCCEEDED:
                         log.log(Level.FINER, "Neural service: Succeeded.");
-                        statusLabel.setText("Finished");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusFinished"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         progress.setProgress(100);
@@ -576,14 +565,14 @@ public class MainController implements Initializable {
                         break;
                     case CANCELLED:
                         log.log(Level.FINER, "Neural service: Cancelled.");
-                        statusLabel.setText("Cancelled");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         imageTimer.stop();
                         break;
                     case FAILED:
                         log.log(Level.FINER, "Neural service: Failed.");
-                        statusLabel.setText("Failed");
+                        statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         imageTimer.stop();

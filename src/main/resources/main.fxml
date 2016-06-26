@@ -11,6 +11,8 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
@@ -23,7 +25,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane dividerPositions="0.22" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
+<SplitPane dividerPositions="0.25" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
       <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
         <columnConstraints>
@@ -32,11 +34,15 @@
             <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="20.0" />
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
@@ -44,17 +50,12 @@
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints valignment="CENTER" vgrow="NEVER" />
-            <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
         </rowConstraints>
@@ -255,30 +256,7 @@
       </GridPane>
       <VBox prefHeight="200.0" prefWidth="100.0">
          <children>
-            <GridPane hgap="4.0" vgap="4.0" VBox.vgrow="NEVER">
-              <columnConstraints>
-                <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" />
-                <ColumnConstraints hgrow="ALWAYS" />
-                  <ColumnConstraints fillWidth="false" hgrow="NEVER" />
-                  <ColumnConstraints hgrow="ALWAYS" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-              </rowConstraints>
-               <children>
-                  <Button fx:id="styleFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%styleFileButton" />
-                  <Button fx:id="contentFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFileButton" GridPane.rowIndex="1" />
-                  <Button fx:id="outputFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputFolderButton" GridPane.rowIndex="2" />
-                  <TextField fx:id="stylePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" />
-                  <TextField fx:id="contentPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
-                  <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Button fx:id="outputImageButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputImageButton" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                  <TextField fx:id="outputName" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%outputImageHint" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-               </children>
-            </GridPane>
-            <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+            <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
                   <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
                   <Button fx:id="stopButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
@@ -286,42 +264,13 @@
                         <Insets left="4.0" />
                      </HBox.margin>
                   </Button>
-                  <Button fx:id="imageViewModeFit" mnemonicParsing="false" text="%imageViewModeFit">
+                  <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="120.0" text="%neuralServiceStatus">
                      <HBox.margin>
-                        <Insets left="12.0" />
+                        <Insets left="4.0" right="4.0" />
                      </HBox.margin>
-                  </Button>
-                  <Button fx:id="imageViewModeActual" mnemonicParsing="false" text="%imageViewModeActual">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-               <VBox.margin>
-                  <Insets top="8.0" />
-               </VBox.margin>
-            </HBox>
-            <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="500.0" VBox.vgrow="ALWAYS">
-               <children>
-                  <ImageView fx:id="imageView" fitHeight="400.0" fitWidth="400.0" pickOnBounds="true" smooth="false" HBox.hgrow="ALWAYS">
-                     <viewport>
-                        <Rectangle2D />
-                     </viewport>
-                  </ImageView>
-               </children>
-               <VBox.margin>
-                  <Insets bottom="4.0" top="4.0" />
-               </VBox.margin>
-            </HBox>
-            <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" VBox.vgrow="NEVER">
-               <VBox.margin>
-                  <Insets bottom="4.0" />
-               </VBox.margin>
-            </Label>
-            <HBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="200.0" VBox.vgrow="NEVER">
-               <children>
+                  </Label>
                   <ProgressBar fx:id="progress" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" progress="0.0" HBox.hgrow="ALWAYS" />
-                  <AnchorPane fx:id="vramPane" maxHeight="-Infinity" maxWidth="-Infinity">
+                  <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity">
                      <children>
                         <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" text="%vramLabel" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0">
                            <padding>
@@ -335,12 +284,111 @@
                      </HBox.margin>
                   </AnchorPane>
                </children>
+               <VBox.margin>
+                  <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+               </VBox.margin>
             </HBox>
-            <TextArea fx:id="logTextArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" wrapText="true" VBox.vgrow="NEVER" />
+            <TabPane minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab text="%inputTab">
+                     <content>
+                        <GridPane hgap="4.0" vgap="4.0">
+                          <columnConstraints>
+                            <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" />
+                            <ColumnConstraints hgrow="ALWAYS" />
+                              <ColumnConstraints fillWidth="false" hgrow="NEVER" />
+                              <ColumnConstraints hgrow="ALWAYS" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                            <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                            <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                          </rowConstraints>
+                           <children>
+                              <Button fx:id="styleFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%styleFileButton" />
+                              <TextField fx:id="stylePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" />
+                              <Button fx:id="contentFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFileButton" GridPane.rowIndex="1" />
+                              <TextField fx:id="contentPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                           </children>
+                        </GridPane>
+                     </content>
+                </Tab>
+                <Tab text="%outputTab">
+                     <content>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
+                           <children>
+                              <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
+                                 <children>
+                                    <Button fx:id="imageViewModeFit" mnemonicParsing="false" text="%imageViewModeFit">
+                                       <HBox.margin>
+                                          <Insets />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="imageViewModeActual" mnemonicParsing="false" text="%imageViewModeActual">
+                                       <HBox.margin>
+                                          <Insets left="4.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="outputFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputFolderButton">
+                                       <HBox.margin>
+                                          <Insets left="12.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS">
+                                       <HBox.margin>
+                                          <Insets left="4.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                    <Button fx:id="outputImageButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputImageButton">
+                                       <HBox.margin>
+                                          <Insets left="8.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <TextField fx:id="outputName" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%outputImageHint" HBox.hgrow="ALWAYS">
+                                       <HBox.margin>
+                                          <Insets left="4.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </HBox>
+                              <HBox fx:id="imageViewSizer" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="500.0" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <ImageView fx:id="imageView" fitHeight="500.0" fitWidth="500.0" pickOnBounds="true" smooth="false" HBox.hgrow="ALWAYS">
+                                       <viewport>
+                                          <Rectangle2D />
+                                       </viewport>
+                                    </ImageView>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="4.0" />
+                                 </VBox.margin>
+                              </HBox>
+                           </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                </Tab>
+                  <Tab text="%neuralLogTab">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <TextArea fx:id="logTextArea" editable="false" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <padding>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </padding>
+                              </TextArea>
+                           </children>
+                        </AnchorPane>
+                    </content>
+                  </Tab>
+              </tabs>
+            </TabPane>
          </children>
-         <padding>
-            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-         </padding>
       </VBox>
    </items>
 </SplitPane>
