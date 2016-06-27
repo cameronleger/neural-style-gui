@@ -55,11 +55,12 @@ public class MainController implements Initializable {
     private Timer nvidiaTimer;
 
     private ObservableList<NeuralImage> styleImages;
+    private ObservableList<NeuralImage> contentImages;
 
     @FXML
     private TextField styleFolderPath;
     @FXML
-    private TextField contentPath;
+    private TextField contentFolderPath;
     @FXML
     private TextField outputPath;
     @FXML
@@ -67,7 +68,7 @@ public class MainController implements Initializable {
     @FXML
     private Button styleFolderButton;
     @FXML
-    private Button contentFileButton;
+    private Button contentFolderButton;
     @FXML
     private Button outputFolderButton;
     @FXML
@@ -83,6 +84,13 @@ public class MainController implements Initializable {
     private TableColumn<NeuralImage, Image> styleImageTableImage;
     @FXML
     private TableColumn<NeuralImage, Double> styleImageTableWeight;
+
+    @FXML
+    private TableView<NeuralImage> contentImageTable;
+    @FXML
+    private TableColumn<NeuralImage, String> contentImageTableName;
+    @FXML
+    private TableColumn<NeuralImage, Image> contentImageTableImage;
 
     @FXML
     private ProgressBar vramBar;
@@ -189,6 +197,12 @@ public class MainController implements Initializable {
                 return new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()};
             }
         });
+        contentImages = FXCollections.observableArrayList(new Callback<NeuralImage, javafx.beans.Observable[]>() {
+            @Override
+            public Observable[] call(NeuralImage neuralImage) {
+                return new Observable[] {neuralImage.selectedProperty()};
+            }
+        });
 
         log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
@@ -202,6 +216,7 @@ public class MainController implements Initializable {
         setupNvidiaListener();
 
         setupStyleImageTable();
+        setupContentImageTable();
 
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
@@ -249,10 +264,9 @@ public class MainController implements Initializable {
         directoryChooser.setInitialDirectory(styleFolder);
     }
 
-    private void setContentFile(File contentFile) {
-        neuralStyle.setContentImage(contentFile);
-        contentPath.setText(contentFile.getAbsolutePath());
-        imageFileChooser.setInitialDirectory(contentFile.getParentFile());
+    private void setContentFolder(File contentFolder) {
+        contentFolderPath.setText(contentFolder.getAbsolutePath());
+        directoryChooser.setInitialDirectory(contentFolder);
     }
 
     private void setOutputFolder(File outputFolder) {
@@ -263,11 +277,11 @@ public class MainController implements Initializable {
 
     private void checkInjections() {
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
-        assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
+        assert contentFolderPath != null : "fx:id=\"contentFolderPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
         assert outputName != null : "fx:id=\"outputName\" was not injected.";
         assert styleFolderButton != null : "fx:id=\"styleFolderButton\" was not injected.";
-        assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
+        assert contentFolderButton != null : "fx:id=\"contentFolderButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
         assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
         assert styleImageTable != null : "fx:id=\"styleImageTable\" was not injected.";
@@ -275,6 +289,9 @@ public class MainController implements Initializable {
         assert styleImageTableName != null : "fx:id=\"styleImageTableName\" was not injected.";
         assert styleImageTableImage != null : "fx:id=\"styleImageTableImage\" was not injected.";
         assert styleImageTableWeight != null : "fx:id=\"styleImageTableWeight\" was not injected.";
+        assert contentImageTable != null : "fx:id=\"contentImageTable\" was not injected.";
+        assert contentImageTableName != null : "fx:id=\"contentImageTableName\" was not injected.";
+        assert contentImageTableImage != null : "fx:id=\"contentImageTableImage\" was not injected.";
         assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
         assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
         assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
@@ -331,15 +348,16 @@ public class MainController implements Initializable {
             }
         });
 
-        log.log(Level.FINER, "Setting Content File listener.");
-        EventStreams.eventsOf(contentFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing content file chooser.");
-            imageFileChooser.setTitle(bundle.getString("contentFileChooser"));
-            File contentFile = imageFileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "Content file chosen: {0}", contentFile);
-            if (contentFile != null) {
-                setContentFile(contentFile);
-                toggleStartButton();
+        log.log(Level.FINER, "Setting Content Folder listener.");
+        EventStreams.eventsOf(contentFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing content folder chooser.");
+            imageFileChooser.setTitle(bundle.getString("contentFolderChooser"));
+            File contentFolder = directoryChooser.showDialog(stage);
+            log.log(Level.FINE, "Content folder chosen: {0}", contentFolder);
+            if (contentFolder != null) {
+                setContentFolder(contentFolder);
+                NeuralImage[] images = FileUtils.getImages(contentFolder);
+                contentImages.setAll(images);
             }
         });
 
@@ -714,6 +732,55 @@ public class MainController implements Initializable {
 
         styleImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
         styleImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
+            @Override
+            public TableCell<NeuralImage, Image> call(TableColumn<NeuralImage, Image> param) {
+                return new TableCell<NeuralImage, Image>() {
+                    ImageView imageView;
+                    {
+                        imageView = new ImageView();
+                        imageView.setPreserveRatio(true);
+                        imageView.setFitHeight(NeuralImage.THUMBNAIL_SIZE);
+                        imageView.setFitWidth(NeuralImage.THUMBNAIL_SIZE);
+                        setGraphic(imageView);
+                    }
+
+                    @Override
+                    public void updateItem(Image image, boolean empty) {
+                        super.updateItem(image, empty);
+                        if (empty || image == null) {
+                            setText(null);
+                            setGraphic(null);
+                        } else {
+                            imageView.setImage(image);
+                            setGraphic(imageView);
+                        }
+                    }
+                };
+            }
+        });
+    }
+
+    private void setupContentImageTable() {
+        log.log(Level.FINER, "Setting content image table list.");
+        contentImageTable.setItems(contentImages);
+
+        log.log(Level.FINER, "Setting content image table selection listener.");
+        EventStreams.changesOf(contentImageTable.getSelectionModel().selectedItemProperty())
+                .subscribe(neuralImageChange -> {
+                    NeuralImage newSelection = neuralImageChange.getNewValue();
+                    log.log(Level.FINE, "Content image changed: " + newSelection);
+                    if (newSelection == null)
+                        neuralStyle.setContentImage(null);
+                    else
+                        neuralStyle.setContentImage(newSelection.getImageFile());
+                    toggleStartButton();
+                });
+
+        log.log(Level.FINER, "Setting content image table column factories.");
+        contentImageTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        contentImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
+        contentImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
             @Override
             public TableCell<NeuralImage, Image> call(TableColumn<NeuralImage, Image> param) {
                 return new TableCell<NeuralImage, Image>() {

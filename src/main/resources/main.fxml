@@ -292,27 +292,10 @@
             </HBox>
             <TabPane minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
-                <Tab text="%inputTab">
+                <Tab text="%inputStyleTab">
                      <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
+                        <VBox>
                            <children>
-                              <GridPane hgap="4.0" vgap="4.0">
-                                <columnConstraints>
-                                  <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="NEVER" />
-                                  <ColumnConstraints hgrow="ALWAYS" />
-                                    <ColumnConstraints fillWidth="false" hgrow="NEVER" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                                  <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-                                  <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                                </rowConstraints>
-                                 <children>
-                                    <Button fx:id="contentFileButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFileButton" GridPane.rowIndex="1" />
-                                    <TextField fx:id="contentPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
-                                 </children>
-                              </GridPane>
                               <HBox>
                                  <children>
                                     <Button fx:id="styleFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%styleFolderButton" />
@@ -324,14 +307,20 @@
                               </HBox>
                               <TableView fx:id="styleImageTable" editable="true" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="styleImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="300.0" prefWidth="730.0" text="%styleFileColumnName" />
-                                    <TableColumn fx:id="styleImageTableSelected" maxWidth="-Infinity" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnSelected" />
-                                    <TableColumn fx:id="styleImageTableImage" editable="false" maxWidth="1.7976931348623157E308" minWidth="110.0" prefWidth="150.0" text="%styleFileColumnImage" />
-                                    <TableColumn fx:id="styleImageTableWeight" maxWidth="-Infinity" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnWeight" />
+                                    <TableColumn fx:id="styleImageTableImage" editable="false" maxWidth="200.0" minWidth="150.0" prefWidth="150.0" text="%styleFileColumnImage" />
+                                    <TableColumn fx:id="styleImageTableSelected" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnSelected" />
+                                    <TableColumn fx:id="styleImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%styleFileColumnName" />
+                                    <TableColumn fx:id="styleImageTableWeight" maxWidth="150.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnWeight" />
                                 </columns>
                                  <VBox.margin>
                                     <Insets top="4.0" />
                                  </VBox.margin>
+                                  <tooltip>
+                                      <Tooltip prefWidth="300.0" text="%styleImageTableTooltip" wrapText="true" />
+                                  </tooltip>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
                               </TableView>
                            </children>
                            <padding>
@@ -340,6 +329,41 @@
                         </VBox>
                      </content>
                 </Tab>
+                  <Tab text="%inputContentTab">
+                      <content>
+                          <VBox>
+                           <children>
+                              <HBox VBox.vgrow="NEVER">
+                                 <children>
+                                    <Button fx:id="contentFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFolderButton" />
+                                    <TextField fx:id="contentFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS">
+                                       <HBox.margin>
+                                          <Insets left="4.0" />
+                                       </HBox.margin></TextField>
+                                 </children>
+                              </HBox>
+                               <TableView fx:id="contentImageTable" editable="true" VBox.vgrow="ALWAYS">
+                                   <columns>
+                                       <TableColumn fx:id="contentImageTableImage" editable="false" maxWidth="200.0" minWidth="150.0" prefWidth="150.0" text="%contentFileColumnImage" />
+                                       <TableColumn fx:id="contentImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%contentFileColumnName" />
+                                   </columns>
+                                   <VBox.margin>
+                                       <Insets top="4.0" />
+                                   </VBox.margin>
+                                   <tooltip>
+                                       <Tooltip prefWidth="300.0" text="%contentImageTableTooltip" wrapText="true" />
+                                   </tooltip>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
+                               </TableView>
+                           </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding></VBox>
+
+                      </content>
+                  </Tab>
                 <Tab text="%outputTab">
                      <content>
                         <VBox prefHeight="200.0" prefWidth="100.0">
