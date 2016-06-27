@@ -16,11 +16,11 @@ public class FileUtils {
             "jpg", "jpeg", "png"
     };
 
-    static boolean checkFileExists(File file) {
+    public static boolean checkFileExists(File file) {
         return file != null && file.exists() && file.isFile();
     }
 
-    static boolean checkFilesExists(File[] files) {
+    public static boolean checkFilesExists(File[] files) {
         if (files == null)
             return false;
         for (File file : files)
@@ -29,11 +29,11 @@ public class FileUtils {
         return true;
     }
 
-    static boolean checkFolderExists(File file) {
+    public static boolean checkFolderExists(File file) {
         return file != null && file.exists() && file.isDirectory();
     }
 
-    static String getFileName(File file) {
+    public static String getFileName(File file) {
         return FilenameUtils.removeExtension(file.getName());
     }
 

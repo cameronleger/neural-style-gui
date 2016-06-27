@@ -4,28 +4,21 @@ import javafx.beans.property.*;
 import javafx.scene.image.Image;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 public class NeuralImage {
     static final int THUMBNAIL_SIZE = 150;
     private BooleanProperty selected;
     private StringProperty name;
     private ObjectProperty<File> imageFile;
-    private ObjectProperty<Image> image;
+    private AsyncImageProperty image;
     private DoubleProperty weight;
 
     public NeuralImage(File imageFile) {
         this.selected = new SimpleBooleanProperty(false);
         this.name = new SimpleStringProperty(imageFile.getName());
         this.imageFile = new SimpleObjectProperty<>(imageFile);
-        Image image = null;
-        try {
-            image = new Image(new FileInputStream(imageFile), THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, false);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        this.image = new SimpleObjectProperty<>(image);
+        this.image = new AsyncImageProperty(THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+        this.image.imageFileProperty().set(imageFile);
         this.weight = new SimpleDoubleProperty(1);
     }
 
