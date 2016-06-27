@@ -13,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.ColorAdjust;
@@ -729,6 +730,22 @@ public class MainController implements Initializable {
         styleImageTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         styleImageTableWeight.setCellValueFactory(new PropertyValueFactory<>("weight"));
+        styleImageTableWeight.setCellFactory(
+                TextFieldTableCell.forTableColumn(new StringConverter<Double>() {
+                    @Override
+                    public String toString(Double object) {
+                        return String.valueOf(object.doubleValue());
+                    }
+
+                    @Override
+                    public Double fromString(String string) {
+                        try {
+                            return Double.parseDouble(string);
+                        } catch (Exception e) {
+                            return 1.0;
+                        }
+                    }
+                }));
 
         styleImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
         styleImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
