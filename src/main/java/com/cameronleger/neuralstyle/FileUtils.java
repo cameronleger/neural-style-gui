@@ -1,16 +1,32 @@
 package com.cameronleger.neuralstyle;
 
+import com.cameronleger.neuralstylegui.NeuralImage;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class FileUtils {
-    private static final Pattern iterationPattern = Pattern.compile(".*_(\\d+)\\.png");
+public class FileUtils {
+    private static final Pattern ITERATION_PATTERN = Pattern.compile(".*_(\\d+)\\.png");
+    private static final String[] EXTENSIONS = new String[] {
+            "jpg", "jpeg", "png"
+    };
 
     static boolean checkFileExists(File file) {
         return file != null && file.exists() && file.isFile();
+    }
+
+    static boolean checkFilesExists(File[] files) {
+        if (files == null)
+            return false;
+        for (File file : files)
+            if (file == null || !file.exists() || !file.isFile())
+                return false;
+        return true;
     }
 
     static boolean checkFolderExists(File file) {
@@ -21,11 +37,58 @@ class FileUtils {
         return FilenameUtils.removeExtension(file.getName());
     }
 
+    public static NeuralImage[] getImages(File dir) {
+        if (dir == null || !dir.isDirectory())
+            return null;
+
+        FilenameFilter imageFilter = (dir1, name) -> {
+            for (final String ext : EXTENSIONS) {
+                final String nameExt = FilenameUtils.getExtension(name);
+                if (nameExt.equalsIgnoreCase(ext))
+                    return true;
+            }
+            return false;
+        };
+        File[] files = dir.listFiles(imageFilter);
+
+        NeuralImage[] images = new NeuralImage[]{};
+        if (files != null && files.length >= 1) {
+            images = new NeuralImage[files.length];
+            for (int i = 0; i < files.length; i++)
+                images[i] = new NeuralImage(files[i]);
+        }
+        return images;
+    }
+
+    public static File[] getTempOutputImageIterations(File outputDir, File outputImage) {
+        if (outputDir == null || !outputDir.isDirectory() || outputImage == null)
+            return null;
+
+        // Unix-like searching for image iterations
+        String outputImageBase = getFileName(outputImage);
+        FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
+        File[] files = outputDir.listFiles(fileFilter);
+
+        // sort the files by the iteration progress
+        if (files != null && files.length > 1) {
+            int[] fileIters = new int[files.length];
+            for (int i = 0; i < files.length; i++)
+                fileIters[i] = FileUtils.parseImageIteration(files[i]);
+            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
+
+            // check that the latest file is valid (could still be written to)
+            if (files[files.length - 1].length() / files[files.length - 2].length() <= 0.5)
+                files[files.length - 1] = files[files.length - 2];
+        }
+
+        return files;
+    }
+
     static int parseImageIteration(File image) {
         int iteration = -1;
         if (image == null)
             return iteration;
-        Matcher matcher = iterationPattern.matcher(image.getAbsolutePath());
+        Matcher matcher = ITERATION_PATTERN.matcher(image.getAbsolutePath());
         if (matcher.matches())
             iteration = Integer.parseInt(matcher.group(1));
         return iteration;

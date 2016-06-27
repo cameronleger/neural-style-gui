@@ -1,14 +1,20 @@
 package com.cameronleger.neuralstylegui;
 
+import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,6 +22,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.reactfx.EventStreams;
 import org.reactfx.util.FxTimer;
@@ -27,7 +34,7 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,16 +42,22 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class MainController implements Initializable {
     private static final Logger log = Logger.getLogger(MainController.class.getName());
-    private NvidiaService nvidiaService = new NvidiaService();
-    private NeuralService neuralService = new NeuralService();
-    private NeuralStyle neuralStyle = new NeuralStyle();
+
     private Stage stage;
     private ResourceBundle bundle;
-    private Timer imageTimer;
+
+    private NvidiaService nvidiaService = new NvidiaService();
+    private NeuralService neuralService = new NeuralService();
+
+    private NeuralStyle neuralStyle = new NeuralStyle();
+
+    private Timer imageOutputTimer;
     private Timer nvidiaTimer;
 
+    private ObservableList<NeuralImage> styleImages;
+
     @FXML
-    private TextField stylePath;
+    private TextField styleFolderPath;
     @FXML
     private TextField contentPath;
     @FXML
@@ -52,13 +65,24 @@ public class MainController implements Initializable {
     @FXML
     private TextField outputName;
     @FXML
-    private Button styleFileButton;
+    private Button styleFolderButton;
     @FXML
     private Button contentFileButton;
     @FXML
     private Button outputFolderButton;
     @FXML
     private Button outputImageButton;
+
+    @FXML
+    private TableView<NeuralImage> styleImageTable;
+    @FXML
+    private TableColumn<NeuralImage, Boolean> styleImageTableSelected;
+    @FXML
+    private TableColumn<NeuralImage, String> styleImageTableName;
+    @FXML
+    private TableColumn<NeuralImage, Image> styleImageTableImage;
+    @FXML
+    private TableColumn<NeuralImage, Double> styleImageTableWeight;
 
     @FXML
     private ProgressBar vramBar;
@@ -159,6 +183,12 @@ public class MainController implements Initializable {
 
         bundle = resources;
         outputImageView = new MovingImageView(imageView);
+        styleImages = FXCollections.observableArrayList(new Callback<NeuralImage, javafx.beans.Observable[]>() {
+            @Override
+            public Observable[] call(NeuralImage neuralImage) {
+                return new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()};
+            }
+        });
 
         log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
@@ -167,9 +197,12 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
         log.log(Level.FINER, "Setting image listeners.");
-        setupImageListeners();
+        setupOutputImageListeners();
         log.log(Level.FINER, "Setting nvidia listener.");
         setupNvidiaListener();
+
+        setupStyleImageTable();
+
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
     }
@@ -186,7 +219,7 @@ public class MainController implements Initializable {
             logTextArea.clear();
             neuralService.reset();
             neuralService.start();
-            imageTimer.restart();
+            imageOutputTimer.restart();
         }
     }
 
@@ -194,7 +227,7 @@ public class MainController implements Initializable {
         if (neuralService.isRunning()) {
             log.log(Level.FINE, "Cancelling neural service.");
             neuralService.cancel();
-            imageTimer.stop();
+            imageOutputTimer.stop();
         }
     }
 
@@ -211,10 +244,9 @@ public class MainController implements Initializable {
         }
     }
 
-    private void setStyleFile(File styleFile) {
-        neuralStyle.setStyleImage(styleFile);
-        stylePath.setText(styleFile.getAbsolutePath());
-        imageFileChooser.setInitialDirectory(styleFile.getParentFile());
+    private void setStyleFolder(File styleFolder) {
+        styleFolderPath.setText(styleFolder.getAbsolutePath());
+        directoryChooser.setInitialDirectory(styleFolder);
     }
 
     private void setContentFile(File contentFile) {
@@ -230,14 +262,19 @@ public class MainController implements Initializable {
     }
 
     private void checkInjections() {
-        assert stylePath != null : "fx:id=\"stylePath\" was not injected.";
+        assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
         assert contentPath != null : "fx:id=\"contentPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
         assert outputName != null : "fx:id=\"outputName\" was not injected.";
-        assert styleFileButton != null : "fx:id=\"styleFileButton\" was not injected.";
+        assert styleFolderButton != null : "fx:id=\"styleFolderButton\" was not injected.";
         assert contentFileButton != null : "fx:id=\"contentFileButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
         assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
+        assert styleImageTable != null : "fx:id=\"styleImageTable\" was not injected.";
+        assert styleImageTableSelected != null : "fx:id=\"styleImageTableSelected\" was not injected.";
+        assert styleImageTableName != null : "fx:id=\"styleImageTableName\" was not injected.";
+        assert styleImageTableImage != null : "fx:id=\"styleImageTableImage\" was not injected.";
+        assert styleImageTableWeight != null : "fx:id=\"styleImageTableWeight\" was not injected.";
         assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
         assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
         assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
@@ -281,15 +318,16 @@ public class MainController implements Initializable {
     }
 
     private void setupButtonListeners() {
-        log.log(Level.FINER, "Setting Style File listener.");
-        EventStreams.eventsOf(styleFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing style file chooser.");
-            imageFileChooser.setTitle(bundle.getString("styleFileChooser"));
-            File styleFile = imageFileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "Style file chosen: {0}", styleFile);
-            if (styleFile != null) {
-                setStyleFile(styleFile);
-                toggleStartButton();
+        log.log(Level.FINER, "Setting Style Folder listener.");
+        EventStreams.eventsOf(styleFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing style folder chooser.");
+            directoryChooser.setTitle(bundle.getString("styleFolderChooser"));
+            File styleFolder = directoryChooser.showDialog(stage);
+            log.log(Level.FINE, "Style folder chosen: {0}", styleFolder);
+            if (styleFolder != null) {
+                setStyleFolder(styleFolder);
+                NeuralImage[] images = FileUtils.getImages(styleFolder);
+                styleImages.setAll(images);
             }
         });
 
@@ -561,21 +599,21 @@ public class MainController implements Initializable {
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
                         progress.setProgress(100);
-                        imageTimer.stop();
+                        imageOutputTimer.stop();
                         break;
                     case CANCELLED:
                         log.log(Level.FINER, "Neural service: Cancelled.");
                         statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
-                        imageTimer.stop();
+                        imageOutputTimer.stop();
                         break;
                     case FAILED:
                         log.log(Level.FINER, "Neural service: Failed.");
                         statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
                         startButton.setDisable(false);
                         stopButton.setDisable(true);
-                        imageTimer.stop();
+                        imageOutputTimer.stop();
                         break;
                 }
             }
@@ -597,12 +635,12 @@ public class MainController implements Initializable {
         });
     }
 
-    private void setupImageListeners() {
+    private void setupOutputImageListeners() {
         imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
         imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
 
         log.log(Level.FINER, "Setting image timer.");
-        imageTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
+        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
             log.log(Level.FINER, "Timer: checking service");
             if (neuralService == null || !neuralService.isRunning())
                 return;
@@ -638,5 +676,69 @@ public class MainController implements Initializable {
             nvidiaTimer.restart();
         });
         nvidiaTimer.restart();
+    }
+
+    private void setupStyleImageTable() {
+        log.log(Level.FINER, "Setting style image table list.");
+        styleImageTable.setItems(styleImages);
+
+        log.log(Level.FINER, "Setting style image table selection listener.");
+        EventStreams.changesOf(styleImages).subscribe(change -> {
+            log.log(Level.FINE, "styleImages changed");
+
+            List<NeuralImage> selectedNeuralImages = new ArrayList<>();
+            for (NeuralImage neuralImage : styleImages)
+                if (neuralImage.isSelected())
+                    selectedNeuralImages.add(neuralImage);
+
+            File[] neuralFiles = new File[selectedNeuralImages.size()];
+            double[] neuralFilesWeights = new double[selectedNeuralImages.size()];
+            for (int i = 0; i < selectedNeuralImages.size(); i++) {
+                NeuralImage neuralImage = selectedNeuralImages.get(i);
+                neuralFiles[i] = neuralImage.getImageFile();
+                neuralFilesWeights[i] = neuralImage.getWeight();
+            }
+            neuralStyle.setStyleImages(neuralFiles);
+            neuralStyle.setStyleWeights(neuralFilesWeights);
+
+            toggleStartButton();
+        });
+
+        log.log(Level.FINER, "Setting style image table column factories.");
+        styleImageTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        styleImageTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleImageTableSelected));
+
+        styleImageTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        styleImageTableWeight.setCellValueFactory(new PropertyValueFactory<>("weight"));
+
+        styleImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
+        styleImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
+            @Override
+            public TableCell<NeuralImage, Image> call(TableColumn<NeuralImage, Image> param) {
+                return new TableCell<NeuralImage, Image>() {
+                    ImageView imageView;
+                    {
+                        imageView = new ImageView();
+                        imageView.setPreserveRatio(true);
+                        imageView.setFitHeight(NeuralImage.THUMBNAIL_SIZE);
+                        imageView.setFitWidth(NeuralImage.THUMBNAIL_SIZE);
+                        setGraphic(imageView);
+                    }
+
+                    @Override
+                    public void updateItem(Image image, boolean empty) {
+                        super.updateItem(image, empty);
+                        if (empty || image == null) {
+                            setText(null);
+                            setGraphic(null);
+                        } else {
+                            imageView.setImage(image);
+                            setGraphic(imageView);
+                        }
+                    }
+                };
+            }
+        });
     }
 }

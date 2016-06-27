@@ -1,9 +1,6 @@
 package com.cameronleger.neuralstyle;
 
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +12,8 @@ public class NeuralStyle {
     private static String executable = "th";
     private static File neuralStylePath = new File("/home/cameron/neural-style");
     private File tempDir;
-    private File styleImage;
+    private File[] styleImages;
+    private double[] styleWeights;
     private File contentImage;
     private File outputFolder;
     private int iterations = 1000;
@@ -54,12 +52,20 @@ public class NeuralStyle {
         NeuralStyle.neuralStylePath = neuralStylePath;
     }
 
-    public File getStyleImage() {
-        return styleImage;
+    public File[] getStyleImages() {
+        return styleImages;
     }
 
-    public void setStyleImage(File styleImage) {
-        this.styleImage = styleImage;
+    public void setStyleImages(File[] styleImages) {
+        this.styleImages = styleImages;
+    }
+
+    public double[] getStyleWeights() {
+        return styleWeights;
+    }
+
+    public void setStyleWeights(double[] styleWeights) {
+        this.styleWeights = styleWeights;
     }
 
     public File getContentImage() {
@@ -248,7 +254,11 @@ public class NeuralStyle {
     }
 
     public boolean checkArguments() {
-        return FileUtils.checkFileExists(getStyleImage()) &&
+        File[] styleImages = getStyleImages();
+        double[] styleWeights = getStyleWeights();
+        return styleImages != null && styleImages.length > 0 &&
+                styleWeights != null && styleWeights.length == styleImages.length &&
+                FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
                 FileUtils.checkFolderExists(getTempDir());
@@ -264,39 +274,34 @@ public class NeuralStyle {
     }
 
     public File[] getTempOutputImageIterations() {
-        File tempOutputImage = getTempOutputImage();
-        File tempOutputDir = getTempDir();
-        if (tempOutputImage == null || tempOutputDir == null)
-            return null;
-
-        // Unix-like searching for image iterations
-        String outputImageBase = FileUtils.getFileName(tempOutputImage);
-        FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
-        File[] files = tempOutputDir.listFiles(fileFilter);
-
-        // sort the files by the iteration progress
-        if (files != null && files.length > 1) {
-            int[] fileIters = new int[files.length];
-            for (int i = 0; i < files.length; i++)
-                fileIters[i] = FileUtils.parseImageIteration(files[i]);
-            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
-
-            // check that the latest file is valid (could still be written to)
-            if (files[files.length - 1].length() / files[files.length - 2].length() <= 0.5)
-                files[files.length - 1] = files[files.length - 2];
-        }
-
-
-        return files;
+        return FileUtils.getTempOutputImageIterations(getTempDir(), getTempOutputImage());
     }
 
     public String[] buildCommand() {
+        StringBuilder styleImages = new StringBuilder();
+        File[] styleFiles = getStyleImages();
+        for (int i = 0; i < styleFiles.length; i++) {
+            styleImages.append(styleFiles[i].getAbsolutePath());
+            if (i != styleFiles.length - 1)
+                styleImages.append(",");
+        }
+
+        StringBuilder styleBlendWeights = new StringBuilder();
+        double[] styleWeights = getStyleWeights();
+        for (int i = 0; i < styleWeights.length; i++) {
+            styleBlendWeights.append(String.valueOf(styleWeights[i]));
+            if (i != styleWeights.length - 1)
+                styleBlendWeights.append(",");
+        }
+
         ArrayList<String> commandList = new ArrayList<>(
                 Arrays.asList(new String[] {
                         getExecutable(),
                         "neural_style.lua",
                         "-style_image",
-                        getStyleImage().getAbsolutePath(),
+                        styleImages.toString(),
+                        "-style_blend_weights",
+                        styleBlendWeights.toString(),
                         "-content_image",
                         getContentImage().getAbsolutePath(),
                         "-output_image",
