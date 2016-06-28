@@ -20,6 +20,16 @@ public class NeuralStyle {
     private int iterationsPrint = 10;
     private int iterationsSave = 10;
     private int seed = -1;
+    private String[] styleLayers = new String[] {
+            "relu1_1",
+            "relu2_1",
+            "relu3_1",
+            "relu4_1",
+            "relu5_1"
+    };
+    private String[] contentLayers = new String[] {
+            "relu4_2"
+    };
     private int outputSize = 500;
     private double styleSize = 1.0;
     private int contentWeight = 5;
@@ -114,6 +124,22 @@ public class NeuralStyle {
 
     public void setSeed(int seed) {
         this.seed = seed;
+    }
+
+    public String[] getStyleLayers() {
+        return styleLayers;
+    }
+
+    public void setStyleLayers(String[] styleLayers) {
+        this.styleLayers = styleLayers;
+    }
+
+    public String[] getContentLayers() {
+        return contentLayers;
+    }
+
+    public void setContentLayers(String[] contentLayers) {
+        this.contentLayers = contentLayers;
     }
 
     public int getOutputSize() {
@@ -256,8 +282,12 @@ public class NeuralStyle {
     public boolean checkArguments() {
         File[] styleImages = getStyleImages();
         double[] styleWeights = getStyleWeights();
+        String[] styleLayers = getStyleLayers();
+        String[] contentLayers = getContentLayers();
         return styleImages != null && styleImages.length > 0 &&
                 styleWeights != null && styleWeights.length == styleImages.length &&
+                styleLayers != null && styleLayers.length > 0 &&
+                contentLayers != null && contentLayers.length > 0 &&
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
@@ -278,20 +308,36 @@ public class NeuralStyle {
     }
 
     public String[] buildCommand() {
-        StringBuilder styleImages = new StringBuilder();
+        StringBuilder styleImagesBuilder = new StringBuilder();
         File[] styleFiles = getStyleImages();
         for (int i = 0; i < styleFiles.length; i++) {
-            styleImages.append(styleFiles[i].getAbsolutePath());
+            styleImagesBuilder.append(styleFiles[i].getAbsolutePath());
             if (i != styleFiles.length - 1)
-                styleImages.append(",");
+                styleImagesBuilder.append(",");
         }
 
-        StringBuilder styleBlendWeights = new StringBuilder();
+        StringBuilder styleWeightsBuilder = new StringBuilder();
         double[] styleWeights = getStyleWeights();
         for (int i = 0; i < styleWeights.length; i++) {
-            styleBlendWeights.append(String.valueOf(styleWeights[i]));
+            styleWeightsBuilder.append(String.valueOf(styleWeights[i]));
             if (i != styleWeights.length - 1)
-                styleBlendWeights.append(",");
+                styleWeightsBuilder.append(",");
+        }
+
+        StringBuilder styleLayersBuilder = new StringBuilder();
+        String[] styleLayers = getStyleLayers();
+        for (int i = 0; i < styleLayers.length; i++) {
+            styleLayersBuilder.append(styleLayers[i]);
+            if (i != styleLayers.length - 1)
+                styleLayersBuilder.append(",");
+        }
+
+        StringBuilder contentLayersBuilder = new StringBuilder();
+        String[] contentLayers = getContentLayers();
+        for (int i = 0; i < contentLayers.length; i++) {
+            contentLayersBuilder.append(contentLayers[i]);
+            if (i != contentLayers.length - 1)
+                contentLayersBuilder.append(",");
         }
 
         ArrayList<String> commandList = new ArrayList<>(
@@ -299,9 +345,9 @@ public class NeuralStyle {
                         getExecutable(),
                         "neural_style.lua",
                         "-style_image",
-                        styleImages.toString(),
+                        styleImagesBuilder.toString(),
                         "-style_blend_weights",
-                        styleBlendWeights.toString(),
+                        styleWeightsBuilder.toString(),
                         "-content_image",
                         getContentImage().getAbsolutePath(),
                         "-output_image",
@@ -314,6 +360,10 @@ public class NeuralStyle {
                         String.valueOf(getIterations()),
                         "-seed",
                         String.valueOf(getSeed()),
+                        "-style_layers",
+                        styleLayersBuilder.toString(),
+                        "-content_layers",
+                        contentLayersBuilder.toString(),
                         "-image_size",
                         String.valueOf(getOutputSize()),
                         "-style_scale",

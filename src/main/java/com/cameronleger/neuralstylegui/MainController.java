@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -57,6 +58,8 @@ public class MainController implements Initializable {
 
     private ObservableList<NeuralImage> styleImages;
     private ObservableList<NeuralImage> contentImages;
+    private ObservableList<NeuralLayer> styleLayers;
+    private ObservableList<NeuralLayer> contentLayers;
 
     @FXML
     private TextField styleFolderPath;
@@ -92,6 +95,20 @@ public class MainController implements Initializable {
     private TableColumn<NeuralImage, String> contentImageTableName;
     @FXML
     private TableColumn<NeuralImage, Image> contentImageTableImage;
+
+    @FXML
+    private TableView<NeuralLayer> styleLayersTable;
+    @FXML
+    private TableColumn<NeuralLayer, Boolean> styleLayersTableSelected;
+    @FXML
+    private TableColumn<NeuralLayer, String> styleLayersTableName;
+
+    @FXML
+    private TableView<NeuralLayer> contentLayersTable;
+    @FXML
+    private TableColumn<NeuralLayer, Boolean> contentLayersTableSelected;
+    @FXML
+    private TableColumn<NeuralLayer, String> contentLayersTableName;
 
     @FXML
     private ProgressBar vramBar;
@@ -192,19 +209,9 @@ public class MainController implements Initializable {
 
         bundle = resources;
         outputImageView = new MovingImageView(imageView);
-        styleImages = FXCollections.observableArrayList(new Callback<NeuralImage, javafx.beans.Observable[]>() {
-            @Override
-            public Observable[] call(NeuralImage neuralImage) {
-                return new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()};
-            }
-        });
-        contentImages = FXCollections.observableArrayList(new Callback<NeuralImage, javafx.beans.Observable[]>() {
-            @Override
-            public Observable[] call(NeuralImage neuralImage) {
-                return new Observable[] {neuralImage.selectedProperty()};
-            }
-        });
 
+        log.log(Level.FINER, "Setting observable lists.");
+        setupObservableLists();
         log.log(Level.FINER, "Setting button listeners.");
         setupButtonListeners();
         log.log(Level.FINER, "Setting field listeners.");
@@ -218,6 +225,8 @@ public class MainController implements Initializable {
 
         setupStyleImageTable();
         setupContentImageTable();
+        setupStyleLayersTable();
+        setupContentLayersTable();
 
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
@@ -293,6 +302,12 @@ public class MainController implements Initializable {
         assert contentImageTable != null : "fx:id=\"contentImageTable\" was not injected.";
         assert contentImageTableName != null : "fx:id=\"contentImageTableName\" was not injected.";
         assert contentImageTableImage != null : "fx:id=\"contentImageTableImage\" was not injected.";
+        assert styleLayersTable != null : "fx:id=\"styleLayersTable\" was not injected.";
+        assert styleLayersTableSelected != null : "fx:id=\"styleLayersTableSelected\" was not injected.";
+        assert styleLayersTableName != null : "fx:id=\"styleLayersTableName\" was not injected.";
+        assert contentLayersTable != null : "fx:id=\"contentLayersTable\" was not injected.";
+        assert contentLayersTableSelected != null : "fx:id=\"contentLayersTableSelected\" was not injected.";
+        assert contentLayersTableName != null : "fx:id=\"contentLayersTableName\" was not injected.";
         assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
         assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
         assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
@@ -333,6 +348,129 @@ public class MainController implements Initializable {
         assert progress != null : "fx:id=\"progress\" was not injected.";
         assert logTextArea != null : "fx:id=\"logTextArea\" was not injected.";
         log.log(Level.FINER, "All FXML items were injected.");
+    }
+
+    private void setupObservableLists() {
+        styleImages = FXCollections.observableArrayList(new Callback<NeuralImage, Observable[]>() {
+            @Override
+            public Observable[] call(NeuralImage neuralImage) {
+                return new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()};
+            }
+        });
+        contentImages = FXCollections.observableArrayList(new Callback<NeuralImage, Observable[]>() {
+            @Override
+            public Observable[] call(NeuralImage neuralImage) {
+                return new Observable[] {neuralImage.selectedProperty()};
+            }
+        });
+        styleLayers = FXCollections.observableArrayList(new Callback<NeuralLayer, Observable[]>() {
+            @Override
+            public Observable[] call(NeuralLayer neuralLayer) {
+                return new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()};
+            }
+        });
+        contentLayers = FXCollections.observableArrayList(new Callback<NeuralLayer, Observable[]>() {
+            @Override
+            public Observable[] call(NeuralLayer neuralLayer) {
+                return new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()};
+            }
+        });
+
+        // TODO: these can be parsed from *.prototxt, but the defaults should be set
+        styleLayers.addAll(
+                new NeuralLayer("relu1_1", true),
+                new NeuralLayer("relu1_2", false),
+                new NeuralLayer("relu2_1", true),
+                new NeuralLayer("relu2_2", false),
+                new NeuralLayer("relu3_1", true),
+                new NeuralLayer("relu3_2", false),
+                new NeuralLayer("relu3_3", false),
+                new NeuralLayer("relu3_4", false),
+                new NeuralLayer("relu4_1", true),
+                new NeuralLayer("relu4_2", false),
+                new NeuralLayer("relu4_3", false),
+                new NeuralLayer("relu4_4", false),
+                new NeuralLayer("relu5_1", true),
+                new NeuralLayer("relu5_2", false),
+                new NeuralLayer("relu5_3", false),
+                new NeuralLayer("relu5_4", false),
+                new NeuralLayer("relu6", false),
+                new NeuralLayer("relu7", false),
+                new NeuralLayer("conv1_1", false),
+                new NeuralLayer("conv1_2", false),
+                new NeuralLayer("conv2_1", false),
+                new NeuralLayer("conv2_2", false),
+                new NeuralLayer("conv3_1", false),
+                new NeuralLayer("conv3_2", false),
+                new NeuralLayer("conv3_3", false),
+                new NeuralLayer("conv3_4", false),
+                new NeuralLayer("conv4_1", false),
+                new NeuralLayer("conv4_2", false),
+                new NeuralLayer("conv4_3", false),
+                new NeuralLayer("conv4_4", false),
+                new NeuralLayer("conv5_1", false),
+                new NeuralLayer("conv5_2", false),
+                new NeuralLayer("conv5_3", false),
+                new NeuralLayer("conv5_4", false),
+                new NeuralLayer("pool1", false),
+                new NeuralLayer("pool2", false),
+                new NeuralLayer("pool3", false),
+                new NeuralLayer("pool4", false),
+                new NeuralLayer("pool5", false),
+                new NeuralLayer("fc6", false),
+                new NeuralLayer("fc7", false),
+                new NeuralLayer("fc8", false),
+                new NeuralLayer("drop6", false),
+                new NeuralLayer("drop7", false),
+                new NeuralLayer("prob", false)
+        );
+        contentLayers.addAll(
+                new NeuralLayer("relu1_1", false),
+                new NeuralLayer("relu1_2", false),
+                new NeuralLayer("relu2_1", false),
+                new NeuralLayer("relu2_2", false),
+                new NeuralLayer("relu3_1", false),
+                new NeuralLayer("relu3_2", false),
+                new NeuralLayer("relu3_3", false),
+                new NeuralLayer("relu3_4", false),
+                new NeuralLayer("relu4_1", false),
+                new NeuralLayer("relu4_2", true),
+                new NeuralLayer("relu4_3", false),
+                new NeuralLayer("relu4_4", false),
+                new NeuralLayer("relu5_1", false),
+                new NeuralLayer("relu5_2", false),
+                new NeuralLayer("relu5_3", false),
+                new NeuralLayer("relu5_4", false),
+                new NeuralLayer("relu6", false),
+                new NeuralLayer("relu7", false),
+                new NeuralLayer("conv1_1", false),
+                new NeuralLayer("conv1_2", false),
+                new NeuralLayer("conv2_1", false),
+                new NeuralLayer("conv2_2", false),
+                new NeuralLayer("conv3_1", false),
+                new NeuralLayer("conv3_2", false),
+                new NeuralLayer("conv3_3", false),
+                new NeuralLayer("conv3_4", false),
+                new NeuralLayer("conv4_1", false),
+                new NeuralLayer("conv4_2", false),
+                new NeuralLayer("conv4_3", false),
+                new NeuralLayer("conv4_4", false),
+                new NeuralLayer("conv5_1", false),
+                new NeuralLayer("conv5_2", false),
+                new NeuralLayer("conv5_3", false),
+                new NeuralLayer("conv5_4", false),
+                new NeuralLayer("pool1", false),
+                new NeuralLayer("pool2", false),
+                new NeuralLayer("pool3", false),
+                new NeuralLayer("pool4", false),
+                new NeuralLayer("pool5", false),
+                new NeuralLayer("fc6", false),
+                new NeuralLayer("fc7", false),
+                new NeuralLayer("fc8", false),
+                new NeuralLayer("drop6", false),
+                new NeuralLayer("drop7", false),
+                new NeuralLayer("prob", false)
+        );
     }
 
     private void setupButtonListeners() {
@@ -824,5 +962,61 @@ public class MainController implements Initializable {
                 };
             }
         });
+    }
+
+    private void setupStyleLayersTable() {
+        log.log(Level.FINER, "Setting style layer table list.");
+        styleLayersTable.setItems(styleLayers);
+
+        log.log(Level.FINER, "Setting style layer table selection listener.");
+        EventStreams.changesOf(styleLayers).subscribe(change -> {
+            log.log(Level.FINE, "styleLayers changed");
+
+            List<NeuralLayer> selectedStyleLayers = styleLayers.stream()
+                    .filter(NeuralLayer::isSelected)
+                    .collect(Collectors.toList());
+
+            String[] newStyleLayers = new String[selectedStyleLayers.size()];
+            for (int i = 0; i < selectedStyleLayers.size(); i++)
+                newStyleLayers[i] = selectedStyleLayers.get(i).getName();
+            neuralStyle.setStyleLayers(newStyleLayers);
+
+            toggleStartButton();
+        });
+
+        log.log(Level.FINER, "Setting style layer table column factories.");
+        styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        styleLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleLayersTableSelected));
+
+        styleLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        styleLayersTableName.setCellFactory(TextFieldTableCell.forTableColumn());
+    }
+
+    private void setupContentLayersTable() {
+        log.log(Level.FINER, "Setting content layer table list.");
+        contentLayersTable.setItems(contentLayers);
+
+        log.log(Level.FINER, "Setting content layer table selection listener.");
+        EventStreams.changesOf(contentLayers).subscribe(change -> {
+            log.log(Level.FINE, "contentLayers changed");
+
+            List<NeuralLayer> selectedContentLayers = contentLayers.stream()
+                    .filter(NeuralLayer::isSelected)
+                    .collect(Collectors.toList());
+
+            String[] newContentLayers = new String[selectedContentLayers.size()];
+            for (int i = 0; i < selectedContentLayers.size(); i++)
+                newContentLayers[i] = selectedContentLayers.get(i).getName();
+            neuralStyle.setContentLayers(newContentLayers);
+
+            toggleStartButton();
+        });
+
+        log.log(Level.FINER, "Setting content layer table column factories.");
+        contentLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        contentLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(contentLayersTableSelected));
+
+        contentLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        contentLayersTableName.setCellFactory(TextFieldTableCell.forTableColumn());
     }
 }
