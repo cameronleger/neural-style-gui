@@ -175,6 +175,15 @@ public class MainController implements Initializable {
     private CheckBox autotune;
 
     @FXML
+    private Button protoFileButton;
+    @FXML
+    private TextField protoFilePath;
+    @FXML
+    private Button modelFileButton;
+    @FXML
+    private TextField modelFilePath;
+
+    @FXML
     private Button startButton;
     @FXML
     private Button stopButton;
@@ -196,11 +205,7 @@ public class MainController implements Initializable {
     @FXML
     private TextArea logTextArea;
 
-    private static FileChooser imageFileChooser = new FileChooser();
-    static {
-        imageFileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg"));
-    }
+    private static FileChooser fileChooser = new FileChooser();
     private static DirectoryChooser directoryChooser = new DirectoryChooser();
 
     public void initialize(URL location, ResourceBundle resources) {
@@ -338,6 +343,10 @@ public class MainController implements Initializable {
         assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
         assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
         assert autotune != null : "fx:id=\"autotune\" was not injected.";
+        assert protoFileButton != null : "fx:id=\"protoFileButton\" was not injected.";
+        assert protoFilePath != null : "fx:id=\"protoFilePath\" was not injected.";
+        assert modelFileButton != null : "fx:id=\"modelFileButton\" was not injected.";
+        assert modelFilePath != null : "fx:id=\"modelFilePath\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageViewModeFit != null : "fx:id=\"imageViewModeFit\" was not injected.";
@@ -490,7 +499,7 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Content Folder listener.");
         EventStreams.eventsOf(contentFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing content folder chooser.");
-            imageFileChooser.setTitle(bundle.getString("contentFolderChooser"));
+            directoryChooser.setTitle(bundle.getString("contentFolderChooser"));
             File contentFolder = directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Content folder chosen: {0}", contentFolder);
             if (contentFolder != null) {
@@ -578,6 +587,36 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Actual Size listener.");
         EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent -> {
             outputImageView.scaleImageViewport(1);
+        });
+
+        log.log(Level.FINER, "Setting Proto File listener.");
+        EventStreams.eventsOf(protoFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing proto file chooser.");
+            fileChooser.setTitle(bundle.getString("protoFileChooser"));
+            File protoFile = fileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "Proto file chosen: {0}", protoFile);
+            neuralStyle.setProtoFile(protoFile);
+            if (protoFile != null) {
+                protoFilePath.setText(protoFile.getAbsolutePath());
+                fileChooser.setInitialDirectory(protoFile.getParentFile());
+            } else {
+                protoFilePath.setText("");
+            }
+        });
+
+        log.log(Level.FINER, "Setting Model File listener.");
+        EventStreams.eventsOf(modelFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing model file chooser.");
+            fileChooser.setTitle(bundle.getString("modelFileChooser"));
+            File modelFile = fileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "Model file chosen: {0}", modelFile);
+            neuralStyle.setModelFile(modelFile);
+            if (modelFile != null) {
+                modelFilePath.setText(modelFile.getAbsolutePath());
+                fileChooser.setInitialDirectory(modelFile.getParentFile());
+            } else {
+                modelFilePath.setText("");
+            }
         });
     }
 

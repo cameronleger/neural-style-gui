@@ -58,6 +58,9 @@
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
             <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
+            <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
           <RowConstraints valignment="CENTER" vgrow="NEVER" />
         </rowConstraints>
@@ -251,17 +254,26 @@
                   <Tooltip maxWidth="300.0" text="%autotuneTooltip" wrapText="true" />
                </tooltip>
             </CheckBox>
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%modelLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="22">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Button fx:id="protoFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%protoFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="23" />
+            <TextField fx:id="protoFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%protoFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="23" />
+            <Button fx:id="modelFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%modelFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="24" />
+            <TextField fx:id="modelFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%modelFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="24" />
          </children>
          <padding>
             <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
          </padding>
       </GridPane>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="400.0">
          <children>
             <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
                   <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
-                  <Button fx:id="stopButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
+                  <Button fx:id="stopButton" cancelButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
                      <HBox.margin>
                         <Insets left="4.0" />
                      </HBox.margin>

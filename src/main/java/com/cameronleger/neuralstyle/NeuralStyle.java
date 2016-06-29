@@ -44,6 +44,8 @@ public class NeuralStyle {
     private String optimizer = "lbfgs";
     private int learningRate = 10;
     private boolean autotune = false;
+    private File protoFile;
+    private File modelFile;
     private String uniqueText;
 
     public static String getExecutable() {
@@ -254,6 +256,22 @@ public class NeuralStyle {
         this.autotune = autotune;
     }
 
+    public File getProtoFile() {
+        return protoFile;
+    }
+
+    public void setProtoFile(File protoFile) {
+        this.protoFile = protoFile;
+    }
+
+    public File getModelFile() {
+        return modelFile;
+    }
+
+    public void setModelFile(File modelFile) {
+        this.modelFile = modelFile;
+    }
+
     public File getTempDir() {
         if (tempDir == null) {
             try {
@@ -270,7 +288,7 @@ public class NeuralStyle {
     }
 
     public void generateUniqueText() {
-        uniqueText = String.valueOf(System.nanoTime());
+        uniqueText = String.valueOf(System.currentTimeMillis());
     }
 
     private String getUniqueText() {
@@ -390,11 +408,21 @@ public class NeuralStyle {
                         String.valueOf(getLearningRate()),
                 }));
 
-        if(isNormalizeGradients())
+        if (isNormalizeGradients())
             commandList.add("-normalize_gradients");
 
-        if(isAutotune())
+        if (isAutotune())
             commandList.add("-cudnn_autotune");
+
+        if (FileUtils.checkFileExists(protoFile)) {
+            commandList.add("-proto_file");
+            commandList.add(protoFile.getAbsolutePath());
+        }
+
+        if (FileUtils.checkFileExists(modelFile)) {
+            commandList.add("-model_file");
+            commandList.add(modelFile.getAbsolutePath());
+        }
 
         String[] command = new String[commandList.size()];
         return commandList.toArray(command);
