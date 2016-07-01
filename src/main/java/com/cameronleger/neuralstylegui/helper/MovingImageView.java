@@ -1,4 +1,4 @@
-package com.cameronleger.neuralstylegui;
+package com.cameronleger.neuralstylegui.helper;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

@@ -1,12 +1,13 @@
-package com.cameronleger.neuralstylegui;
+package com.cameronleger.neuralstylegui.model;
 
+import com.cameronleger.neuralstylegui.helper.AsyncImageProperty;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
 
 import java.io.File;
 
 public class NeuralImage {
-    static final int THUMBNAIL_SIZE = 250;
+    public static final int THUMBNAIL_SIZE = 250;
     private BooleanProperty selected;
     private StringProperty name;
     private ObjectProperty<File> imageFile;

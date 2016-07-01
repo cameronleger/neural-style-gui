@@ -1,4 +1,4 @@
-package com.cameronleger.neuralstylegui;
+package com.cameronleger.neuralstylegui.service;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class NvidiaService extends Service {
+public class NvidiaService extends Service {
     private static final Logger log = Logger.getLogger(NvidiaService.class.getName());
     private static final Pattern totalPattern = Pattern.compile("Total\\s+:\\s+(\\d+)\\s+MiB");
     private static final Pattern usedPattern = Pattern.compile("Used\\s+:\\s+(\\d+)\\s+MiB");

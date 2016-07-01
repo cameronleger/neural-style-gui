@@ -1,4 +1,4 @@
-package com.cameronleger.neuralstylegui;
+package com.cameronleger.neuralstylegui.helper;
 
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
@@ -6,10 +6,10 @@ import javafx.scene.control.TextArea;
 import java.util.logging.LogRecord;
 import java.util.logging.StreamHandler;
 
-class TextAreaLogHandler extends StreamHandler {
+public class TextAreaLogHandler extends StreamHandler {
     private TextArea textArea = null;
 
-    TextAreaLogHandler(TextArea textArea) {
+    public TextAreaLogHandler(TextArea textArea) {
         this.textArea = textArea;
     }
 

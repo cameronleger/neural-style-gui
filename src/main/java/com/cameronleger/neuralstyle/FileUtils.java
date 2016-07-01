@@ -1,6 +1,6 @@
 package com.cameronleger.neuralstyle;
 
-import com.cameronleger.neuralstylegui.NeuralImage;
+import com.cameronleger.neuralstylegui.model.NeuralImage;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
@@ -91,7 +91,7 @@ public class FileUtils {
     }
 
     public static File saveTempOutputImageTo(File tempImage, File outputFolder, String possibleName) {
-        String uniqueText = String.valueOf(System.nanoTime());
+        String uniqueText = String.valueOf(System.currentTimeMillis());
         File savedImage;
         if (possibleName != null && !possibleName.isEmpty()) {
             savedImage = new File(outputFolder, possibleName + ".png");

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 public class NeuralStyle {
     private static final Logger log = Logger.getLogger(NeuralStyle.class.getName());
     private static String executable = "th";
-    private static File neuralStylePath = new File("/home/cameron/neural-style");
+    private static File neuralStylePath;
     private File tempDir;
     private File[] styleImages;
     private double[] styleWeights;

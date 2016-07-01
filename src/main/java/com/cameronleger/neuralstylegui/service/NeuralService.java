@@ -1,4 +1,4 @@
-package com.cameronleger.neuralstylegui;
+package com.cameronleger.neuralstylegui.service;
 
 import com.cameronleger.neuralstyle.NeuralStyle;
 import javafx.concurrent.Service;
@@ -14,20 +14,20 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class NeuralService extends Service {
+public class NeuralService extends Service {
     private static final Logger log = Logger.getLogger(NeuralService.class.getName());
     private static final Pattern iterationPattern = Pattern.compile("Iteration (\\d+) / (\\d+)");
     private NeuralStyle neuralStyle;
 
-    NeuralStyle getNeuralStyle() {
+    public NeuralStyle getNeuralStyle() {
         return neuralStyle;
     }
 
-    void setNeuralStyle(NeuralStyle neuralStyle) {
+    public void setNeuralStyle(NeuralStyle neuralStyle) {
         this.neuralStyle = neuralStyle;
     }
 
-    void addLogHandler(Handler handler) {
+    public void addLogHandler(Handler handler) {
         log.addHandler(handler);
     }
 

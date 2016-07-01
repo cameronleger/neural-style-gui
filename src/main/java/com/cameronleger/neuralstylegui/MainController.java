@@ -2,6 +2,12 @@ package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstylegui.helper.MovingImageView;
+import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
+import com.cameronleger.neuralstylegui.model.NeuralImage;
+import com.cameronleger.neuralstylegui.model.NeuralLayer;
+import com.cameronleger.neuralstylegui.service.NeuralService;
+import com.cameronleger.neuralstylegui.service.NvidiaService;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -58,6 +64,16 @@ public class MainController implements Initializable {
     private ObservableList<NeuralImage> contentImages;
     private ObservableList<NeuralLayer> styleLayers;
     private ObservableList<NeuralLayer> contentLayers;
+
+    @FXML
+    private Button neuralPathButton;
+    @FXML
+    private TextField neuralPath;
+
+    @FXML
+    private TabPane tabs;
+    @FXML
+    private Tab outputTab;
 
     @FXML
     private TextField styleFolderPath;
@@ -248,6 +264,7 @@ public class MainController implements Initializable {
             neuralService.reset();
             neuralService.start();
             imageOutputTimer.restart();
+            tabs.getSelectionModel().select(outputTab);
         }
     }
 
@@ -289,6 +306,10 @@ public class MainController implements Initializable {
     }
 
     private void checkInjections() {
+        assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
+        assert neuralPath != null : "fx:id=\"neuralPath\" was not injected.";
+        assert tabs != null : "fx:id=\"tabs\" was not injected.";
+        assert outputTab != null : "fx:id=\"outputTab\" was not injected.";
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
         assert contentFolderPath != null : "fx:id=\"contentFolderPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
@@ -481,6 +502,20 @@ public class MainController implements Initializable {
     }
 
     private void setupButtonListeners() {
+        log.log(Level.FINER, "Setting Neural Path listener.");
+        EventStreams.eventsOf(neuralPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing neural-style folder chooser.");
+            directoryChooser.setTitle(bundle.getString("neuralPathChooser"));
+            File neuralStylePath = directoryChooser.showDialog(stage);
+            log.log(Level.FINE, "neural-style folder chosen: {0}", neuralStylePath);
+            if (neuralStylePath == null) {
+                neuralPath.setText("");
+            } else {
+                neuralPath.setText(neuralStylePath.getAbsolutePath());
+            }
+            NeuralStyle.setNeuralStylePath(neuralStylePath);
+        });
+
         log.log(Level.FINER, "Setting Style Folder listener.");
         EventStreams.eventsOf(styleFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing style folder chooser.");
