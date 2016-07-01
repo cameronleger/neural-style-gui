@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import java.io.File;
 
 public class NeuralImage {
-    static final int THUMBNAIL_SIZE = 150;
+    static final int THUMBNAIL_SIZE = 250;
     private BooleanProperty selected;
     private StringProperty name;
     private ObjectProperty<File> imageFile;

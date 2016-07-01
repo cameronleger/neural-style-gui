@@ -319,7 +319,7 @@
                               </HBox>
                               <TableView fx:id="styleImageTable" editable="true" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="styleImageTableImage" editable="false" maxWidth="200.0" minWidth="150.0" prefWidth="150.0" text="%styleFileColumnImage" />
+                                    <TableColumn fx:id="styleImageTableImage" editable="false" maxWidth="400.0" minWidth="250.0" prefWidth="250.0" text="%styleFileColumnImage" />
                                     <TableColumn fx:id="styleImageTableSelected" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnSelected" />
                                     <TableColumn fx:id="styleImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%styleFileColumnName" />
                                     <TableColumn fx:id="styleImageTableWeight" maxWidth="150.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnWeight" />
@@ -356,7 +356,7 @@
                               </HBox>
                                <TableView fx:id="contentImageTable" editable="true" VBox.vgrow="ALWAYS">
                                    <columns>
-                                       <TableColumn fx:id="contentImageTableImage" editable="false" maxWidth="200.0" minWidth="150.0" prefWidth="150.0" text="%contentFileColumnImage" />
+                                       <TableColumn fx:id="contentImageTableImage" editable="false" maxWidth="400.0" minWidth="250.0" prefWidth="250.0" text="%contentFileColumnImage" />
                                        <TableColumn fx:id="contentImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%contentFileColumnName" />
                                    </columns>
                                    <VBox.margin>

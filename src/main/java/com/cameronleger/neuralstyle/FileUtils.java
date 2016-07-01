@@ -7,10 +7,16 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 public class FileUtils {
+    private static final Logger log = Logger.getLogger(FileUtils.class.getName());
     private static final Pattern ITERATION_PATTERN = Pattern.compile(".*_(\\d+)\\.png");
     private static final String[] EXTENSIONS = new String[] {
             "jpg", "jpeg", "png"
@@ -82,6 +88,25 @@ public class FileUtils {
         }
 
         return files;
+    }
+
+    public static File saveTempOutputImageTo(File tempImage, File outputFolder, String possibleName) {
+        String uniqueText = String.valueOf(System.nanoTime());
+        File savedImage;
+        if (possibleName != null && !possibleName.isEmpty()) {
+            savedImage = new File(outputFolder, possibleName + ".png");
+            if (savedImage.exists() && savedImage.isFile())
+                savedImage = new File(outputFolder, possibleName + "_" + uniqueText + ".png");
+        } else
+            savedImage = new File(outputFolder, uniqueText + ".png");
+
+        try {
+            Files.copy(tempImage.toPath(), savedImage.toPath(), REPLACE_EXISTING);
+            return savedImage;
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
     }
 
     static int parseImageIteration(File image) {
