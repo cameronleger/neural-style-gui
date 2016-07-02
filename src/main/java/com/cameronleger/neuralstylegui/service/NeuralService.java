@@ -52,7 +52,7 @@ public class NeuralService extends Service {
     }
 
     @Override
-    protected Task<File> createTask() {
+    protected Task<Integer> createTask() {
         log.log(Level.FINE, "Getting neural style for task.");
         final NeuralStyle neuralStyleForTask = getNeuralStyle();
 
@@ -68,15 +68,15 @@ public class NeuralService extends Service {
         for (String buildCommandPart : buildCommand)
             log.log(Level.FINE, buildCommandPart);
 
-        return new Task<File>() {
-            @Override protected File call() throws InterruptedException {
+        return new Task<Integer>() {
+            @Override protected Integer call() throws InterruptedException {
                 updateMessage("Starting neural-style.");
                 log.log(Level.FINE, "Starting neural-style process.");
 
                 int exitCode = -1;
                 String line;
                 ProcessBuilder builder = new ProcessBuilder(buildCommand);
-                builder.directory(NeuralStyle.getNeuralStylePath());
+                builder.directory(neuralStyleForTask.getNeuralStylePath());
                 builder.redirectErrorStream(true);
 
                 try {
@@ -117,22 +117,7 @@ public class NeuralService extends Service {
 
                 if (exitCode != 0)
                     throw new RuntimeException("Exit Code: " + String.valueOf(exitCode));
-                return neuralStyleForTask.getTempOutputImage();
-            }
-
-            @Override protected void succeeded() {
-                super.succeeded();
-                updateMessage("Success!");
-            }
-
-            @Override protected void cancelled() {
-                super.cancelled();
-                updateMessage("Cancelled!");
-            }
-
-            @Override protected void failed() {
-                super.failed();
-                updateMessage("Failed!");
+                return exitCode;
             }
         };
     }

@@ -258,7 +258,7 @@ public class MainController implements Initializable {
     void startService() {
         if (!neuralService.isRunning()) {
             log.log(Level.FINE, "Starting neural service.");
-            neuralStyle.generateUniqueText();
+            FileUtils.generateUniqueText();
             neuralService.setNeuralStyle(neuralStyle);
             logTextArea.clear();
             neuralService.reset();
@@ -277,8 +277,7 @@ public class MainController implements Initializable {
     }
 
     private void toggleStartButton() {
-        File outputImage = neuralStyle.getTempOutputImage();
-        startButton.setDisable(outputImage == null || neuralService.isRunning());
+        startButton.setDisable(!neuralStyle.checkArguments() || neuralService.isRunning());
     }
 
     private void setImageView(File styleFile) {
@@ -513,7 +512,7 @@ public class MainController implements Initializable {
             } else {
                 neuralPath.setText(neuralStylePath.getAbsolutePath());
             }
-            NeuralStyle.setNeuralStylePath(neuralStylePath);
+            neuralStyle.setNeuralStylePath(neuralStylePath);
         });
 
         log.log(Level.FINER, "Setting Style Folder listener.");
@@ -564,7 +563,7 @@ public class MainController implements Initializable {
 
             // Check for generated image iterations to show
             File outputFolder = neuralStyle.getGeneralOutputFolder();
-            File[] images = neuralStyle.getTempOutputImageIterations();
+            File[] images = FileUtils.getTempOutputImageIterations();
             if (outputFolder == null) {
                 tooltip.setText(bundle.getString("outputImageNoOutputFolder"));
             } else if (images == null) {
@@ -882,7 +881,7 @@ public class MainController implements Initializable {
 
             log.log(Level.FINER, "Timer: checking images");
             // Check for generated image iterations to show
-            File[] images = neuralStyle.getTempOutputImageIterations();
+            File[] images = FileUtils.getTempOutputImageIterations();
             if (images != null && images.length > 0) {
                 setImageView(images[images.length - 1]);
             }
@@ -913,6 +912,7 @@ public class MainController implements Initializable {
     private void setupStyleImageTable() {
         log.log(Level.FINER, "Setting style image table list.");
         styleImageTable.setItems(styleImages);
+        styleImageTable.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
         log.log(Level.FINER, "Setting style image table selection listener.");
         EventStreams.changesOf(styleImages).subscribe(change -> {
@@ -994,6 +994,7 @@ public class MainController implements Initializable {
     private void setupContentImageTable() {
         log.log(Level.FINER, "Setting content image table list.");
         contentImageTable.setItems(contentImages);
+        contentImageTable.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
         log.log(Level.FINER, "Setting content image table selection listener.");
         EventStreams.changesOf(contentImageTable.getSelectionModel().selectedItemProperty())

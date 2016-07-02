@@ -1,17 +1,14 @@
 package com.cameronleger.neuralstyle;
 
 import java.io.File;
-import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Locale;
 
 public class NeuralStyle {
-    private static final Logger log = Logger.getLogger(NeuralStyle.class.getName());
-    private static String executable = "th";
-    private static File neuralStylePath;
-    private File tempDir;
+    private File neuralStylePath;
     private File[] styleImages;
     private double[] styleWeights;
     private File contentImage;
@@ -46,22 +43,13 @@ public class NeuralStyle {
     private boolean autotune = false;
     private File protoFile;
     private File modelFile;
-    private String uniqueText;
 
-    public static String getExecutable() {
-        return executable;
-    }
-
-    public static void setExecutable(String executable) {
-        NeuralStyle.executable = executable;
-    }
-
-    public static File getNeuralStylePath() {
+    public File getNeuralStylePath() {
         return neuralStylePath;
     }
 
-    public static void setNeuralStylePath(File neuralStylePath) {
-        NeuralStyle.neuralStylePath = neuralStylePath;
+    public void setNeuralStylePath(File neuralStylePath) {
+        this.neuralStylePath = neuralStylePath;
     }
 
     public File[] getStyleImages() {
@@ -272,31 +260,6 @@ public class NeuralStyle {
         this.modelFile = modelFile;
     }
 
-    public File getTempDir() {
-        if (tempDir == null) {
-            try {
-                tempDir = File.createTempFile("neuralStyle", null);
-                if (!tempDir.delete())
-                    throw new IOException("Unable to delete temporary file.");
-                if (!tempDir.mkdir())
-                    throw new IOException("Unable to create temporary directory.");
-            } catch (Exception e) {
-                log.log(Level.SEVERE, e.toString(), e);
-            }
-        }
-        return tempDir;
-    }
-
-    public void generateUniqueText() {
-        uniqueText = String.valueOf(System.currentTimeMillis());
-    }
-
-    private String getUniqueText() {
-        if (uniqueText == null)
-            generateUniqueText();
-        return uniqueText;
-    }
-
     public boolean checkArguments() {
         File[] styleImages = getStyleImages();
         double[] styleWeights = getStyleWeights();
@@ -309,23 +272,14 @@ public class NeuralStyle {
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
-                FileUtils.checkFolderExists(getTempDir());
-    }
-
-    public File getTempOutputImage() {
-        if (!checkArguments())
-            return null;
-        File tempOutputDir = getTempDir();
-        if (tempOutputDir == null)
-            return null;
-        return new File(tempOutputDir, getUniqueText() + ".png");
-    }
-
-    public File[] getTempOutputImageIterations() {
-        return FileUtils.getTempOutputImageIterations(getTempDir(), getTempOutputImage());
+                FileUtils.checkFolderExists(FileUtils.getTempDir());
     }
 
     public String[] buildCommand() {
+        // Format decimals without scientific notation and with a period
+        DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+        df.setMaximumFractionDigits(340);
+
         StringBuilder styleImagesBuilder = new StringBuilder();
         File[] styleFiles = getStyleImages();
         for (int i = 0; i < styleFiles.length; i++) {
@@ -337,7 +291,7 @@ public class NeuralStyle {
         StringBuilder styleWeightsBuilder = new StringBuilder();
         double[] styleWeights = getStyleWeights();
         for (int i = 0; i < styleWeights.length; i++) {
-            styleWeightsBuilder.append(String.valueOf(styleWeights[i]));
+            styleWeightsBuilder.append(df.format(styleWeights[i]));
             if (i != styleWeights.length - 1)
                 styleWeightsBuilder.append(",");
         }
@@ -360,7 +314,7 @@ public class NeuralStyle {
 
         ArrayList<String> commandList = new ArrayList<>(
                 Arrays.asList(new String[] {
-                        getExecutable(),
+                        "th",
                         "neural_style.lua",
                         "-style_image",
                         styleImagesBuilder.toString(),
@@ -369,7 +323,7 @@ public class NeuralStyle {
                         "-content_image",
                         getContentImage().getAbsolutePath(),
                         "-output_image",
-                        getTempOutputImage().getAbsolutePath(),
+                        FileUtils.getTempOutputImage().getAbsolutePath(),
                         "-print_iter",
                         String.valueOf(getIterationsPrint()),
                         "-save_iter",
@@ -385,13 +339,13 @@ public class NeuralStyle {
                         "-image_size",
                         String.valueOf(getOutputSize()),
                         "-style_scale",
-                        String.valueOf(getStyleSize()),
+                        df.format(getStyleSize()),
                         "-content_weight",
                         String.valueOf(getContentWeight()),
                         "-style_weight",
                         String.valueOf(getStyleWeight()),
                         "-tv_weight",
-                        String.valueOf(getTvWeight()),
+                        df.format(getTvWeight()),
                         "-original_colors",
                         String.valueOf(getOriginalColors()),
                         "-init",
@@ -414,14 +368,14 @@ public class NeuralStyle {
         if (isAutotune())
             commandList.add("-cudnn_autotune");
 
-        if (FileUtils.checkFileExists(protoFile)) {
+        if (FileUtils.checkFileExists(getProtoFile())) {
             commandList.add("-proto_file");
-            commandList.add(protoFile.getAbsolutePath());
+            commandList.add(getProtoFile().getAbsolutePath());
         }
 
-        if (FileUtils.checkFileExists(modelFile)) {
+        if (FileUtils.checkFileExists(getModelFile())) {
             commandList.add("-model_file");
-            commandList.add(modelFile.getAbsolutePath());
+            commandList.add(getModelFile().getAbsolutePath());
         }
 
         String[] command = new String[commandList.size()];

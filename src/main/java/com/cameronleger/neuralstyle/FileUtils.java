@@ -7,6 +7,7 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +22,18 @@ public class FileUtils {
     private static final String[] EXTENSIONS = new String[] {
             "jpg", "jpeg", "png"
     };
+    private static File tempDir;
+    private static String uniqueText;
+
+    public static void generateUniqueText() {
+        uniqueText = String.valueOf(System.currentTimeMillis());
+    }
+
+    private static String getUniqueText() {
+        if (uniqueText == null)
+            generateUniqueText();
+        return uniqueText;
+    }
 
     public static boolean checkFileExists(File file) {
         return file != null && file.exists() && file.isFile();
@@ -41,6 +54,28 @@ public class FileUtils {
 
     public static String getFileName(File file) {
         return FilenameUtils.removeExtension(file.getName());
+    }
+
+    public static File getTempDir() {
+        if (tempDir == null) {
+            try {
+                tempDir = File.createTempFile("neuralStyle", null);
+                if (!tempDir.delete())
+                    throw new IOException("Unable to delete temporary file.");
+                if (!tempDir.mkdir())
+                    throw new IOException("Unable to create temporary directory.");
+            } catch (Exception e) {
+                log.log(Level.SEVERE, e.toString(), e);
+            }
+        }
+        return tempDir;
+    }
+
+    public static File getTempOutputImage() {
+        File tempOutputDir = FileUtils.getTempDir();
+        if (tempOutputDir == null)
+            return null;
+        return new File(tempOutputDir, getUniqueText() + ".png");
     }
 
     public static NeuralImage[] getImages(File dir) {
@@ -66,14 +101,15 @@ public class FileUtils {
         return images;
     }
 
-    public static File[] getTempOutputImageIterations(File outputDir, File outputImage) {
-        if (outputDir == null || !outputDir.isDirectory() || outputImage == null)
+    public static File[] getTempOutputImageIterations() {
+        File outputImage = getTempOutputImage();
+        if (tempDir == null || !tempDir.isDirectory() || outputImage == null)
             return null;
 
         // Unix-like searching for image iterations
         String outputImageBase = getFileName(outputImage);
         FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
-        File[] files = outputDir.listFiles(fileFilter);
+        File[] files = tempDir.listFiles(fileFilter);
 
         // sort the files by the iteration progress
         if (files != null && files.length > 1) {
@@ -91,7 +127,7 @@ public class FileUtils {
     }
 
     public static File saveTempOutputImageTo(File tempImage, File outputFolder, String possibleName) {
-        String uniqueText = String.valueOf(System.currentTimeMillis());
+        String uniqueText = getUniqueText();
         File savedImage;
         if (possibleName != null && !possibleName.isEmpty()) {
             savedImage = new File(outputFolder, possibleName + ".png");
@@ -109,7 +145,7 @@ public class FileUtils {
         }
     }
 
-    static int parseImageIteration(File image) {
+    public static int parseImageIteration(File image) {
         int iteration = -1;
         if (image == null)
             return iteration;
@@ -119,24 +155,24 @@ public class FileUtils {
         return iteration;
     }
 
-    private static int partition(int arr[], File arr2[], int firstIndex, int lastIndex) {
+    private static int partition(int iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
         int i = firstIndex, j = lastIndex;
         int tmp;
         File tmp2;
-        int pivot = arr[(firstIndex + lastIndex) / 2];
+        int pivot = iterations[(firstIndex + lastIndex) / 2];
 
         while (i <= j) {
-            while (arr[i] < pivot)
+            while (iterations[i] < pivot)
                 i++;
-            while (arr[j] > pivot)
+            while (iterations[j] > pivot)
                 j--;
             if (i <= j) {
-                tmp = arr[i];
-                tmp2 = arr2[i];
-                arr[i] = arr[j];
-                arr2[i] = arr2[j];
-                arr[j] = tmp;
-                arr2[j] = tmp2;
+                tmp = iterations[i];
+                tmp2 = iterationFiles[i];
+                iterations[i] = iterations[j];
+                iterationFiles[i] = iterationFiles[j];
+                iterations[j] = tmp;
+                iterationFiles[j] = tmp2;
                 i++;
                 j--;
             }
@@ -144,11 +180,11 @@ public class FileUtils {
         return i;
     }
 
-    static void quickSort(int arr[], File arr2[], int firstIndex, int lastIndex) {
-        int index = partition(arr, arr2, firstIndex, lastIndex);
+    public static void quickSort(int iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
+        int index = partition(iterations, iterationFiles, firstIndex, lastIndex);
         if (firstIndex < index - 1)
-            quickSort(arr, arr2, firstIndex, index - 1);
+            quickSort(iterations, iterationFiles, firstIndex, index - 1);
         if (index < lastIndex)
-            quickSort(arr, arr2, index, lastIndex);
+            quickSort(iterations, iterationFiles, index, lastIndex);
     }
 }

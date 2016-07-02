@@ -153,7 +153,7 @@
                      </font>
                   </Label>
                   <Label text="%weightContentLabel" GridPane.rowIndex="10" />
-                  <Slider fx:id="contentWeightSlider" blockIncrement="5.0" majorTickUnit="5.0" max="25.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="5.0" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                  <Slider fx:id="contentWeightSlider" blockIncrement="5.0" majorTickUnit="5.0" max="50.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="5.0" GridPane.columnIndex="1" GridPane.rowIndex="10">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightContentTooltip" wrapText="true" />
                      </tooltip>
@@ -164,7 +164,7 @@
                      </tooltip>
                   </TextField>
                   <Label text="%weightStyleLabel" GridPane.rowIndex="11" />
-                  <Slider fx:id="styleWeightSlider" blockIncrement="25.0" majorTickUnit="50.0" max="200.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="100.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                  <Slider fx:id="styleWeightSlider" blockIncrement="25.0" majorTickUnit="100.0" max="1000.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="100.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightStyleTooltip" wrapText="true" />
                      </tooltip>
@@ -175,7 +175,7 @@
                      </tooltip>
                   </TextField>
                   <Label text="%weightTvLabel" GridPane.rowIndex="12" />
-                  <Slider fx:id="tvWeightSlider" blockIncrement="0.001" majorTickUnit="0.002" max="0.01" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1.0E-4" GridPane.columnIndex="1" GridPane.rowIndex="12">
+                  <Slider fx:id="tvWeightSlider" blockIncrement="0.001" majorTickUnit="0.001" max="0.005" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1.0E-4" GridPane.columnIndex="1" GridPane.rowIndex="12">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightTvTooltip" wrapText="true" />
                      </tooltip>
