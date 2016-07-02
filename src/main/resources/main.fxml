@@ -404,10 +404,13 @@
                      <content>
                         <GridPane hgap="8.0" vgap="8.0">
                           <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints halignment="LEFT" hgrow="NEVER" />
+                            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints halignment="LEFT" hgrow="NEVER" />
                           </columnConstraints>
                           <rowConstraints>
+                              <RowConstraints vgrow="NEVER" />
                               <RowConstraints vgrow="NEVER" />
                             <RowConstraints vgrow="ALWAYS" />
                           </rowConstraints>
@@ -415,12 +418,14 @@
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
                            </padding>
                            <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="30.0" text="%styleLayers" textAlignment="CENTER">
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="30.0" text="%styleLayers" textAlignment="CENTER" GridPane.columnSpan="2">
                                  <font>
                                     <Font name="System Bold" size="13.0" />
                                  </font>
                               </Label>
-                              <TableView fx:id="styleLayersTable" editable="true" GridPane.rowIndex="1">
+                              <Button fx:id="styleLayerAdd" mnemonicParsing="false" text="%layersAddButton" GridPane.rowIndex="1" />
+                              <Button fx:id="styleLayerRemove" mnemonicParsing="false" text="%layersRemoveButton" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <TableView fx:id="styleLayersTable" editable="true" GridPane.columnSpan="2" GridPane.rowIndex="2">
                                 <columns>
                                   <TableColumn fx:id="styleLayersTableSelected" maxWidth="150.0" minWidth="150.0" prefWidth="-1.0" text="%layersColumnSelected" />
                                   <TableColumn fx:id="styleLayersTableName" prefWidth="75.0" text="%layersColumnName" />
@@ -432,12 +437,14 @@
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                  </columnResizePolicy>
                               </TableView>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="30.0" text="%contentLayers" textAlignment="CENTER" GridPane.columnIndex="1">
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="30.0" text="%contentLayers" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.columnSpan="2">
                                  <font>
                                     <Font name="System Bold" size="13.0" />
                                  </font>
                               </Label>
-                              <TableView fx:id="contentLayersTable" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                              <Button fx:id="contentLayerAdd" mnemonicParsing="false" text="%layersAddButton" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                              <Button fx:id="contentLayerRemove" mnemonicParsing="false" text="%layersRemoveButton" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                              <TableView fx:id="contentLayersTable" editable="true" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="2">
                                  <columns>
                                     <TableColumn fx:id="contentLayersTableSelected" maxWidth="150.0" minWidth="150.0" prefWidth="-1.0" text="%layersColumnSelected" />
                                     <TableColumn fx:id="contentLayersTableName" prefWidth="75.0" text="%layersColumnName" />

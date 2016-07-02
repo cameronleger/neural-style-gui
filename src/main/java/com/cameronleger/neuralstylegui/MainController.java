@@ -114,12 +114,20 @@ public class MainController implements Initializable {
     private TableColumn<NeuralImage, Image> contentImageTableImage;
 
     @FXML
+    private Button styleLayerAdd;
+    @FXML
+    private Button styleLayerRemove;
+    @FXML
     private TableView<NeuralLayer> styleLayersTable;
     @FXML
     private TableColumn<NeuralLayer, Boolean> styleLayersTableSelected;
     @FXML
     private TableColumn<NeuralLayer, String> styleLayersTableName;
 
+    @FXML
+    private Button contentLayerAdd;
+    @FXML
+    private Button contentLayerRemove;
     @FXML
     private TableView<NeuralLayer> contentLayersTable;
     @FXML
@@ -308,11 +316,14 @@ public class MainController implements Initializable {
     }
 
     private void updateLayers(String[] layers) {
-        List<NeuralLayer> neuralLayers = new ArrayList<>();
-        for (String layer : layers)
-            neuralLayers.add(new NeuralLayer(layer, false));
-        styleLayers.setAll(neuralLayers);
-        contentLayers.setAll(neuralLayers);
+        List<NeuralLayer> newStyleLayers = new ArrayList<>();
+        List<NeuralLayer> newContentLayers = new ArrayList<>();
+        for (String layer : layers) {
+            newStyleLayers.add(new NeuralLayer(layer, false));
+            newContentLayers.add(new NeuralLayer(layer, false));
+        }
+        styleLayers.setAll(newStyleLayers);
+        contentLayers.setAll(newContentLayers);
     }
 
     private void showTooltipNextTo(Region region, String text) {
@@ -346,9 +357,13 @@ public class MainController implements Initializable {
         assert contentImageTable != null : "fx:id=\"contentImageTable\" was not injected.";
         assert contentImageTableName != null : "fx:id=\"contentImageTableName\" was not injected.";
         assert contentImageTableImage != null : "fx:id=\"contentImageTableImage\" was not injected.";
+        assert styleLayerAdd != null : "fx:id=\"styleLayerAdd\" was not injected.";
+        assert styleLayerRemove != null : "fx:id=\"styleLayerRemove\" was not injected.";
         assert styleLayersTable != null : "fx:id=\"styleLayersTable\" was not injected.";
         assert styleLayersTableSelected != null : "fx:id=\"styleLayersTableSelected\" was not injected.";
         assert styleLayersTableName != null : "fx:id=\"styleLayersTableName\" was not injected.";
+        assert contentLayerAdd != null : "fx:id=\"contentLayerAdd\" was not injected.";
+        assert contentLayerRemove != null : "fx:id=\"contentLayerRemove\" was not injected.";
         assert contentLayersTable != null : "fx:id=\"contentLayersTable\" was not injected.";
         assert contentLayersTableSelected != null : "fx:id=\"contentLayersTableSelected\" was not injected.";
         assert contentLayersTableName != null : "fx:id=\"contentLayersTableName\" was not injected.";
@@ -612,6 +627,22 @@ public class MainController implements Initializable {
                 modelFilePath.setText("");
             }
         });
+
+        log.log(Level.FINER, "Setting Style Layer Add listener.");
+        EventStreams.eventsOf(styleLayerAdd, ActionEvent.ACTION).subscribe(
+                actionEvent -> styleLayers.add(new NeuralLayer("newLayer", false)));
+
+        log.log(Level.FINER, "Setting Style Layer Remove listener.");
+        EventStreams.eventsOf(styleLayerRemove, ActionEvent.ACTION).subscribe(
+                actionEvent -> styleLayers.removeAll(styleLayersTable.getSelectionModel().getSelectedItems()));
+
+        log.log(Level.FINER, "Setting Content Layer Add listener.");
+        EventStreams.eventsOf(contentLayerAdd, ActionEvent.ACTION).subscribe(
+                actionEvent -> contentLayers.add(new NeuralLayer("newLayer", false)));
+
+        log.log(Level.FINER, "Setting Content Layer Remove listener.");
+        EventStreams.eventsOf(contentLayerRemove, ActionEvent.ACTION).subscribe(
+                actionEvent -> contentLayers.removeAll(contentLayersTable.getSelectionModel().getSelectedItems()));
     }
 
     private void setupFieldListeners() {
@@ -1014,6 +1045,7 @@ public class MainController implements Initializable {
     private void setupStyleLayersTable() {
         log.log(Level.FINER, "Setting style layer table list.");
         styleLayersTable.setItems(styleLayers);
+        styleLayersTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         log.log(Level.FINER, "Setting style layer table selection listener.");
         EventStreams.changesOf(styleLayers).subscribe(change -> {
@@ -1042,6 +1074,7 @@ public class MainController implements Initializable {
     private void setupContentLayersTable() {
         log.log(Level.FINER, "Setting content layer table list.");
         contentLayersTable.setItems(contentLayers);
+        contentLayersTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         log.log(Level.FINER, "Setting content layer table selection listener.");
         EventStreams.changesOf(contentLayers).subscribe(change -> {
