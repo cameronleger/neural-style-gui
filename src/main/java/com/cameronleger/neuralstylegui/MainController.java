@@ -19,14 +19,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -41,7 +42,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -304,6 +307,24 @@ public class MainController implements Initializable {
         directoryChooser.setInitialDirectory(outputFolder);
     }
 
+    private void updateLayers(String[] layers) {
+        List<NeuralLayer> neuralLayers = new ArrayList<>();
+        for (String layer : layers)
+            neuralLayers.add(new NeuralLayer(layer, false));
+        styleLayers.setAll(neuralLayers);
+        contentLayers.setAll(neuralLayers);
+    }
+
+    private void showTooltipNextTo(Region region, String text) {
+        Tooltip tooltip = new Tooltip();
+        tooltip.setAutoHide(true);
+        tooltip.setText(text);
+        Point2D p = region.localToScene(0.0, 0.0);
+        tooltip.show(region,
+                p.getX() + region.getScene().getX() + region.getScene().getWindow().getX() + region.getWidth(),
+                p.getY() + region.getScene().getY() + region.getScene().getWindow().getY());
+    }
+
     private void checkInjections() {
         assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
         assert neuralPath != null : "fx:id=\"neuralPath\" was not injected.";
@@ -403,7 +424,7 @@ public class MainController implements Initializable {
             }
         });
 
-        // TODO: these can be parsed from *.prototxt, but the defaults should be set
+        // Setup default layers and selections based on default model
         styleLayers.addAll(
                 new NeuralLayer("relu1_1", true),
                 new NeuralLayer("relu1_2", false),
@@ -422,34 +443,7 @@ public class MainController implements Initializable {
                 new NeuralLayer("relu5_3", false),
                 new NeuralLayer("relu5_4", false),
                 new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false),
-                new NeuralLayer("conv1_1", false),
-                new NeuralLayer("conv1_2", false),
-                new NeuralLayer("conv2_1", false),
-                new NeuralLayer("conv2_2", false),
-                new NeuralLayer("conv3_1", false),
-                new NeuralLayer("conv3_2", false),
-                new NeuralLayer("conv3_3", false),
-                new NeuralLayer("conv3_4", false),
-                new NeuralLayer("conv4_1", false),
-                new NeuralLayer("conv4_2", false),
-                new NeuralLayer("conv4_3", false),
-                new NeuralLayer("conv4_4", false),
-                new NeuralLayer("conv5_1", false),
-                new NeuralLayer("conv5_2", false),
-                new NeuralLayer("conv5_3", false),
-                new NeuralLayer("conv5_4", false),
-                new NeuralLayer("pool1", false),
-                new NeuralLayer("pool2", false),
-                new NeuralLayer("pool3", false),
-                new NeuralLayer("pool4", false),
-                new NeuralLayer("pool5", false),
-                new NeuralLayer("fc6", false),
-                new NeuralLayer("fc7", false),
-                new NeuralLayer("fc8", false),
-                new NeuralLayer("drop6", false),
-                new NeuralLayer("drop7", false),
-                new NeuralLayer("prob", false)
+                new NeuralLayer("relu7", false)
         );
         contentLayers.addAll(
                 new NeuralLayer("relu1_1", false),
@@ -469,34 +463,7 @@ public class MainController implements Initializable {
                 new NeuralLayer("relu5_3", false),
                 new NeuralLayer("relu5_4", false),
                 new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false),
-                new NeuralLayer("conv1_1", false),
-                new NeuralLayer("conv1_2", false),
-                new NeuralLayer("conv2_1", false),
-                new NeuralLayer("conv2_2", false),
-                new NeuralLayer("conv3_1", false),
-                new NeuralLayer("conv3_2", false),
-                new NeuralLayer("conv3_3", false),
-                new NeuralLayer("conv3_4", false),
-                new NeuralLayer("conv4_1", false),
-                new NeuralLayer("conv4_2", false),
-                new NeuralLayer("conv4_3", false),
-                new NeuralLayer("conv4_4", false),
-                new NeuralLayer("conv5_1", false),
-                new NeuralLayer("conv5_2", false),
-                new NeuralLayer("conv5_3", false),
-                new NeuralLayer("conv5_4", false),
-                new NeuralLayer("pool1", false),
-                new NeuralLayer("pool2", false),
-                new NeuralLayer("pool3", false),
-                new NeuralLayer("pool4", false),
-                new NeuralLayer("pool5", false),
-                new NeuralLayer("fc6", false),
-                new NeuralLayer("fc7", false),
-                new NeuralLayer("fc8", false),
-                new NeuralLayer("drop6", false),
-                new NeuralLayer("drop7", false),
-                new NeuralLayer("prob", false)
+                new NeuralLayer("relu7", false)
         );
     }
 
@@ -557,38 +524,27 @@ public class MainController implements Initializable {
         EventStreams.eventsOf(outputImageButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Output Image button hit, checking images.");
 
-            // A tooltip will show an error message or the saved image name
-            Tooltip tooltip = new Tooltip();
-            tooltip.setAutoHide(true);
-
             // Check for generated image iterations to show
             File outputFolder = neuralStyle.getGeneralOutputFolder();
             File[] images = FileUtils.getTempOutputImageIterations();
             if (outputFolder == null) {
-                tooltip.setText(bundle.getString("outputImageNoOutputFolder"));
+                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoOutputFolder"));
             } else if (images == null) {
-                tooltip.setText(bundle.getString("outputImageNullIterations"));
+                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNullIterations"));
             } else if (images.length <= 0) {
-                tooltip.setText(bundle.getString("outputImageNoIterations"));
+                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoIterations"));
             } else {
                 File latestImage = images[images.length - 1];
                 String possibleName = outputName.getText();
 
                 File savedImage = FileUtils.saveTempOutputImageTo(latestImage, outputFolder, possibleName);
                 if (savedImage == null) {
-                    tooltip.setText(bundle.getString("outputImageNoSavedImage"));
+                    showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoSavedImage"));
                 } else {
-                    tooltip.setText(bundle.getString("outputImageSavedImage") + "\n" + savedImage.getName());
+                    showTooltipNextTo(outputImageButton,
+                            bundle.getString("outputImageSavedImage") + "\n" + savedImage.getName());
                 }
             }
-
-            // Show tooltip to the right of the button
-            Point2D p = outputImageButton.localToScene(0.0, 0.0);
-            tooltip.show(outputImageButton,
-                    p.getX() + outputImageButton.getScene().getX() +
-                            outputImageButton.getScene().getWindow().getX() + outputImageButton.getWidth(),
-                    p.getY() + outputImageButton.getScene().getY() +
-                            outputImageButton.getScene().getWindow().getY());
         });
 
         log.log(Level.FINER, "Setting Start listener.");
@@ -624,6 +580,19 @@ public class MainController implements Initializable {
             if (protoFile != null) {
                 protoFilePath.setText(protoFile.getAbsolutePath());
                 fileChooser.setInitialDirectory(protoFile.getParentFile());
+
+                String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
+
+                if (newLayers == null) {
+                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileInvalid"));
+                    updateLayers(new String[]{});
+                } else if (newLayers.length <= 0) {
+                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileNoLayers"));
+                    updateLayers(new String[]{});
+                } else {
+                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileNewLayers"));
+                    updateLayers(newLayers);
+                }
             } else {
                 protoFilePath.setText("");
             }

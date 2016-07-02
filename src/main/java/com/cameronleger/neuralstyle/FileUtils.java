@@ -1,18 +1,19 @@
 package com.cameronleger.neuralstyle;
 
+import caffe.Loadcaffe;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
+import com.google.protobuf.TextFormat;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -186,5 +187,29 @@ public class FileUtils {
             quickSort(iterations, iterationFiles, firstIndex, index - 1);
         if (index < lastIndex)
             quickSort(iterations, iterationFiles, index, lastIndex);
+    }
+
+    public static String[] parseLoadcaffeProto(File protoFile) {
+        // Load the text-based prototxt file into the NetParameter descriptor
+        Loadcaffe.NetParameter netParams;
+        try {
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(protoFile), "ASCII");
+            Loadcaffe.NetParameter.Builder builder = Loadcaffe.NetParameter.newBuilder();
+            TextFormat.merge(reader, builder);
+            netParams = builder.build();
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
+
+        // Retrieve all of the layer names that are ReLUs
+        List<String> layersList = netParams.getLayersList().stream()
+                .filter(layer -> layer.getType() == Loadcaffe.V1LayerParameter.LayerType.RELU)
+                .map(Loadcaffe.V1LayerParameter::getName).collect(Collectors.toList());
+
+        String[] layers = new String[layersList.size()];
+        for (int i = 0; i < layersList.size(); i++)
+            layers[i] = layersList.get(i);
+        return layers;
     }
 }
