@@ -33,6 +33,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import org.apache.commons.io.FilenameUtils;
 import org.reactfx.EventStreams;
 import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
@@ -72,6 +73,11 @@ public class MainController implements Initializable {
     private Button neuralPathButton;
     @FXML
     private TextField neuralPath;
+
+    @FXML
+    private Button saveStyleButton;
+    @FXML
+    private Button loadStyleButton;
 
     @FXML
     private TabPane tabs;
@@ -276,6 +282,8 @@ public class MainController implements Initializable {
             neuralService.start();
             imageOutputTimer.restart();
             tabs.getSelectionModel().select(outputTab);
+
+            FileUtils.saveTempOutputStyle(neuralStyle);
         }
     }
 
@@ -299,20 +307,111 @@ public class MainController implements Initializable {
         }
     }
 
+    private void setNeuralPath(File neuralStylePath) {
+        if (neuralStylePath == null)
+            neuralPath.setText("");
+        else
+            neuralPath.setText(neuralStylePath.getAbsolutePath());
+        neuralStyle.setNeuralStylePath(neuralStylePath);
+    }
+
+    private void setModelFile(File modelFile) {
+        neuralStyle.setModelFile(modelFile);
+        if (modelFile != null) {
+            modelFilePath.setText(modelFile.getAbsolutePath());
+            fileChooser.setInitialDirectory(modelFile.getParentFile());
+        } else {
+            modelFilePath.setText("");
+        }
+    }
+
+    private void setProtoFile(File protoFile) {
+        neuralStyle.setProtoFile(protoFile);
+        if (protoFile != null) {
+            protoFilePath.setText(protoFile.getAbsolutePath());
+            fileChooser.setInitialDirectory(protoFile.getParentFile());
+
+            String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
+
+            if (newLayers == null) {
+                showTooltipNextTo(protoFileButton, bundle.getString("protoFileInvalid"));
+                updateLayers(new String[]{});
+            } else if (newLayers.length <= 0) {
+                showTooltipNextTo(protoFileButton, bundle.getString("protoFileNoLayers"));
+                updateLayers(new String[]{});
+            } else {
+                showTooltipNextTo(protoFileButton, bundle.getString("protoFileNewLayers"));
+                updateLayers(newLayers);
+            }
+        } else {
+            protoFilePath.setText("");
+            setDefaultLayers();
+        }
+    }
+
     private void setStyleFolder(File styleFolder) {
         styleFolderPath.setText(styleFolder.getAbsolutePath());
         directoryChooser.setInitialDirectory(styleFolder);
+        NeuralImage[] images = FileUtils.getImages(styleFolder);
+        styleImages.setAll(images);
     }
 
     private void setContentFolder(File contentFolder) {
         contentFolderPath.setText(contentFolder.getAbsolutePath());
         directoryChooser.setInitialDirectory(contentFolder);
+        NeuralImage[] images = FileUtils.getImages(contentFolder);
+        contentImages.setAll(images);
     }
 
     private void setOutputFolder(File outputFolder) {
         neuralStyle.setOutputFolder(outputFolder);
-        outputPath.setText(outputFolder.getAbsolutePath());
-        directoryChooser.setInitialDirectory(outputFolder);
+        if (outputFolder != null) {
+            outputPath.setText(outputFolder.getAbsolutePath());
+            directoryChooser.setInitialDirectory(outputFolder);
+        }
+    }
+
+    private void setDefaultLayers() {
+        styleLayers.setAll(
+                new NeuralLayer("relu1_1", true),
+                new NeuralLayer("relu1_2", false),
+                new NeuralLayer("relu2_1", true),
+                new NeuralLayer("relu2_2", false),
+                new NeuralLayer("relu3_1", true),
+                new NeuralLayer("relu3_2", false),
+                new NeuralLayer("relu3_3", false),
+                new NeuralLayer("relu3_4", false),
+                new NeuralLayer("relu4_1", true),
+                new NeuralLayer("relu4_2", false),
+                new NeuralLayer("relu4_3", false),
+                new NeuralLayer("relu4_4", false),
+                new NeuralLayer("relu5_1", true),
+                new NeuralLayer("relu5_2", false),
+                new NeuralLayer("relu5_3", false),
+                new NeuralLayer("relu5_4", false),
+                new NeuralLayer("relu6", false),
+                new NeuralLayer("relu7", false)
+        );
+        contentLayers.setAll(
+                new NeuralLayer("relu1_1", false),
+                new NeuralLayer("relu1_2", false),
+                new NeuralLayer("relu2_1", false),
+                new NeuralLayer("relu2_2", false),
+                new NeuralLayer("relu3_1", false),
+                new NeuralLayer("relu3_2", false),
+                new NeuralLayer("relu3_3", false),
+                new NeuralLayer("relu3_4", false),
+                new NeuralLayer("relu4_1", false),
+                new NeuralLayer("relu4_2", true),
+                new NeuralLayer("relu4_3", false),
+                new NeuralLayer("relu4_4", false),
+                new NeuralLayer("relu5_1", false),
+                new NeuralLayer("relu5_2", false),
+                new NeuralLayer("relu5_3", false),
+                new NeuralLayer("relu5_4", false),
+                new NeuralLayer("relu6", false),
+                new NeuralLayer("relu7", false)
+        );
     }
 
     private void updateLayers(String[] layers) {
@@ -324,6 +423,160 @@ public class MainController implements Initializable {
         }
         styleLayers.setAll(newStyleLayers);
         contentLayers.setAll(newContentLayers);
+    }
+
+    private void updateLayerSelections(String[] selectedLayers, ObservableList<NeuralLayer> existingLayers) {
+        // ensure all NeuralLayers are deselected
+        List<NeuralLayer> newNeuralLayers = existingLayers.stream()
+                .map(neuralLayer -> new NeuralLayer(neuralLayer.getName(), false))
+                .collect(Collectors.toList());
+
+        if (selectedLayers != null && selectedLayers.length > 0) {
+            // select NeuralLayers
+            for (String selectedLayer : selectedLayers) {
+                boolean existed = false;
+                for (NeuralLayer neuralLayer : newNeuralLayers) {
+                    if (neuralLayer.getName().equalsIgnoreCase(selectedLayer)) {
+                        neuralLayer.setSelected(true);
+                        existed = true;
+                        break;
+                    }
+                }
+
+                // create new layer for selection if necessary
+                if (!existed) {
+                    newNeuralLayers.add(new NeuralLayer(selectedLayer, true));
+                }
+            }
+
+            existingLayers.setAll(newNeuralLayers);
+        }
+    }
+
+    private List<NeuralImage> updateStyleImageSelections(File[] selectedImages, double[] weights,
+                                                         ObservableList<NeuralImage> existingImages) {
+        // ensure all NeuralImages are deselected and non-weighted
+        List<NeuralImage> newNeuralImages = existingImages.stream()
+                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
+                .collect(Collectors.toList());
+        List<NeuralImage> selectedNeuralImages = new ArrayList<>();
+
+        if (selectedImages != null && selectedImages.length > 0) {
+            // select NeuralImages
+            for (int i = 0; i < selectedImages.length; i++) {
+                File selectedImage = selectedImages[i];
+                double weight;
+                try {
+                    weight = weights[i];
+                } catch (Exception e) {
+                    weight = 1.0;
+                }
+                boolean existed = false;
+                for (NeuralImage neuralImage : newNeuralImages) {
+                    if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
+                        neuralImage.setSelected(true);
+                        neuralImage.setWeight(weight);
+                        selectedNeuralImages.add(neuralImage);
+                        existed = true;
+                        break;
+                    }
+                }
+
+                // create new image for selection if necessary
+                if (!existed) {
+                    NeuralImage neuralImage = new NeuralImage(selectedImage);
+                    neuralImage.setSelected(true);
+                    neuralImage.setWeight(weight);
+                    newNeuralImages.add(neuralImage);
+                    selectedNeuralImages.add(neuralImage);
+                }
+            }
+
+            existingImages.setAll(newNeuralImages);
+        }
+        return selectedNeuralImages;
+    }
+
+    private void updateContentImageSelections(File selectedImage, ObservableList<NeuralImage> existingImages) {
+        // ensure all NeuralImages are deselected and non-weighted
+        List<NeuralImage> newNeuralImages = existingImages.stream()
+                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
+                .collect(Collectors.toList());
+
+        if (selectedImage != null) {
+            NeuralImage selectedNeuralImage = null;
+            boolean existed = false;
+            for (NeuralImage neuralImage : newNeuralImages) {
+                if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
+                    selectedNeuralImage = neuralImage;
+                    existed = true;
+                    break;
+                }
+            }
+
+            // create new image for selection if necessary
+            if (!existed) {
+                NeuralImage neuralImage = new NeuralImage(selectedImage);
+                selectedNeuralImage = neuralImage;
+                newNeuralImages.add(neuralImage);
+            }
+
+            // select the new image in the table
+            existingImages.setAll(newNeuralImages);
+            contentImageTable.getSelectionModel().select(selectedNeuralImage);
+        }
+    }
+
+    private void loadStyle(NeuralStyle loadedNeuralStyle) {
+        neuralStyle = loadedNeuralStyle;
+
+        // Retrieve these before paths because that will change them
+        File[] selectedStyleImages = neuralStyle.getStyleImages();
+        double[] selectedStyleWeights = neuralStyle.getStyleWeights();
+        File contentImage = neuralStyle.getContentImage();
+        String[] selectedStyleLayers = neuralStyle.getStyleLayers();
+        String[] selectedContentLayers = neuralStyle.getContentLayers();
+
+        // Set paths
+        setNeuralPath(neuralStyle.getNeuralStylePath());
+        setProtoFile(neuralStyle.getProtoFile());
+        setModelFile(neuralStyle.getModelFile());
+        setOutputFolder(neuralStyle.getGeneralOutputFolder());
+
+        // Set selected layers after updating layers from paths
+        updateLayerSelections(selectedStyleLayers, this.styleLayers);
+        updateLayerSelections(selectedContentLayers, this.contentLayers);
+
+        // Set simple inputs
+        maxIterSlider.setValue(neuralStyle.getIterations());
+        printIterSlider.setValue(neuralStyle.getIterationsPrint());
+        saveIterSlider.setValue(neuralStyle.getIterationsSave());
+        seedSlider.setValue(neuralStyle.getSeed());
+        outputSizeSlider.setValue(neuralStyle.getOutputSize());
+        styleSizeSlider.setValue(neuralStyle.getStyleSize());
+        contentWeightSlider.setValue(neuralStyle.getContentWeight());
+        styleWeightSlider.setValue(neuralStyle.getStyleWeight());
+        tvWeightSlider.setValue(neuralStyle.getTvWeight());
+        originalColors.setSelected(neuralStyle.isOriginalColors());
+        initChoice.setValue(neuralStyle.getInit());
+        poolingChoice.setValue(neuralStyle.getPooling());
+        normalizeGradients.setSelected(neuralStyle.isNormalizeGradients());
+        gpuSlider.setValue(neuralStyle.getGpu());
+        backendChoice.setValue(neuralStyle.getBackend());
+        optimizerChoice.setValue(neuralStyle.getOptimizer());
+        learningRateSlider.setValue(neuralStyle.getLearningRate());
+        autotune.setSelected(neuralStyle.isAutotune());
+
+        // Set input folders and image selections last
+        if (selectedStyleImages != null && selectedStyleImages.length > 0) {
+            setStyleFolder(new File(FilenameUtils.getFullPath(selectedStyleImages[0].getAbsolutePath())));
+            updateStyleImageSelections(selectedStyleImages, selectedStyleWeights, styleImages);
+        }
+        // Set selected item in Content Images table (it's not connected to observable)
+        if (contentImage != null) {
+            setContentFolder(new File(FilenameUtils.getFullPath(contentImage.getAbsolutePath())));
+            updateContentImageSelections(contentImage, contentImages);
+        }
     }
 
     private void showTooltipNextTo(Region region, String text) {
@@ -339,6 +592,8 @@ public class MainController implements Initializable {
     private void checkInjections() {
         assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
         assert neuralPath != null : "fx:id=\"neuralPath\" was not injected.";
+        assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
+        assert loadStyleButton != null : "fx:id=\"loadStyleButton\" was not injected.";
         assert tabs != null : "fx:id=\"tabs\" was not injected.";
         assert outputTab != null : "fx:id=\"outputTab\" was not injected.";
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
@@ -439,47 +694,7 @@ public class MainController implements Initializable {
             }
         });
 
-        // Setup default layers and selections based on default model
-        styleLayers.addAll(
-                new NeuralLayer("relu1_1", true),
-                new NeuralLayer("relu1_2", false),
-                new NeuralLayer("relu2_1", true),
-                new NeuralLayer("relu2_2", false),
-                new NeuralLayer("relu3_1", true),
-                new NeuralLayer("relu3_2", false),
-                new NeuralLayer("relu3_3", false),
-                new NeuralLayer("relu3_4", false),
-                new NeuralLayer("relu4_1", true),
-                new NeuralLayer("relu4_2", false),
-                new NeuralLayer("relu4_3", false),
-                new NeuralLayer("relu4_4", false),
-                new NeuralLayer("relu5_1", true),
-                new NeuralLayer("relu5_2", false),
-                new NeuralLayer("relu5_3", false),
-                new NeuralLayer("relu5_4", false),
-                new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false)
-        );
-        contentLayers.addAll(
-                new NeuralLayer("relu1_1", false),
-                new NeuralLayer("relu1_2", false),
-                new NeuralLayer("relu2_1", false),
-                new NeuralLayer("relu2_2", false),
-                new NeuralLayer("relu3_1", false),
-                new NeuralLayer("relu3_2", false),
-                new NeuralLayer("relu3_3", false),
-                new NeuralLayer("relu3_4", false),
-                new NeuralLayer("relu4_1", false),
-                new NeuralLayer("relu4_2", true),
-                new NeuralLayer("relu4_3", false),
-                new NeuralLayer("relu4_4", false),
-                new NeuralLayer("relu5_1", false),
-                new NeuralLayer("relu5_2", false),
-                new NeuralLayer("relu5_3", false),
-                new NeuralLayer("relu5_4", false),
-                new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false)
-        );
+        setDefaultLayers();
     }
 
     private void setupButtonListeners() {
@@ -489,12 +704,41 @@ public class MainController implements Initializable {
             directoryChooser.setTitle(bundle.getString("neuralPathChooser"));
             File neuralStylePath = directoryChooser.showDialog(stage);
             log.log(Level.FINE, "neural-style folder chosen: {0}", neuralStylePath);
-            if (neuralStylePath == null) {
-                neuralPath.setText("");
-            } else {
-                neuralPath.setText(neuralStylePath.getAbsolutePath());
+            setNeuralPath(neuralStylePath);
+        });
+
+        log.log(Level.FINER, "Setting Style Save listener.");
+        EventStreams.eventsOf(saveStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing save style file chooser.");
+            fileChooser.setTitle(bundle.getString("saveStyleChooser"));
+            File styleFile = fileChooser.showSaveDialog(stage);
+            log.log(Level.FINE, "Style file chosen: {0}", styleFile);
+            if (styleFile != null) {
+                fileChooser.setInitialDirectory(styleFile.getParentFile());
+                File savedStyle = FileUtils.saveOutputStyle(neuralStyle, styleFile);
+                if (savedStyle == null)
+                    showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleFailed"));
+                else
+                    showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleSuccess"));
             }
-            neuralStyle.setNeuralStylePath(neuralStylePath);
+        });
+
+        log.log(Level.FINER, "Setting Style Load listener.");
+        EventStreams.eventsOf(loadStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing save style file chooser.");
+            fileChooser.setTitle(bundle.getString("loadStyleChooser"));
+            File styleFile = fileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "Style file chosen: {0}", styleFile);
+            if (styleFile != null) {
+                fileChooser.setInitialDirectory(styleFile.getParentFile());
+                NeuralStyle loadedStyle = FileUtils.loadStyle(styleFile);
+                if (loadedStyle == null)
+                    showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
+                else {
+                    loadStyle(loadedStyle);
+                    showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleSuccess"));
+                }
+            }
         });
 
         log.log(Level.FINER, "Setting Style Folder listener.");
@@ -505,8 +749,6 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Style folder chosen: {0}", styleFolder);
             if (styleFolder != null) {
                 setStyleFolder(styleFolder);
-                NeuralImage[] images = FileUtils.getImages(styleFolder);
-                styleImages.setAll(images);
             }
         });
 
@@ -518,8 +760,6 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Content folder chosen: {0}", contentFolder);
             if (contentFolder != null) {
                 setContentFolder(contentFolder);
-                NeuralImage[] images = FileUtils.getImages(contentFolder);
-                contentImages.setAll(images);
             }
         });
 
@@ -591,26 +831,7 @@ public class MainController implements Initializable {
             fileChooser.setTitle(bundle.getString("protoFileChooser"));
             File protoFile = fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Proto file chosen: {0}", protoFile);
-            neuralStyle.setProtoFile(protoFile);
-            if (protoFile != null) {
-                protoFilePath.setText(protoFile.getAbsolutePath());
-                fileChooser.setInitialDirectory(protoFile.getParentFile());
-
-                String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
-
-                if (newLayers == null) {
-                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileInvalid"));
-                    updateLayers(new String[]{});
-                } else if (newLayers.length <= 0) {
-                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileNoLayers"));
-                    updateLayers(new String[]{});
-                } else {
-                    showTooltipNextTo(protoFileButton, bundle.getString("protoFileNewLayers"));
-                    updateLayers(newLayers);
-                }
-            } else {
-                protoFilePath.setText("");
-            }
+            setProtoFile(protoFile);
         });
 
         log.log(Level.FINER, "Setting Model File listener.");
@@ -619,13 +840,7 @@ public class MainController implements Initializable {
             fileChooser.setTitle(bundle.getString("modelFileChooser"));
             File modelFile = fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Model file chosen: {0}", modelFile);
-            neuralStyle.setModelFile(modelFile);
-            if (modelFile != null) {
-                modelFilePath.setText(modelFile.getAbsolutePath());
-                fileChooser.setInitialDirectory(modelFile.getParentFile());
-            } else {
-                modelFilePath.setText("");
-            }
+            setModelFile(modelFile);
         });
 
         log.log(Level.FINER, "Setting Style Layer Add listener.");
@@ -741,12 +956,8 @@ public class MainController implements Initializable {
                 .subscribe(stringChange -> neuralStyle.setPooling(stringChange.getNewValue()));
 
         // original colors checkbox updates the style
-        EventStreams.changesOf(originalColors.selectedProperty()).subscribe(booleanChange -> {
-            if (booleanChange.getNewValue())
-                neuralStyle.setOriginalColors(1);
-            else
-                neuralStyle.setOriginalColors(0);
-        });
+        EventStreams.changesOf(originalColors.selectedProperty())
+                .subscribe(booleanChange ->neuralStyle.setOriginalColors(booleanChange.getNewValue()));
 
         // normalize gradients checkbox updates the style
         EventStreams.changesOf(normalizeGradients.selectedProperty())

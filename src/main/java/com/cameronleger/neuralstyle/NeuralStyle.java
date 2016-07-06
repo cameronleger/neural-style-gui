@@ -32,7 +32,7 @@ public class NeuralStyle {
     private int contentWeight = 5;
     private int styleWeight = 100;
     private double tvWeight = 0.0001;
-    private int originalColors = 0;
+    private boolean originalColors = false;
     private String init = "image";
     private String pooling = "max";
     private boolean normalizeGradients = false;
@@ -172,11 +172,11 @@ public class NeuralStyle {
         this.tvWeight = tvWeight;
     }
 
-    public int getOriginalColors() {
+    public boolean isOriginalColors() {
         return originalColors;
     }
 
-    public void setOriginalColors(int originalColors) {
+    public void setOriginalColors(boolean originalColors) {
         this.originalColors = originalColors;
     }
 
@@ -346,8 +346,6 @@ public class NeuralStyle {
                         String.valueOf(getStyleWeight()),
                         "-tv_weight",
                         df.format(getTvWeight()),
-                        "-original_colors",
-                        String.valueOf(getOriginalColors()),
                         "-init",
                         getInit(),
                         "-pooling",
@@ -361,6 +359,12 @@ public class NeuralStyle {
                         "-learning_rate",
                         String.valueOf(getLearningRate()),
                 }));
+
+        commandList.add("-original_colors");
+        if (isOriginalColors())
+            commandList.add("1");
+        else
+            commandList.add("0");
 
         if (isNormalizeGradients())
             commandList.add("-normalize_gradients");

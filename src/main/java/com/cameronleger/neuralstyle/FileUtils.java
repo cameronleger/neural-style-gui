@@ -2,6 +2,8 @@ package com.cameronleger.neuralstyle;
 
 import caffe.Loadcaffe;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.protobuf.TextFormat;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -25,6 +27,10 @@ public class FileUtils {
     };
     private static File tempDir;
     private static String uniqueText;
+    private static Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(File.class, new FileAdapter())
+            .create();
 
     public static void generateUniqueText() {
         uniqueText = String.valueOf(System.currentTimeMillis());
@@ -72,11 +78,53 @@ public class FileUtils {
         return tempDir;
     }
 
-    public static File getTempOutputImage() {
+    private static File getTempOutputFile(String extension) {
         File tempOutputDir = FileUtils.getTempDir();
         if (tempOutputDir == null)
             return null;
-        return new File(tempOutputDir, getUniqueText() + ".png");
+        return new File(tempOutputDir, getUniqueText() + "." + extension);
+    }
+
+    public static File getTempOutputImage() {
+        return getTempOutputFile("png");
+    }
+
+    public static File getTempOutputStyle() {
+        return getTempOutputFile("json");
+    }
+
+    public static File saveTempOutputStyle(NeuralStyle neuralStyle) {
+        File tempOutputStyle = FileUtils.getTempOutputStyle();
+        if (tempOutputStyle == null) {
+            log.log(Level.FINE, "Unable to open file to save output style.");
+            return null;
+        }
+        return saveOutputStyle(neuralStyle, tempOutputStyle);
+    }
+
+    public static File saveOutputStyle(NeuralStyle neuralStyle, File outputFile) {
+        try (FileWriter file = new FileWriter(outputFile)) {
+            file.write(gson.toJson(neuralStyle));
+            log.log(Level.FINE, "Output style saved: " + outputFile.getAbsolutePath());
+            return outputFile;
+        } catch (IOException e) {
+            log.log(Level.FINE, "IOException saving output style.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
+    }
+
+    public static NeuralStyle loadStyle(File styleFile) {
+        final FileInputStream fileStream;
+        try {
+            fileStream = new FileInputStream(styleFile);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
+            return gson.fromJson(reader, NeuralStyle.class);
+        } catch (Exception e) {
+            log.log(Level.FINE, "Exception loading input style.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
     }
 
     public static NeuralImage[] getImages(File dir) {

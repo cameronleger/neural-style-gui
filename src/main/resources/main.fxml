@@ -40,6 +40,7 @@
               </columnConstraints>
               <rowConstraints>
                   <RowConstraints valignment="CENTER" vgrow="NEVER" />
+                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
                   <RowConstraints minHeight="40.0" valignment="CENTER" vgrow="NEVER" />
                 <RowConstraints valignment="CENTER" vgrow="NEVER" />
                   <RowConstraints valignment="CENTER" vgrow="NEVER" />
@@ -71,122 +72,132 @@
                <children>
                   <Button fx:id="neuralPathButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%neuralPathButton" />
                   <TextField fx:id="neuralPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%neuralPathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" />
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%itersLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+                  <HBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="saveStyleButton" mnemonicParsing="false" text="%saveStyleButton" />
+                        <Button fx:id="loadStyleButton" mnemonicParsing="false" text="%loadStyleButton">
+                           <HBox.margin>
+                              <Insets left="4.0" />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%itersLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
                   </Label>
-                  <Label text="%itersPrintLabel" GridPane.rowIndex="2" />
-                  <Slider fx:id="printIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                  <Label text="%itersPrintLabel" GridPane.rowIndex="3" />
+                  <Slider fx:id="printIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                       <tooltip>
                           <Tooltip maxWidth="300.0" text="%itersPrintTooltip" wrapText="true" />
                       </tooltip>
                   </Slider>
-                  <TextField fx:id="printIterField" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                  <TextField fx:id="printIterField" GridPane.columnIndex="2" GridPane.rowIndex="3">
                       <tooltip>
                           <Tooltip maxWidth="300.0" text="%itersPrintTooltip" wrapText="true" />
                       </tooltip>
                   </TextField>
-                  <Label text="%itersSaveLabel" GridPane.rowIndex="3" />
-                  <Slider fx:id="saveIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                  <Label text="%itersSaveLabel" GridPane.rowIndex="4" />
+                  <Slider fx:id="saveIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%itersSaveTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="saveIterField" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                  <TextField fx:id="saveIterField" GridPane.columnIndex="2" GridPane.rowIndex="4">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%itersSaveTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%itersMaxLabel" GridPane.rowIndex="4" />
-                  <Slider fx:id="maxIterSlider" majorTickUnit="500.0" max="2500.0" min="1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1000.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                  <Label text="%itersMaxLabel" GridPane.rowIndex="5" />
+                  <Slider fx:id="maxIterSlider" majorTickUnit="500.0" max="2500.0" min="1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1000.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%itersMaxTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="maxIterField" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                  <TextField fx:id="maxIterField" GridPane.columnIndex="2" GridPane.rowIndex="5">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%itersMaxTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%seedLabel" GridPane.rowIndex="5" />
-                  <Slider fx:id="seedSlider" blockIncrement="1.0" majorTickUnit="1.0" max="10.0" min="-1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" value="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                  <Label text="%seedLabel" GridPane.rowIndex="6" />
+                  <Slider fx:id="seedSlider" blockIncrement="1.0" majorTickUnit="1.0" max="10.0" min="-1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" value="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%seedTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="seedField" GridPane.columnIndex="2" GridPane.rowIndex="5">
+                  <TextField fx:id="seedField" GridPane.columnIndex="2" GridPane.rowIndex="6">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%seedTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%sizeLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
+                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%sizeLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
                   </Label>
-                  <Label text="%sizeOutputLabel" GridPane.rowIndex="7" />
-                  <Slider fx:id="outputSizeSlider" majorTickUnit="200.0" max="1000.0" min="0.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="500.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                  <Label text="%sizeOutputLabel" GridPane.rowIndex="8" />
+                  <Slider fx:id="outputSizeSlider" majorTickUnit="200.0" max="1000.0" min="0.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="500.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%sizeOutputTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="outputSizeField" GridPane.columnIndex="2" GridPane.rowIndex="7">
+                  <TextField fx:id="outputSizeField" GridPane.columnIndex="2" GridPane.rowIndex="8">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%sizeOutputTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%sizeStyleLabel" GridPane.rowIndex="8" />
-                  <Slider fx:id="styleSizeSlider" blockIncrement="0.25" majorTickUnit="1.0" max="3.0" showTickMarks="true" snapToTicks="true" value="1.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                  <Label text="%sizeStyleLabel" GridPane.rowIndex="9" />
+                  <Slider fx:id="styleSizeSlider" blockIncrement="0.25" majorTickUnit="1.0" max="3.0" showTickMarks="true" snapToTicks="true" value="1.0" GridPane.columnIndex="1" GridPane.rowIndex="9">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%sizeStyleTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="styleSizeField" GridPane.columnIndex="2" GridPane.rowIndex="8">
+                  <TextField fx:id="styleSizeField" GridPane.columnIndex="2" GridPane.rowIndex="9">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%sizeStyleTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%styleLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="9">
+                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%styleLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="10">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
                   </Label>
-                  <Label text="%weightContentLabel" GridPane.rowIndex="10" />
-                  <Slider fx:id="contentWeightSlider" blockIncrement="5.0" majorTickUnit="5.0" max="50.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="5.0" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                  <Label text="%weightContentLabel" GridPane.rowIndex="11" />
+                  <Slider fx:id="contentWeightSlider" blockIncrement="5.0" majorTickUnit="5.0" max="50.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="5.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightContentTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="contentWeightField" GridPane.columnIndex="2" GridPane.rowIndex="10">
+                  <TextField fx:id="contentWeightField" GridPane.columnIndex="2" GridPane.rowIndex="11">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightContentTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%weightStyleLabel" GridPane.rowIndex="11" />
-                  <Slider fx:id="styleWeightSlider" blockIncrement="25.0" majorTickUnit="100.0" max="1000.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="100.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                  <Label text="%weightStyleLabel" GridPane.rowIndex="12" />
+                  <Slider fx:id="styleWeightSlider" blockIncrement="25.0" majorTickUnit="100.0" max="1000.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="100.0" GridPane.columnIndex="1" GridPane.rowIndex="12">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightStyleTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="styleWeightField" GridPane.columnIndex="2" GridPane.rowIndex="11">
+                  <TextField fx:id="styleWeightField" GridPane.columnIndex="2" GridPane.rowIndex="12">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightStyleTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%weightTvLabel" GridPane.rowIndex="12" />
-                  <Slider fx:id="tvWeightSlider" blockIncrement="0.001" majorTickUnit="0.001" max="0.005" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1.0E-4" GridPane.columnIndex="1" GridPane.rowIndex="12">
+                  <Label text="%weightTvLabel" GridPane.rowIndex="13" />
+                  <Slider fx:id="tvWeightSlider" blockIncrement="0.001" majorTickUnit="0.001" max="0.005" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1.0E-4" GridPane.columnIndex="1" GridPane.rowIndex="13">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightTvTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="tvWeightField" GridPane.columnIndex="2" GridPane.rowIndex="12">
+                  <TextField fx:id="tvWeightField" GridPane.columnIndex="2" GridPane.rowIndex="13">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%weightTvTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%initLabel" GridPane.rowIndex="13" />
-                  <ChoiceBox fx:id="initChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="image" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="13">
+                  <Label text="%initLabel" GridPane.rowIndex="14" />
+                  <ChoiceBox fx:id="initChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="image" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="14">
                       <items>
                           <FXCollections fx:factory="observableArrayList">
                               <String fx:value="image" />
@@ -197,8 +208,8 @@
                           <Tooltip maxWidth="300.0" text="%initTooltip" wrapText="true" />
                       </tooltip>
                   </ChoiceBox>
-                  <Label text="%poolingLabel" GridPane.rowIndex="14" />
-                  <ChoiceBox fx:id="poolingChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="max" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="14">
+                  <Label text="%poolingLabel" GridPane.rowIndex="15" />
+                  <ChoiceBox fx:id="poolingChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="max" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
                      <items>
                         <FXCollections fx:factory="observableArrayList">
                            <String fx:value="max" />
@@ -209,34 +220,34 @@
                         <Tooltip maxWidth="300.0" text="%poolingTooltip" wrapText="true" />
                      </tooltip>
                   </ChoiceBox>
-                  <CheckBox fx:id="originalColors" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="15">
+                  <CheckBox fx:id="originalColors" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="16">
                       <tooltip>
                           <Tooltip maxWidth="300.0" text="%originalColorsTooltip" wrapText="true" />
                       </tooltip>
                   </CheckBox>
-                  <CheckBox fx:id="normalizeGradients" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="16">
+                  <CheckBox fx:id="normalizeGradients" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="17">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%normalizeGradientsTooltip" wrapText="true" />
                      </tooltip>
                   </CheckBox>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%backendLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="17">
+                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%backendLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="18">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
                   </Label>
-                  <Label text="%gpuLabel" GridPane.rowIndex="18" />
-                  <Slider fx:id="gpuSlider" blockIncrement="1.0" majorTickUnit="1.0" max="2.0" min="-1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.rowIndex="18">
+                  <Label text="%gpuLabel" GridPane.rowIndex="19" />
+                  <Slider fx:id="gpuSlider" blockIncrement="1.0" majorTickUnit="1.0" max="2.0" min="-1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.rowIndex="19">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%gpuTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="gpuField" GridPane.columnIndex="2" GridPane.rowIndex="18">
+                  <TextField fx:id="gpuField" GridPane.columnIndex="2" GridPane.rowIndex="19">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%gpuTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <Label text="%optimizerLabel" GridPane.rowIndex="20" />
-                  <ChoiceBox fx:id="optimizerChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="lbfgs" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20">
+                  <Label text="%optimizerLabel" GridPane.rowIndex="21" />
+                  <ChoiceBox fx:id="optimizerChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="lbfgs" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="21">
                      <items>
                         <FXCollections fx:factory="observableArrayList">
                            <String fx:value="lbfgs" />
@@ -247,8 +258,8 @@
                         <Tooltip maxWidth="300.0" text="%optimizerTooltip" wrapText="true" />
                      </tooltip>
                   </ChoiceBox>
-                   <Label text="%backendLabel" GridPane.rowIndex="19" />
-                   <ChoiceBox fx:id="backendChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="nn" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19">
+                   <Label text="%backendLabel" GridPane.rowIndex="20" />
+                   <ChoiceBox fx:id="backendChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="nn" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20">
                        <items>
                            <FXCollections fx:factory="observableArrayList">
                                <String fx:value="nn" />
@@ -260,31 +271,31 @@
                            <Tooltip maxWidth="300.0" text="%backendTooltip" wrapText="true" />
                        </tooltip>
                    </ChoiceBox>
-                  <Label text="%learningRateLabel" GridPane.rowIndex="21" />
-                  <Slider fx:id="learningRateSlider" blockIncrement="1.0" disable="true" majorTickUnit="5.0" max="15.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="21">
+                  <Label text="%learningRateLabel" GridPane.rowIndex="22" />
+                  <Slider fx:id="learningRateSlider" blockIncrement="1.0" disable="true" majorTickUnit="5.0" max="15.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="22">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%learningRateTooltip" wrapText="true" />
                      </tooltip>
                   </Slider>
-                  <TextField fx:id="learningRateField" disable="true" GridPane.columnIndex="2" GridPane.rowIndex="21">
+                  <TextField fx:id="learningRateField" disable="true" GridPane.columnIndex="2" GridPane.rowIndex="22">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%learningRateTooltip" wrapText="true" />
                      </tooltip>
                   </TextField>
-                  <CheckBox fx:id="autotune" disable="true" mnemonicParsing="false" text="%autotuneLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="22">
+                  <CheckBox fx:id="autotune" disable="true" mnemonicParsing="false" text="%autotuneLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="23">
                      <tooltip>
                         <Tooltip maxWidth="300.0" text="%autotuneTooltip" wrapText="true" />
                      </tooltip>
                   </CheckBox>
-                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%modelLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="23">
+                  <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="%modelLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="24">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
                   </Label>
-                  <Button fx:id="protoFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%protoFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="24" />
-                  <TextField fx:id="protoFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%protoFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="24" />
-                  <Button fx:id="modelFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%modelFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="25" />
-                  <TextField fx:id="modelFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%modelFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="25" />
+                  <Button fx:id="protoFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%protoFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="25" />
+                  <TextField fx:id="protoFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%protoFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="25" />
+                  <Button fx:id="modelFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%modelFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="26" />
+                  <TextField fx:id="modelFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%modelFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="26" />
                </children>
                <padding>
                   <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -402,7 +413,7 @@
                   </Tab>
                   <Tab text="%layersTab">
                      <content>
-                        <GridPane hgap="8.0" vgap="8.0">
+                        <GridPane hgap="4.0" vgap="4.0">
                           <columnConstraints>
                             <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               <ColumnConstraints halignment="LEFT" hgrow="NEVER" />
