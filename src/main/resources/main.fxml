@@ -30,7 +30,7 @@
 
 <SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
-      <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true">
+      <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="400.0" minWidth="200.0" pannable="true">
          <content>
             <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
               <columnConstraints>
@@ -339,7 +339,7 @@
             </HBox>
             <TabPane fx:id="tabs" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
-                <Tab text="%inputStyleTab">
+                <Tab fx:id="styleTab" text="%inputStyleTab">
                      <content>
                         <VBox>
                            <children>
@@ -376,7 +376,7 @@
                         </VBox>
                      </content>
                 </Tab>
-                  <Tab text="%inputContentTab">
+                  <Tab fx:id="contentTab" text="%inputContentTab">
                       <content>
                           <VBox>
                            <children>
@@ -411,7 +411,7 @@
 
                       </content>
                   </Tab>
-                  <Tab text="%layersTab">
+                  <Tab fx:id="layersTab" text="%layersTab">
                      <content>
                         <GridPane hgap="4.0" vgap="4.0">
                           <columnConstraints>

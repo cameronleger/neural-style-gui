@@ -26,6 +26,10 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
@@ -69,6 +73,8 @@ public class MainController implements Initializable {
     private ObservableList<NeuralLayer> styleLayers;
     private ObservableList<NeuralLayer> contentLayers;
 
+    private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
+
     @FXML
     private Button neuralPathButton;
     @FXML
@@ -81,6 +87,12 @@ public class MainController implements Initializable {
 
     @FXML
     private TabPane tabs;
+    @FXML
+    private Tab styleTab;
+    @FXML
+    private Tab contentTab;
+    @FXML
+    private Tab layersTab;
     @FXML
     private Tab outputTab;
 
@@ -270,10 +282,33 @@ public class MainController implements Initializable {
 
     void setStage(Stage stage) {
         this.stage = stage;
+
+        log.log(Level.FINER, "Setting keyboard shortcuts.");
+        final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+        final KeyCombination ctrlC = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN);
+        final KeyCombination ctrlL = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
+        final KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN);
+        final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN);
+        stage.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (ctrlS.match(event)) {
+                tabs.getSelectionModel().select(styleTab);
+                styleImageTable.requestFocus();
+            } else if (ctrlC.match(event)) {
+                tabs.getSelectionModel().select(contentTab);
+                contentImageTable.requestFocus();
+            } else if (ctrlL.match(event)) {
+                tabs.getSelectionModel().select(layersTab);
+                styleLayersTable.requestFocus();
+            } else if (ctrlO.match(event)) {
+                tabs.getSelectionModel().select(outputTab);
+            } else if (ctrlEnter.match(event)) {
+                startService();
+            }
+        });
     }
 
     void startService() {
-        if (!neuralService.isRunning()) {
+        if (!neuralService.isRunning() && neuralStyle != null) {
             log.log(Level.FINE, "Starting neural service.");
             FileUtils.generateUniqueText();
             neuralService.setNeuralStyle(neuralStyle);
@@ -368,6 +403,8 @@ public class MainController implements Initializable {
         if (outputFolder != null) {
             outputPath.setText(outputFolder.getAbsolutePath());
             directoryChooser.setInitialDirectory(outputFolder);
+        } else {
+            outputPath.setText("");
         }
     }
 
@@ -541,7 +578,7 @@ public class MainController implements Initializable {
         setNeuralPath(neuralStyle.getNeuralStylePath());
         setProtoFile(neuralStyle.getProtoFile());
         setModelFile(neuralStyle.getModelFile());
-        setOutputFolder(neuralStyle.getGeneralOutputFolder());
+        setOutputFolder(neuralStyle.getOutputFolder());
 
         // Set selected layers after updating layers from paths
         updateLayerSelections(selectedStyleLayers, this.styleLayers);
@@ -595,7 +632,10 @@ public class MainController implements Initializable {
         assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
         assert loadStyleButton != null : "fx:id=\"loadStyleButton\" was not injected.";
         assert tabs != null : "fx:id=\"tabs\" was not injected.";
+        assert styleTab != null : "fx:id=\"styleTab\" was not injected.";
+        assert contentTab != null : "fx:id=\"contentTab\" was not injected.";
         assert outputTab != null : "fx:id=\"outputTab\" was not injected.";
+        assert layersTab != null : "fx:id=\"layersTab\" was not injected.";
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
         assert contentFolderPath != null : "fx:id=\"contentFolderPath\" was not injected.";
         assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
@@ -780,7 +820,7 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Output Image button hit, checking images.");
 
             // Check for generated image iterations to show
-            File outputFolder = neuralStyle.getGeneralOutputFolder();
+            File outputFolder = neuralStyle.getOutputFolder();
             File[] images = FileUtils.getTempOutputImageIterations();
             if (outputFolder == null) {
                 showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoOutputFolder"));
@@ -1147,6 +1187,17 @@ public class MainController implements Initializable {
             toggleStartButton();
         });
 
+        log.log(Level.FINER, "Setting style image table shortcut listener");
+        styleImageTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (spaceBar.match(event)) {
+                ObservableList<NeuralImage> selectedStyleImages =
+                        styleImageTable.getSelectionModel().getSelectedItems();
+                for (NeuralImage neuralImage : selectedStyleImages) {
+                    neuralImage.setSelected(!neuralImage.isSelected());
+                }
+            }
+        });
+
         log.log(Level.FINER, "Setting style image table column factories.");
         styleImageTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
         styleImageTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleImageTableSelected));
@@ -1274,6 +1325,17 @@ public class MainController implements Initializable {
             toggleStartButton();
         });
 
+        log.log(Level.FINER, "Setting style layer table shortcut listener");
+        styleLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (spaceBar.match(event)) {
+                ObservableList<NeuralLayer> selectedStyleLayers =
+                        styleLayersTable.getSelectionModel().getSelectedItems();
+                for (NeuralLayer neuralLayer : selectedStyleLayers) {
+                    neuralLayer.setSelected(!neuralLayer.isSelected());
+                }
+            }
+        });
+
         log.log(Level.FINER, "Setting style layer table column factories.");
         styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
         styleLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleLayersTableSelected));
@@ -1301,6 +1363,17 @@ public class MainController implements Initializable {
             neuralStyle.setContentLayers(newContentLayers);
 
             toggleStartButton();
+        });
+
+        log.log(Level.FINER, "Setting style layer table shortcut listener");
+        contentLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (spaceBar.match(event)) {
+                ObservableList<NeuralLayer> selectedStyleLayers =
+                        contentLayersTable.getSelectionModel().getSelectedItems();
+                for (NeuralLayer neuralLayer : selectedStyleLayers) {
+                    neuralLayer.setSelected(!neuralLayer.isSelected());
+                }
+            }
         });
 
         log.log(Level.FINER, "Setting content layer table column factories.");

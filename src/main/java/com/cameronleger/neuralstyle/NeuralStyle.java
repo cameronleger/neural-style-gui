@@ -76,7 +76,7 @@ public class NeuralStyle {
         this.contentImage = contentImage;
     }
 
-    public File getGeneralOutputFolder() {
+    public File getOutputFolder() {
         return outputFolder;
     }
 
