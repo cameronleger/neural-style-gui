@@ -6,9 +6,11 @@ import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralLayer;
+import com.cameronleger.neuralstylegui.model.NeuralOutput;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -47,9 +49,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -72,6 +72,7 @@ public class MainController implements Initializable {
     private ObservableList<NeuralImage> contentImages;
     private ObservableList<NeuralLayer> styleLayers;
     private ObservableList<NeuralLayer> contentLayers;
+    private final TreeItem<NeuralOutput> outputRoot = new TreeItem<>(new NeuralOutput(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
 
@@ -236,6 +237,15 @@ public class MainController implements Initializable {
     private Button imageViewModeActual;
 
     @FXML
+    private TreeTableView<NeuralOutput> outputTreeTable;
+    @FXML
+    private TreeTableColumn<NeuralOutput, File> outputTreeTableButton;
+    @FXML
+    private TreeTableColumn<NeuralOutput, String> outputTreeTableName;
+    @FXML
+    private TreeTableColumn<NeuralOutput, Integer> outputTreeTableIteration;
+
+    @FXML
     private ImageView imageView;
     private MovingImageView outputImageView;
     @FXML
@@ -275,6 +285,7 @@ public class MainController implements Initializable {
         setupContentImageTable();
         setupStyleLayersTable();
         setupContentLayersTable();
+        setupOutputTreeTable();
 
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
@@ -564,6 +575,67 @@ public class MainController implements Initializable {
         }
     }
 
+    private void updateNeuralOutputs(Map<String, Set<String>> updatedOutputs) {
+        if (updatedOutputs == null || updatedOutputs.isEmpty()) {
+            outputRoot.getChildren().clear();
+            return;
+        }
+
+        // remove any outputs that are no longer there
+        outputRoot.getChildren().removeAll(outputRoot.getChildren().stream()
+                        .filter(existingOutput -> !updatedOutputs.containsKey(
+                                existingOutput.getValue().getFile().getAbsolutePath()))
+                        .collect(Collectors.toList()));
+
+        // remove any output images that are no longer there
+        for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+            Set<String> updatedOutputImages = updatedOutputs.get(existingOutput.getValue().getFile().getAbsolutePath());
+            existingOutput.getChildren().removeAll(
+                    existingOutput.getChildren().stream()
+                    .filter(existingOutputImage -> !updatedOutputImages.contains(
+                            existingOutputImage.getValue().getFile().getAbsolutePath()))
+                    .collect(Collectors.toList()));
+        }
+
+        // add any new outputs
+        List<TreeItem<NeuralOutput>> newOutputs = new ArrayList<>();
+        for (String updatedOutput : updatedOutputs.keySet()) {
+            boolean exists = false;
+            for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists)
+                newOutputs.add(new TreeItem<>(new NeuralOutput(new File(updatedOutput))));
+        }
+        outputRoot.getChildren().addAll(newOutputs);
+
+        // add any new output images
+        for (String updatedOutput : updatedOutputs.keySet()) {
+            for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
+                    // found matching style to add this to
+                    List<TreeItem<NeuralOutput>> newOutputImages = new ArrayList<>();
+                    for (String updatedOutputImage : updatedOutputs.get(updatedOutput)) {
+                        boolean exists = false;
+                        for (TreeItem<NeuralOutput> existingOutputImage : existingOutput.getChildren()) {
+                            if (existingOutputImage.getValue().getFile().getAbsolutePath().equals(updatedOutputImage)) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists)
+                            newOutputImages.add(new TreeItem<>(new NeuralOutput(new File(updatedOutputImage))));
+                    }
+                    existingOutput.getChildren().addAll(newOutputImages);
+                    break;
+                }
+            }
+        }
+    }
+
     private void loadStyle(NeuralStyle loadedNeuralStyle) {
         neuralStyle = loadedNeuralStyle;
 
@@ -700,6 +772,10 @@ public class MainController implements Initializable {
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert imageViewModeFit != null : "fx:id=\"imageViewModeFit\" was not injected.";
         assert imageViewModeActual != null : "fx:id=\"imageViewModeActual\" was not injected.";
+        assert outputTreeTable != null : "fx:id=\"outputTreeTable\" was not injected.";
+        assert outputTreeTableButton != null : "fx:id=\"outputTreeTableButton\" was not injected.";
+        assert outputTreeTableName != null : "fx:id=\"outputTreeTableName\" was not injected.";
+        assert outputTreeTableIteration != null : "fx:id=\"outputTreeTableIteration\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
         assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
@@ -709,30 +785,14 @@ public class MainController implements Initializable {
     }
 
     private void setupObservableLists() {
-        styleImages = FXCollections.observableArrayList(new Callback<NeuralImage, Observable[]>() {
-            @Override
-            public Observable[] call(NeuralImage neuralImage) {
-                return new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()};
-            }
-        });
-        contentImages = FXCollections.observableArrayList(new Callback<NeuralImage, Observable[]>() {
-            @Override
-            public Observable[] call(NeuralImage neuralImage) {
-                return new Observable[] {neuralImage.selectedProperty()};
-            }
-        });
-        styleLayers = FXCollections.observableArrayList(new Callback<NeuralLayer, Observable[]>() {
-            @Override
-            public Observable[] call(NeuralLayer neuralLayer) {
-                return new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()};
-            }
-        });
-        contentLayers = FXCollections.observableArrayList(new Callback<NeuralLayer, Observable[]>() {
-            @Override
-            public Observable[] call(NeuralLayer neuralLayer) {
-                return new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()};
-            }
-        });
+        styleImages = FXCollections.observableArrayList(neuralImage ->
+                new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()});
+        contentImages = FXCollections.observableArrayList(neuralImage ->
+                new Observable[] {neuralImage.selectedProperty()});
+        styleLayers = FXCollections.observableArrayList(neuralLayer ->
+                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
+        contentLayers = FXCollections.observableArrayList(neuralLayer ->
+                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
 
         setDefaultLayers();
     }
@@ -1136,6 +1196,9 @@ public class MainController implements Initializable {
             if (images != null && images.length > 0) {
                 setImageView(images[images.length - 1]);
             }
+
+            log.log(Level.FINER, "Timer: checking images & styles");
+            updateNeuralOutputs(FileUtils.getTempOutputs());
         });
     }
 
@@ -1382,5 +1445,69 @@ public class MainController implements Initializable {
 
         contentLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
         contentLayersTableName.setCellFactory(TextFieldTableCell.forTableColumn());
+    }
+
+    private void setupOutputTreeTable() {
+        log.log(Level.FINER, "Setting output tree table list.");
+        outputTreeTable.setRoot(outputRoot);
+
+        log.log(Level.FINER, "Setting content layer table column factories.");
+        outputTreeTableButton.setCellValueFactory(param ->
+                new ReadOnlyObjectWrapper<>(param.getValue().getValue().getFile()));
+        outputTreeTableButton.setCellFactory(new Callback<TreeTableColumn<NeuralOutput, File>, TreeTableCell<NeuralOutput, File>>() {
+            @Override
+            public TreeTableCell<NeuralOutput, File> call(TreeTableColumn<NeuralOutput, File> param) {
+                return new TreeTableCell<NeuralOutput, File>() {
+                    Button loadButton;
+                    {
+                        loadButton = new Button(bundle.getString("outputTreeTableButtonText"));
+                        setText(null);
+                        setGraphic(loadButton);
+                    }
+
+                    @Override
+                    public void updateItem(File file, boolean empty) {
+                        super.updateItem(file, empty);
+                        if (empty || file == null || !FilenameUtils.isExtension(file.getAbsolutePath(), "json")) {
+                            setText(null);
+                            setGraphic(null);
+                        } else {
+                            loadButton.setOnAction(event -> {
+                                NeuralStyle loadedStyle = FileUtils.loadStyle(file);
+                                if (loadedStyle == null)
+                                    showTooltipNextTo(loadButton, bundle.getString("loadStyleFailed"));
+                                else {
+                                    loadStyle(loadedStyle);
+                                    showTooltipNextTo(loadButton, bundle.getString("loadStyleSuccess"));
+                                }
+                            });
+                            setText(null);
+                            setGraphic(loadButton);
+                        }
+                    }
+                };
+            }
+        });
+
+        outputTreeTableName.setCellValueFactory(param ->
+                new ReadOnlyObjectWrapper<>(param.getValue().getValue().getName()));
+
+        outputTreeTableIteration.setCellValueFactory(param ->
+                new ReadOnlyObjectWrapper<>(param.getValue().getValue().getIteration()));
+        outputTreeTableIteration.setCellFactory(new Callback<TreeTableColumn<NeuralOutput, Integer>, TreeTableCell<NeuralOutput, Integer>>() {
+            @Override
+            public TreeTableCell<NeuralOutput, Integer> call(TreeTableColumn<NeuralOutput, Integer> param) {
+                return new TreeTableCell<NeuralOutput, Integer>() {
+                    @Override
+                    public void updateItem(Integer integer, boolean empty) {
+                        super.updateItem(integer, empty);
+                        if (empty || integer == null || integer < 0)
+                            setText(null);
+                        else
+                            setText(integer.toString());
+                    }
+                };
+            }
+        });
     }
 }

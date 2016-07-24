@@ -10,7 +10,7 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -148,6 +148,42 @@ public class FileUtils {
                 images[i] = new NeuralImage(files[i]);
         }
         return images;
+    }
+
+    public static Map<String, Set<String>> getTempOutputs() {
+        Map<String, Set<String>> outputs = new LinkedHashMap<>();
+
+        if (tempDir == null || !tempDir.isDirectory())
+            return outputs;
+
+        // Unix-like searching for styles
+        FileFilter styleFileFilter = new WildcardFileFilter("*.json");
+        File[] styleFiles = tempDir.listFiles(styleFileFilter);
+
+        if (styleFiles == null)
+            return outputs;
+
+        for (File styleFile : styleFiles) {
+            Set<String> imageFilesList = new LinkedHashSet<>();
+
+            // Unix-like searching for images
+            FileFilter imageFileFilter = new WildcardFileFilter(String.format("%s_*.png", getFileName(styleFile)));
+            File[] imageFiles = tempDir.listFiles(imageFileFilter);
+
+            if (imageFiles != null && imageFiles.length > 1) {
+                int[] imageFileIters = new int[imageFiles.length];
+                for (int i = 0; i < imageFiles.length; i++)
+                    imageFileIters[i] = FileUtils.parseImageIteration(imageFiles[i]);
+                FileUtils.quickSort(imageFileIters, imageFiles, 0, imageFiles.length - 1);
+
+                for (File imageFile : imageFiles)
+                    imageFilesList.add(imageFile.getAbsolutePath());
+            }
+
+            outputs.put(styleFile.getAbsolutePath(), imageFilesList);
+        }
+
+        return outputs;
     }
 
     public static File[] getTempOutputImageIterations() {
