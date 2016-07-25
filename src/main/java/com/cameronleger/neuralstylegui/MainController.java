@@ -1190,15 +1190,26 @@ public class MainController implements Initializable {
             if (neuralStyle == null)
                 return;
 
-            log.log(Level.FINER, "Timer: checking images");
-            // Check for generated image iterations to show
-            File[] images = FileUtils.getTempOutputImageIterations();
-            if (images != null && images.length > 0) {
-                setImageView(images[images.length - 1]);
-            }
-
             log.log(Level.FINER, "Timer: checking images & styles");
             updateNeuralOutputs(FileUtils.getTempOutputs());
+
+            TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
+            if (outputSelection != null) {
+                NeuralOutput output = outputSelection.getValue();
+                if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
+                    log.log(Level.FINER, "Timer: output selection is style, using latest child");
+                    ObservableList<TreeItem<NeuralOutput>> outputChildren = outputSelection.getChildren();
+                    if (outputChildren != null && !outputChildren.isEmpty())
+                        setImageView(outputChildren.get(outputChildren.size() - 1).getValue().getFile());
+                } else
+                    log.log(Level.FINER, "Timer: output selection is image, skipping (was already set)");
+            } else {
+                log.log(Level.FINER, "Timer: no output selection, checking for latest current output");
+                File[] images = FileUtils.getTempOutputImageIterations();
+                if (images != null && images.length > 0) {
+                    setImageView(images[images.length - 1]);
+                }
+            }
         });
     }
 
@@ -1450,6 +1461,18 @@ public class MainController implements Initializable {
     private void setupOutputTreeTable() {
         log.log(Level.FINER, "Setting output tree table list.");
         outputTreeTable.setRoot(outputRoot);
+
+        log.log(Level.FINER, "Setting output tree table selection listener.");
+        EventStreams.changesOf(outputTreeTable.getSelectionModel().selectedItemProperty())
+                .subscribe(neuralOutputChange -> {
+                    TreeItem<NeuralOutput> newSelection = neuralOutputChange.getNewValue();
+                    log.log(Level.FINE, "Output tree selection changed: " + newSelection);
+                    if (newSelection != null) {
+                        File outputImage = newSelection.getValue().getFile();
+                        if (!FilenameUtils.isExtension(outputImage.getAbsolutePath(), "json"))
+                            setImageView(outputImage);
+                    }
+                });
 
         log.log(Level.FINER, "Setting content layer table column factories.");
         outputTreeTableButton.setCellValueFactory(param ->

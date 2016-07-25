@@ -176,6 +176,10 @@ public class FileUtils {
                     imageFileIters[i] = FileUtils.parseImageIteration(imageFiles[i]);
                 FileUtils.quickSort(imageFileIters, imageFiles, 0, imageFiles.length - 1);
 
+                // check that the latest file is valid (could still be written to)
+                if (imageFiles[imageFiles.length - 1].length() / imageFiles[imageFiles.length - 2].length() <= 0.5)
+                    imageFiles[imageFiles.length - 1] = imageFiles[imageFiles.length - 2];
+
                 for (File imageFile : imageFiles)
                     imageFilesList.add(imageFile.getAbsolutePath());
             }
