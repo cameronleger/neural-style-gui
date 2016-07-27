@@ -216,7 +216,7 @@ public class FileUtils {
     }
 
     public static File saveTempOutputImageTo(File tempImage, File outputFolder, String possibleName) {
-        String uniqueText = getUniqueText();
+        String uniqueText = String.valueOf(System.currentTimeMillis());
         File savedImage;
         if (possibleName != null && !possibleName.isEmpty()) {
             savedImage = new File(outputFolder, possibleName + ".png");

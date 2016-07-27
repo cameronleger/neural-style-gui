@@ -315,6 +315,11 @@
                         <Insets left="4.0" />
                      </HBox.margin>
                   </Button>
+                  <Button fx:id="commandButton" cancelButton="true" disable="true" layoutX="119.0" layoutY="10.0" mnemonicParsing="false" text="%commandButton">
+                     <HBox.margin>
+                        <Insets left="8.0" />
+                     </HBox.margin>
+                  </Button>
                   <Label fx:id="statusLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="120.0" text="%neuralServiceStatus">
                      <HBox.margin>
                         <Insets left="4.0" right="4.0" />

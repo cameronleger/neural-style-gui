@@ -28,10 +28,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
@@ -45,8 +42,6 @@ import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
@@ -232,6 +227,8 @@ public class MainController implements Initializable {
     @FXML
     private Button stopButton;
     @FXML
+    private Button commandButton;
+    @FXML
     private Button imageViewModeFit;
     @FXML
     private Button imageViewModeActual;
@@ -341,16 +338,15 @@ public class MainController implements Initializable {
         }
     }
 
-    private void toggleStartButton() {
+    private void toggleStyleButtons() {
         startButton.setDisable(!neuralStyle.checkArguments() || neuralService.isRunning());
+        commandButton.setDisable(!neuralStyle.checkArguments());
     }
 
-    private void setImageView(File styleFile) {
-        try {
-            outputImageView.setImage(new Image(new FileInputStream(styleFile)));
-        } catch (FileNotFoundException e) {
-            log.log(Level.SEVERE, e.toString(), e);
-        }
+    private void updateImageView() {
+        File imageFile = getOutputImage(null);
+        if (imageFile != null)
+            outputImageView.setImage(imageFile);
     }
 
     private void setNeuralPath(File neuralStylePath) {
@@ -636,6 +632,43 @@ public class MainController implements Initializable {
         }
     }
 
+    private File getOutputImage(Region tooltipRegion) {
+        TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
+        if (outputSelection == null) {
+            log.log(Level.FINER, "Output Image: no output selection, checking for latest current output");
+            File[] images = FileUtils.getTempOutputImageIterations();
+            if (images != null && images.length > 0)
+                return images[images.length - 1];
+            else {
+                log.log(Level.FINER, "Output Image: no output selection nor latest image");
+                if (tooltipRegion != null && images == null)
+                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                else if (tooltipRegion != null && images.length <= 0)
+                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
+                return null;
+            }
+        } else {
+            NeuralOutput output = outputSelection.getValue();
+            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
+                log.log(Level.FINER, "Output Image: output selection is style, using latest child");
+                ObservableList<TreeItem<NeuralOutput>> outputChildren = outputSelection.getChildren();
+                if (outputChildren != null && !outputChildren.isEmpty())
+                    return outputChildren.get(outputChildren.size() - 1).getValue().getFile();
+                else {
+                    log.log(Level.FINER, "Output Image: output selection but no latest image");
+                    if (tooltipRegion != null && outputChildren == null)
+                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                    else if (tooltipRegion != null && outputChildren.isEmpty())
+                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
+                    return null;
+                }
+            } else {
+                log.log(Level.FINER, "Output Image: output selection is image");
+                return output.getFile();
+            }
+        }
+    }
+
     private void loadStyle(NeuralStyle loadedNeuralStyle) {
         neuralStyle = loadedNeuralStyle;
 
@@ -770,6 +803,7 @@ public class MainController implements Initializable {
         assert modelFilePath != null : "fx:id=\"modelFilePath\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
+        assert commandButton != null : "fx:id=\"commandButton\" was not injected.";
         assert imageViewModeFit != null : "fx:id=\"imageViewModeFit\" was not injected.";
         assert imageViewModeActual != null : "fx:id=\"imageViewModeActual\" was not injected.";
         assert outputTreeTable != null : "fx:id=\"outputTreeTable\" was not injected.";
@@ -871,7 +905,7 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Output folder chosen: {0}", outputFolder);
             if (outputFolder != null) {
                 setOutputFolder(outputFolder);
-                toggleStartButton();
+                toggleStyleButtons();
             }
         });
 
@@ -881,18 +915,16 @@ public class MainController implements Initializable {
 
             // Check for generated image iterations to show
             File outputFolder = neuralStyle.getOutputFolder();
-            File[] images = FileUtils.getTempOutputImageIterations();
+
             if (outputFolder == null) {
                 showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoOutputFolder"));
-            } else if (images == null) {
-                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNullIterations"));
-            } else if (images.length <= 0) {
-                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoIterations"));
             } else {
-                File latestImage = images[images.length - 1];
+                File imageFile = getOutputImage(outputImageButton);
+                if (imageFile == null)
+                    return;
                 String possibleName = outputName.getText();
 
-                File savedImage = FileUtils.saveTempOutputImageTo(latestImage, outputFolder, possibleName);
+                File savedImage = FileUtils.saveTempOutputImageTo(imageFile, outputFolder, possibleName);
                 if (savedImage == null) {
                     showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoSavedImage"));
                 } else {
@@ -913,6 +945,26 @@ public class MainController implements Initializable {
         EventStreams.eventsOf(stopButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Stop button hit.");
             stopService();
+        });
+
+        log.log(Level.FINER, "Setting Command listener.");
+        EventStreams.eventsOf(commandButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINE, "Command button hit.");
+            if (neuralStyle.checkArguments()) {
+                String[] command = neuralStyle.buildCommand();
+                StringBuilder builder = new StringBuilder();
+                for (String commandPart : command) {
+                    builder.append(commandPart);
+                    builder.append(' ');
+                }
+
+                final Clipboard clipboard = Clipboard.getSystemClipboard();
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(builder.toString());
+                clipboard.setContent(content);
+            } else {
+                showTooltipNextTo(commandButton, bundle.getString("commandButtonInvalid"));
+            }
         });
 
         log.log(Level.FINER, "Setting Fit View listener.");
@@ -1193,23 +1245,7 @@ public class MainController implements Initializable {
             log.log(Level.FINER, "Timer: checking images & styles");
             updateNeuralOutputs(FileUtils.getTempOutputs());
 
-            TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
-            if (outputSelection != null) {
-                NeuralOutput output = outputSelection.getValue();
-                if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
-                    log.log(Level.FINER, "Timer: output selection is style, using latest child");
-                    ObservableList<TreeItem<NeuralOutput>> outputChildren = outputSelection.getChildren();
-                    if (outputChildren != null && !outputChildren.isEmpty())
-                        setImageView(outputChildren.get(outputChildren.size() - 1).getValue().getFile());
-                } else
-                    log.log(Level.FINER, "Timer: output selection is image, skipping (was already set)");
-            } else {
-                log.log(Level.FINER, "Timer: no output selection, checking for latest current output");
-                File[] images = FileUtils.getTempOutputImageIterations();
-                if (images != null && images.length > 0) {
-                    setImageView(images[images.length - 1]);
-                }
-            }
+            updateImageView();
         });
     }
 
@@ -1258,7 +1294,7 @@ public class MainController implements Initializable {
             neuralStyle.setStyleImages(neuralFiles);
             neuralStyle.setStyleWeights(neuralFilesWeights);
 
-            toggleStartButton();
+            toggleStyleButtons();
         });
 
         log.log(Level.FINER, "Setting style image table shortcut listener");
@@ -1341,7 +1377,7 @@ public class MainController implements Initializable {
                         neuralStyle.setContentImage(null);
                     else
                         neuralStyle.setContentImage(newSelection.getImageFile());
-                    toggleStartButton();
+                    toggleStyleButtons();
                 });
 
         log.log(Level.FINER, "Setting content image table column factories.");
@@ -1396,7 +1432,7 @@ public class MainController implements Initializable {
                 newStyleLayers[i] = selectedStyleLayers.get(i).getName();
             neuralStyle.setStyleLayers(newStyleLayers);
 
-            toggleStartButton();
+            toggleStyleButtons();
         });
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
@@ -1436,7 +1472,7 @@ public class MainController implements Initializable {
                 newContentLayers[i] = selectedContentLayers.get(i).getName();
             neuralStyle.setContentLayers(newContentLayers);
 
-            toggleStartButton();
+            toggleStyleButtons();
         });
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
@@ -1464,15 +1500,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting output tree table selection listener.");
         EventStreams.changesOf(outputTreeTable.getSelectionModel().selectedItemProperty())
-                .subscribe(neuralOutputChange -> {
-                    TreeItem<NeuralOutput> newSelection = neuralOutputChange.getNewValue();
-                    log.log(Level.FINE, "Output tree selection changed: " + newSelection);
-                    if (newSelection != null) {
-                        File outputImage = newSelection.getValue().getFile();
-                        if (!FilenameUtils.isExtension(outputImage.getAbsolutePath(), "json"))
-                            setImageView(outputImage);
-                    }
-                });
+                .subscribe(neuralOutputChange -> updateImageView());
 
         log.log(Level.FINER, "Setting content layer table column factories.");
         outputTreeTableButton.setCellValueFactory(param ->

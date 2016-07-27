@@ -8,8 +8,16 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class MovingImageView {
+    private static final Logger log = Logger.getLogger(MovingImageView.class.getName());
     private ImageView imageView;
+    private String imageFilePath;
     private double width, height;
     private double scale = 1;
 
@@ -47,7 +55,18 @@ public class MovingImageView {
         });
     }
 
-    public void setImage(Image image) {
+    public void setImage(File imageFile) {
+        if (imageFile == null || imageFile.getAbsolutePath().equals(imageFilePath))
+            return;
+
+        Image image;
+        try {
+            image = new Image(new FileInputStream(imageFile));
+        } catch (FileNotFoundException e) {
+            log.log(Level.SEVERE, e.toString(), e);
+            return;
+        }
+        imageFilePath = imageFile.getAbsolutePath();
         imageView.setImage(image);
         if (width != image.getWidth() || height != image.getHeight()) {
             width = image.getWidth();
