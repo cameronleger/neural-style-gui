@@ -8,6 +8,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
@@ -346,77 +347,44 @@
             </HBox>
             <TabPane fx:id="tabs" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
-                <Tab fx:id="styleTab" text="%inputStyleTab">
+                  <Tab fx:id="inputTab" text="%inputTab">
+                      <content>
+                      </content>
                      <content>
-                        <VBox>
+                        <GridPane hgap="4.0" vgap="4.0">
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" />
+                              <ColumnConstraints hgrow="ALWAYS" />
+                              <ColumnConstraints hgrow="NEVER" />
+                            <ColumnConstraints hgrow="SOMETIMES" />
+                            <ColumnConstraints hgrow="ALWAYS" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
                            <children>
-                              <HBox>
-                                 <children>
-                                    <Button fx:id="styleFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%styleFolderButton" />
-                                    <TextField fx:id="styleFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets left="4.0" />
-                                       </HBox.margin></TextField>
-                                 </children>
-                              </HBox>
-                              <TableView fx:id="styleImageTable" editable="true" VBox.vgrow="ALWAYS">
-                                <columns>
-                                    <TableColumn fx:id="styleImageTableImage" editable="false" maxWidth="400.0" minWidth="250.0" prefWidth="250.0" text="%styleFileColumnImage" />
-                                    <TableColumn fx:id="styleImageTableSelected" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnSelected" />
-                                    <TableColumn fx:id="styleImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%styleFileColumnName" />
-                                    <TableColumn fx:id="styleImageTableWeight" maxWidth="150.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%styleFileColumnWeight" />
-                                </columns>
-                                 <VBox.margin>
-                                    <Insets top="4.0" />
-                                 </VBox.margin>
+                              <Button fx:id="styleFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%styleFolderButton" />
+                              <TextField fx:id="styleFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" />
+                              <Button fx:id="contentFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%contentFolderButton" GridPane.columnIndex="3" />
+                              <TextField fx:id="contentFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="4" />
+                              <ListView fx:id="styleImageList" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="1">
                                   <tooltip>
-                                      <Tooltip maxWidth="300.0" text="%styleImageTableTooltip" wrapText="true" />
+                                      <Tooltip maxWidth="300.0" text="%styleImageListTooltip" wrapText="true" />
                                   </tooltip>
-                                 <columnResizePolicy>
-                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                                 </columnResizePolicy>
-                              </TableView>
+                              </ListView>
+                              <ListView fx:id="contentImageList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                                  <tooltip>
+                                      <Tooltip maxWidth="300.0" text="%contentImageListTooltip" wrapText="true" />
+                                  </tooltip>
+                              </ListView>
+                              <CheckBox fx:id="styleMultipleSelect" mnemonicParsing="false" text="%styleMultipleSelect" GridPane.columnIndex="2" />
                            </children>
                            <padding>
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
                            </padding>
-                        </VBox>
+                        </GridPane>
                      </content>
-                </Tab>
-                  <Tab fx:id="contentTab" text="%inputContentTab">
-                      <content>
-                          <VBox>
-                           <children>
-                              <HBox VBox.vgrow="NEVER">
-                                 <children>
-                                    <Button fx:id="contentFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%contentFolderButton" />
-                                    <TextField fx:id="contentFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets left="4.0" />
-                                       </HBox.margin></TextField>
-                                 </children>
-                              </HBox>
-                               <TableView fx:id="contentImageTable" editable="true" VBox.vgrow="ALWAYS">
-                                   <columns>
-                                       <TableColumn fx:id="contentImageTableImage" editable="false" maxWidth="400.0" minWidth="250.0" prefWidth="250.0" text="%contentFileColumnImage" />
-                                       <TableColumn fx:id="contentImageTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="-1.0" text="%contentFileColumnName" />
-                                   </columns>
-                                   <VBox.margin>
-                                       <Insets top="4.0" />
-                                   </VBox.margin>
-                                   <tooltip>
-                                       <Tooltip maxWidth="300.0" text="%contentImageTableTooltip" wrapText="true" />
-                                   </tooltip>
-                                 <columnResizePolicy>
-                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                                 </columnResizePolicy>
-                               </TableView>
-                           </children>
-                           <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </padding></VBox>
-
-                      </content>
                   </Tab>
                   <Tab fx:id="layersTab" text="%layersTab">
                      <content>

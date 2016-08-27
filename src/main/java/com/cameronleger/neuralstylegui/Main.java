@@ -1,12 +1,10 @@
 package com.cameronleger.neuralstylegui;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -33,6 +31,7 @@ public class Main extends Application {
             loader.setLocation(getClass().getResource("/main.fxml"));
             loader.setResources(bundle);
             root = loader.load();
+
             log.log(Level.FINER, "Getting controller.");
             controller = loader.getController();
             controller.setStage(primaryStage);

@@ -94,7 +94,7 @@ public class NvidiaService extends Service {
                         }
                         input.close();
                     } catch (IOException e) {
-                        log.log(Level.SEVERE, e.toString(), e);
+                        // No NVIDIA SMI tools, oh well
                     }
 
                     if (totalMemory != -1 && usedMemory != -1) {

@@ -3,6 +3,7 @@ package com.cameronleger.neuralstylegui;
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
+import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralLayer;
@@ -25,9 +26,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -84,9 +83,7 @@ public class MainController implements Initializable {
     @FXML
     private TabPane tabs;
     @FXML
-    private Tab styleTab;
-    @FXML
-    private Tab contentTab;
+    private Tab inputTab;
     @FXML
     private Tab layersTab;
     @FXML
@@ -108,24 +105,13 @@ public class MainController implements Initializable {
     private Button outputFolderButton;
     @FXML
     private Button outputImageButton;
+    @FXML
+    private CheckBox styleMultipleSelect;
 
     @FXML
-    private TableView<NeuralImage> styleImageTable;
+    private ListView<NeuralImage> styleImageList;
     @FXML
-    private TableColumn<NeuralImage, Boolean> styleImageTableSelected;
-    @FXML
-    private TableColumn<NeuralImage, String> styleImageTableName;
-    @FXML
-    private TableColumn<NeuralImage, Image> styleImageTableImage;
-    @FXML
-    private TableColumn<NeuralImage, Double> styleImageTableWeight;
-
-    @FXML
-    private TableView<NeuralImage> contentImageTable;
-    @FXML
-    private TableColumn<NeuralImage, String> contentImageTableName;
-    @FXML
-    private TableColumn<NeuralImage, Image> contentImageTableImage;
+    private ListView<NeuralImage> contentImageList;
 
     @FXML
     private Button styleLayerAdd;
@@ -278,8 +264,8 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting nvidia listener.");
         setupNvidiaListener();
 
-        setupStyleImageTable();
-        setupContentImageTable();
+        setupStyleImageList();
+        setupContentImageList();
         setupStyleLayersTable();
         setupContentLayersTable();
         setupOutputTreeTable();
@@ -299,11 +285,11 @@ public class MainController implements Initializable {
         final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN);
         stage.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
             if (ctrlS.match(event)) {
-                tabs.getSelectionModel().select(styleTab);
-                styleImageTable.requestFocus();
+                tabs.getSelectionModel().select(inputTab);
+                styleImageList.requestFocus();
             } else if (ctrlC.match(event)) {
-                tabs.getSelectionModel().select(contentTab);
-                contentImageTable.requestFocus();
+                tabs.getSelectionModel().select(inputTab);
+                contentImageList.requestFocus();
             } else if (ctrlL.match(event)) {
                 tabs.getSelectionModel().select(layersTab);
                 styleLayersTable.requestFocus();
@@ -537,6 +523,9 @@ public class MainController implements Initializable {
             }
 
             existingImages.setAll(newNeuralImages);
+
+            if (selectedNeuralImages.size() == 1)
+                styleImageList.getSelectionModel().select(selectedNeuralImages.get(0));
         }
         return selectedNeuralImages;
     }
@@ -567,7 +556,7 @@ public class MainController implements Initializable {
 
             // select the new image in the table
             existingImages.setAll(newNeuralImages);
-            contentImageTable.getSelectionModel().select(selectedNeuralImage);
+            contentImageList.getSelectionModel().select(selectedNeuralImage);
         }
     }
 
@@ -679,6 +668,9 @@ public class MainController implements Initializable {
         String[] selectedStyleLayers = neuralStyle.getStyleLayers();
         String[] selectedContentLayers = neuralStyle.getContentLayers();
 
+        if (selectedStyleImages != null)
+            styleMultipleSelect.setSelected(selectedStyleImages.length != 1);
+
         // Set paths
         setNeuralPath(neuralStyle.getNeuralStylePath());
         setProtoFile(neuralStyle.getProtoFile());
@@ -737,8 +729,7 @@ public class MainController implements Initializable {
         assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
         assert loadStyleButton != null : "fx:id=\"loadStyleButton\" was not injected.";
         assert tabs != null : "fx:id=\"tabs\" was not injected.";
-        assert styleTab != null : "fx:id=\"styleTab\" was not injected.";
-        assert contentTab != null : "fx:id=\"contentTab\" was not injected.";
+        assert inputTab != null : "fx:id=\"inputTab\" was not injected.";
         assert outputTab != null : "fx:id=\"outputTab\" was not injected.";
         assert layersTab != null : "fx:id=\"layersTab\" was not injected.";
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
@@ -749,14 +740,9 @@ public class MainController implements Initializable {
         assert contentFolderButton != null : "fx:id=\"contentFolderButton\" was not injected.";
         assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
         assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
-        assert styleImageTable != null : "fx:id=\"styleImageTable\" was not injected.";
-        assert styleImageTableSelected != null : "fx:id=\"styleImageTableSelected\" was not injected.";
-        assert styleImageTableName != null : "fx:id=\"styleImageTableName\" was not injected.";
-        assert styleImageTableImage != null : "fx:id=\"styleImageTableImage\" was not injected.";
-        assert styleImageTableWeight != null : "fx:id=\"styleImageTableWeight\" was not injected.";
-        assert contentImageTable != null : "fx:id=\"contentImageTable\" was not injected.";
-        assert contentImageTableName != null : "fx:id=\"contentImageTableName\" was not injected.";
-        assert contentImageTableImage != null : "fx:id=\"contentImageTableImage\" was not injected.";
+        assert styleMultipleSelect != null : "fx:id=\"styleMultipleSelect\" was not injected.";
+        assert styleImageList != null : "fx:id=\"styleImageList\" was not injected.";
+        assert contentImageList != null : "fx:id=\"contentImageList\" was not injected.";
         assert styleLayerAdd != null : "fx:id=\"styleLayerAdd\" was not injected.";
         assert styleLayerRemove != null : "fx:id=\"styleLayerRemove\" was not injected.";
         assert styleLayersTable != null : "fx:id=\"styleLayersTable\" was not injected.";
@@ -820,7 +806,8 @@ public class MainController implements Initializable {
 
     private void setupObservableLists() {
         styleImages = FXCollections.observableArrayList(neuralImage ->
-                new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty()});
+                new Observable[] {neuralImage.selectedProperty(), neuralImage.weightProperty(),
+                        styleMultipleSelect.selectedProperty()});
         contentImages = FXCollections.observableArrayList(neuralImage ->
                 new Observable[] {neuralImage.selectedProperty()});
         styleLayers = FXCollections.observableArrayList(neuralLayer ->
@@ -954,6 +941,8 @@ public class MainController implements Initializable {
                 String[] command = neuralStyle.buildCommand();
                 StringBuilder builder = new StringBuilder();
                 for (String commandPart : command) {
+                    if (commandPart.contains(" "))
+                        commandPart = '"' + commandPart + '"';
                     builder.append(commandPart);
                     builder.append(' ');
                 }
@@ -1270,19 +1259,41 @@ public class MainController implements Initializable {
         nvidiaTimer.restart();
     }
 
-    private void setupStyleImageTable() {
-        log.log(Level.FINER, "Setting style image table list.");
-        styleImageTable.setItems(styleImages);
-        styleImageTable.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupStyleImageList() {
+        log.log(Level.FINER, "Setting style image list.");
+        styleImageList.setItems(styleImages);
+        styleImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
-        log.log(Level.FINER, "Setting style image table selection listener.");
+        log.log(Level.FINER, "Setting style image list selection mode listener.");
+        EventStreams.changesOf(styleMultipleSelect.selectedProperty()).subscribe(booleanChange -> {
+            if (booleanChange.getNewValue()) {
+                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+            } else {
+                for (NeuralImage neuralImage : styleImages)
+                    neuralImage.setSelected(false);
+                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+            }
+        });
+
+        log.log(Level.FINER, "Setting style image list selection listener.");
+        EventStreams.changesOf(styleImageList.getSelectionModel().selectedItemProperty())
+                .subscribe(neuralImageChange -> {
+                    if (!styleMultipleSelect.isSelected()) {
+                        NeuralImage oldNeuralImage = neuralImageChange.getOldValue();
+                        if (oldNeuralImage != null)
+                            oldNeuralImage.setSelected(false);
+                        NeuralImage newNeuralImage = neuralImageChange.getNewValue();
+                        if (newNeuralImage != null)
+                            newNeuralImage.setSelected(true);
+                    }
+                });
+
+        log.log(Level.FINER, "Setting style image list selection listener.");
         EventStreams.changesOf(styleImages).subscribe(change -> {
             log.log(Level.FINE, "styleImages changed");
 
-            List<NeuralImage> selectedNeuralImages = new ArrayList<>();
-            for (NeuralImage neuralImage : styleImages)
-                if (neuralImage.isSelected())
-                    selectedNeuralImages.add(neuralImage);
+            List<NeuralImage> selectedNeuralImages = styleImages.stream()
+                    .filter(NeuralImage::isSelected).collect(Collectors.toList());
 
             File[] neuralFiles = new File[selectedNeuralImages.size()];
             double[] neuralFilesWeights = new double[selectedNeuralImages.size()];
@@ -1297,65 +1308,38 @@ public class MainController implements Initializable {
             toggleStyleButtons();
         });
 
-        log.log(Level.FINER, "Setting style image table shortcut listener");
-        styleImageTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (spaceBar.match(event)) {
+        log.log(Level.FINER, "Setting style image list shortcut listener");
+        styleImageList.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (spaceBar.match(event) && styleMultipleSelect.isSelected()) {
                 ObservableList<NeuralImage> selectedStyleImages =
-                        styleImageTable.getSelectionModel().getSelectedItems();
+                        styleImageList.getSelectionModel().getSelectedItems();
                 for (NeuralImage neuralImage : selectedStyleImages) {
                     neuralImage.setSelected(!neuralImage.isSelected());
                 }
             }
         });
 
-        log.log(Level.FINER, "Setting style image table column factories.");
-        styleImageTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
-        styleImageTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleImageTableSelected));
-
-        styleImageTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        styleImageTableWeight.setCellValueFactory(new PropertyValueFactory<>("weight"));
-        styleImageTableWeight.setCellFactory(
-                TextFieldTableCell.forTableColumn(new StringConverter<Double>() {
-                    @Override
-                    public String toString(Double object) {
-                        return String.valueOf(object.doubleValue());
-                    }
-
-                    @Override
-                    public Double fromString(String string) {
-                        try {
-                            return Double.parseDouble(string);
-                        } catch (Exception e) {
-                            return 1.0;
-                        }
-                    }
-                }));
-
-        styleImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
-        styleImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
+        log.log(Level.FINER, "Setting style image list column factory.");
+        styleImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
             @Override
-            public TableCell<NeuralImage, Image> call(TableColumn<NeuralImage, Image> param) {
-                return new TableCell<NeuralImage, Image>() {
-                    ImageView imageView;
-                    {
-                        imageView = new ImageView();
-                        imageView.setPreserveRatio(true);
-                        imageView.setFitHeight(NeuralImage.THUMBNAIL_SIZE);
-                        imageView.setFitWidth(NeuralImage.THUMBNAIL_SIZE);
-                        imageView.setImage(new WritableImage(NeuralImage.THUMBNAIL_SIZE, NeuralImage.THUMBNAIL_SIZE));
-                        setGraphic(imageView);
-                    }
+            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
+                return new ListCell<NeuralImage>() {
+                    NeuralImageCell neuralImageCell = new NeuralImageCell(true);
 
                     @Override
-                    public void updateItem(Image image, boolean empty) {
-                        super.updateItem(image, empty);
-                        if (empty || image == null) {
+                    public void updateItem(NeuralImage neuralImage, boolean empty) {
+                        super.updateItem(neuralImage, empty);
+                        neuralImageCell.setEditable(styleMultipleSelect.isSelected());
+
+                        neuralImageCell.setNeuralImage(neuralImage);
+
+                        if (empty || neuralImage == null) {
                             setText(null);
                             setGraphic(null);
                         } else {
-                            imageView.setImage(image);
-                            setGraphic(imageView);
+                            neuralImageCell.setNeuralImage(neuralImage);
+                            setText(null);
+                            setGraphic(neuralImageCell.getCellLayout());
                         }
                     }
                 };
@@ -1363,13 +1347,13 @@ public class MainController implements Initializable {
         });
     }
 
-    private void setupContentImageTable() {
-        log.log(Level.FINER, "Setting content image table list.");
-        contentImageTable.setItems(contentImages);
-        contentImageTable.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupContentImageList() {
+        log.log(Level.FINER, "Setting content image list.");
+        contentImageList.setItems(contentImages);
+        contentImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
-        log.log(Level.FINER, "Setting content image table selection listener.");
-        EventStreams.changesOf(contentImageTable.getSelectionModel().selectedItemProperty())
+        log.log(Level.FINER, "Setting content image list selection listener.");
+        EventStreams.changesOf(contentImageList.getSelectionModel().selectedItemProperty())
                 .subscribe(neuralImageChange -> {
                     NeuralImage newSelection = neuralImageChange.getNewValue();
                     log.log(Level.FINE, "Content image changed: " + newSelection);
@@ -1380,33 +1364,26 @@ public class MainController implements Initializable {
                     toggleStyleButtons();
                 });
 
-        log.log(Level.FINER, "Setting content image table column factories.");
-        contentImageTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        contentImageTableImage.setCellValueFactory(new PropertyValueFactory<>("image"));
-        contentImageTableImage.setCellFactory(new Callback<TableColumn<NeuralImage, Image>, TableCell<NeuralImage, Image>>() {
+        log.log(Level.FINER, "Setting content image list column factory.");
+        contentImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
             @Override
-            public TableCell<NeuralImage, Image> call(TableColumn<NeuralImage, Image> param) {
-                return new TableCell<NeuralImage, Image>() {
-                    ImageView imageView;
-                    {
-                        imageView = new ImageView();
-                        imageView.setPreserveRatio(true);
-                        imageView.setFitHeight(NeuralImage.THUMBNAIL_SIZE);
-                        imageView.setFitWidth(NeuralImage.THUMBNAIL_SIZE);
-                        imageView.setImage(new WritableImage(NeuralImage.THUMBNAIL_SIZE, NeuralImage.THUMBNAIL_SIZE));
-                        setGraphic(imageView);
-                    }
+            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
+                return new ListCell<NeuralImage>() {
+                    NeuralImageCell neuralImageCell = new NeuralImageCell(false);
 
                     @Override
-                    public void updateItem(Image image, boolean empty) {
-                        super.updateItem(image, empty);
-                        if (empty || image == null) {
+                    public void updateItem(NeuralImage neuralImage, boolean empty) {
+                        super.updateItem(neuralImage, empty);
+
+                        neuralImageCell.setNeuralImage(neuralImage);
+
+                        if (empty || neuralImage == null) {
                             setText(null);
                             setGraphic(null);
                         } else {
-                            imageView.setImage(image);
-                            setGraphic(imageView);
+                            neuralImageCell.setNeuralImage(neuralImage);
+                            setText(null);
+                            setGraphic(neuralImageCell.getCellLayout());
                         }
                     }
                 };
