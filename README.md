@@ -2,10 +2,10 @@
 Neural Style GUI is designed for rapid prototyping art from Neural Style. To that end, it supports all Neural Style settings, a GUI designed around the process, immediate iterative feedback of results, session history, and saving and loading of style settings and images.
 
 # Screenshots
-<img src="https://github.com/cameronleger/neural-style-gui/blob/master/screenshots/inputs.png" height="600px">
-<img src="https://github.com/cameronleger/neural-style-gui/blob/master/screenshots/layers.jpg" height="600px">
-<img src="https://github.com/cameronleger/neural-style-gui/blob/master/screenshots/output.jpg" height="600px">
-<img src="https://github.com/cameronleger/neural-style-gui/blob/master/screenshots/log.jpg" height="600px">
+![Inputs Tab of Neural-Style-GUI](/screenshots/inputs.png?raw=true "Inputs Tab of Neural-Style-GUI")
+![Layers Tab of Neural-Style-GUI](/screenshots/layers.png?raw=true "Layers Tab of Neural-Style-GUI")
+![Output Tab of Neural-Style-GUI](/screenshots/output.png?raw=true "Output Tab of Neural-Style-GUI")
+![Log Tab of Neural-Style-GUI](/screenshots/log.png?raw=true "Log Tab of Neural-Style-GUI")
 
 # Requirements
 * [Neural-Style](https://github.com/jcjohnson/neural-style)
