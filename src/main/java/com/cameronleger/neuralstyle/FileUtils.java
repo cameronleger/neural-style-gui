@@ -215,19 +215,34 @@ public class FileUtils {
         return files;
     }
 
-    public static File saveTempOutputImageTo(File tempImage, File outputFolder, String possibleName) {
+    public static File getTempOutputImageStyle() {
+        File outputStyle = getTempOutputStyle();
+        if (tempDir == null || !tempDir.isDirectory() || outputStyle == null || !checkFileExists(outputStyle))
+            return null;
+        return outputStyle;
+    }
+
+    public static File[] saveTempOutputsTo(File tempImage, File tempStyle, File outputFolder, String possibleName) {
         String uniqueText = String.valueOf(System.currentTimeMillis());
         File savedImage;
+        File savedStyle;
+
         if (possibleName != null && !possibleName.isEmpty()) {
             savedImage = new File(outputFolder, possibleName + ".png");
-            if (savedImage.exists() && savedImage.isFile())
+            savedStyle = new File(outputFolder, possibleName + ".json");
+            if ((savedImage.exists() && savedImage.isFile()) || savedStyle.exists() && savedStyle.isFile()) {
                 savedImage = new File(outputFolder, possibleName + "_" + uniqueText + ".png");
-        } else
+                savedStyle = new File(outputFolder, possibleName + "_" + uniqueText + ".json");
+            }
+        } else {
             savedImage = new File(outputFolder, uniqueText + ".png");
+            savedStyle = new File(outputFolder, uniqueText + ".json");
+        }
 
         try {
             Files.copy(tempImage.toPath(), savedImage.toPath(), REPLACE_EXISTING);
-            return savedImage;
+            Files.copy(tempStyle.toPath(), savedStyle.toPath(), REPLACE_EXISTING);
+            return new File[]{savedImage, savedStyle};
         } catch (Exception e) {
             log.log(Level.SEVERE, e.toString(), e);
             return null;

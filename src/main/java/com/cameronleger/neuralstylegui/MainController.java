@@ -658,6 +658,31 @@ public class MainController implements Initializable {
         }
     }
 
+    private File getOutputStyle(Region tooltipRegion) {
+        TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
+        if (outputSelection == null) {
+            log.log(Level.FINER, "Output Style: no output selection, checking for latest current output");
+            File style = FileUtils.getTempOutputImageStyle();
+            if (style != null)
+                return style;
+            else {
+                log.log(Level.FINER, "Output Style: no output selection nor latest image");
+                if (tooltipRegion != null)
+                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                return null;
+            }
+        } else {
+            NeuralOutput output = outputSelection.getValue();
+            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
+                log.log(Level.FINER, "Output Style: output selection is style, using selection");
+                return output.getFile();
+            } else {
+                log.log(Level.FINER, "Output Style: output selection is image, using parent style");
+                return outputSelection.getParent().getValue().getFile();
+            }
+        }
+    }
+
     private void loadStyle(NeuralStyle loadedNeuralStyle) {
         neuralStyle = loadedNeuralStyle;
 
@@ -909,14 +934,17 @@ public class MainController implements Initializable {
                 File imageFile = getOutputImage(outputImageButton);
                 if (imageFile == null)
                     return;
+                File styleFile = getOutputStyle(outputImageButton);
+                if (styleFile == null)
+                    return;
                 String possibleName = outputName.getText();
 
-                File savedImage = FileUtils.saveTempOutputImageTo(imageFile, outputFolder, possibleName);
-                if (savedImage == null) {
+                File[] savedFiles = FileUtils.saveTempOutputsTo(imageFile, styleFile, outputFolder, possibleName);
+                if (savedFiles == null || savedFiles.length <= 0) {
                     showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoSavedImage"));
                 } else {
                     showTooltipNextTo(outputImageButton,
-                            bundle.getString("outputImageSavedImage") + "\n" + savedImage.getName());
+                            bundle.getString("outputImageSavedImage") + "\n" + savedFiles[0].getName());
                 }
             }
         });
@@ -957,14 +985,12 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting Fit View listener.");
-        EventStreams.eventsOf(imageViewModeFit, ActionEvent.ACTION).subscribe(actionEvent -> {
-            outputImageView.fitToView();
-        });
+        EventStreams.eventsOf(imageViewModeFit, ActionEvent.ACTION).subscribe(actionEvent ->
+                outputImageView.fitToView());
 
         log.log(Level.FINER, "Setting Actual Size listener.");
-        EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent -> {
-            outputImageView.scaleImageViewport(1);
-        });
+        EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent ->
+                outputImageView.scaleImageViewport(1));
 
         log.log(Level.FINER, "Setting Proto File listener.");
         EventStreams.eventsOf(protoFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
@@ -1203,9 +1229,8 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting progress listener.");
-        neuralService.progressProperty().addListener((observable, oldValue, newValue) -> {
-            progress.setProgress(newValue.doubleValue());
-        });
+        neuralService.progressProperty().addListener((observable, oldValue, newValue) ->
+                progress.setProgress(newValue.doubleValue()));
 
         log.log(Level.FINER, "Setting running listener.");
         final ColorAdjust highlighted = new ColorAdjust(0, 0, 0.3, 0);
