@@ -127,9 +127,10 @@ public class FileUtils {
         }
     }
 
-    public static NeuralImage[] getImages(File dir) {
+    public static List<NeuralImage> getImages(File dir) {
+        List<NeuralImage> images = new ArrayList<>();
         if (dir == null || !dir.isDirectory())
-            return null;
+            return images;
 
         FilenameFilter imageFilter = (dir1, name) -> {
             for (final String ext : EXTENSIONS) {
@@ -141,11 +142,10 @@ public class FileUtils {
         };
         File[] files = dir.listFiles(imageFilter);
 
-        NeuralImage[] images = new NeuralImage[]{};
         if (files != null && files.length >= 1) {
-            images = new NeuralImage[files.length];
-            for (int i = 0; i < files.length; i++)
-                images[i] = new NeuralImage(files[i]);
+            for (File file : files) images.add(new NeuralImage(file));
+            images.sort((neuralImage1, neuralImage2) ->
+                    neuralImage1.getName().compareToIgnoreCase(neuralImage2.getName()));
         }
         return images;
     }
