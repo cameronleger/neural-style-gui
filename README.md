@@ -66,3 +66,6 @@ This GUI Application takes a small amount of the precious vRAM necessary for Neu
 Feature requests and development efforts for bug fixes and new features are certainly welcome. This project is developed using IntelliJ IDEA and the basic project for it is included in the repo.
 ## IntelliJ IDEA Code Insight Issue
 By default, IntelliJ IDEA restricts Code Insight to files of a small size, and the Loadcaffe.java file is too large for this to work. This results in some files showing errors where Loadcaffe is used because it cannot parse the file. To get rid of these errors, you must follow [the instructions in this Stack Overflow answer](http://stackoverflow.com/questions/23057988/file-size-exceeds-configured-limit-2560000-code-insight-features-not-availabl/23058324#23058324).
+## Logging
+To see logging levels other than the default of just the NeuralService output, you can add the following option to the 'VM Options' setting in your Run Configuration (be sure to update the path to the included [logger.properties](/logger.properties) file):
+    -Djava.util.logging.config.file=/path/to/logger.properties

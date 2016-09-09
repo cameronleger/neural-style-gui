@@ -176,8 +176,9 @@ public class FileUtils {
                     imageFileIters[i] = FileUtils.parseImageIteration(imageFiles[i]);
                 FileUtils.quickSort(imageFileIters, imageFiles, 0, imageFiles.length - 1);
 
-                // check that the latest file is valid (could still be written to)
-                if (imageFiles[imageFiles.length - 1].length() / imageFiles[imageFiles.length - 2].length() <= 0.5)
+                // if the latest file was still being written to during the check
+                // then replace it with the previous file (set will remove it)
+                if (isFileBeingWritten(imageFiles[imageFiles.length - 1]))
                     imageFiles[imageFiles.length - 1] = imageFiles[imageFiles.length - 2];
 
                 for (File imageFile : imageFiles)
@@ -207,8 +208,9 @@ public class FileUtils {
                 fileIters[i] = FileUtils.parseImageIteration(files[i]);
             FileUtils.quickSort(fileIters, files, 0, files.length - 1);
 
-            // check that the latest file is valid (could still be written to)
-            if (files[files.length - 1].length() / files[files.length - 2].length() <= 0.5)
+            // if the latest file was still being written to during the check
+            // then replace it with the previous file (set will remove it)
+            if (isFileBeingWritten(files[files.length - 1]))
                 files[files.length - 1] = files[files.length - 2];
         }
 
@@ -257,6 +259,34 @@ public class FileUtils {
         if (matcher.matches())
             iteration = Integer.parseInt(matcher.group(1));
         return iteration;
+    }
+
+    public static boolean isFileBeingWritten(File fileToCheck) {
+        // try 4 times over 400ms to see if the file size stagnates
+        int retries = 4;
+        int sleep = 100;
+        long previousFileSize = fileToCheck.length();
+        while (retries > 0) {
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {
+                // safely ignored
+                log.log(Level.FINER, "Sleep while checking file size interrupted");
+            }
+
+            long updatedFileSize = fileToCheck.length();
+
+            // update file size or return if it stagnated
+            if (updatedFileSize > previousFileSize)
+                previousFileSize = updatedFileSize;
+            else
+                return false;
+
+            retries--;
+        }
+
+        // file size was always different, still being written to
+        return true;
     }
 
     private static int partition(int iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
