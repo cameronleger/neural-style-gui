@@ -56,6 +56,12 @@ In the Output Tab and next to the Image is the Output History Tree. Any started 
 
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
+# Changelog
+### 1.1.0
+* Saving an Output Image also saves the Style with it
+* Style and Content Images are sorted by their name
+* Fixed an issue with the Output View and History not always recognizing the latest iteration
+
 # Concerns
 This GUI Application takes a small amount of the precious vRAM necessary for Neural Style, or even more if using CPU mode because the larger amounts of RAM used. If you find this inhibiting, consider using it for quick previews and using the generated command to run Neural Style without the GUI for final results. I have an advanced setup with PCI Passthrough, a headless Virtual Machine, and SSH X Forwarding, so this is not an issue for me.
 
