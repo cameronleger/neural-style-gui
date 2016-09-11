@@ -380,15 +380,13 @@ public class MainController implements Initializable {
     private void setStyleFolder(File styleFolder) {
         styleFolderPath.setText(styleFolder.getAbsolutePath());
         directoryChooser.setInitialDirectory(styleFolder);
-        NeuralImage[] images = FileUtils.getImages(styleFolder);
-        styleImages.setAll(images);
+        styleImages.setAll(FileUtils.getImages(styleFolder));
     }
 
     private void setContentFolder(File contentFolder) {
         contentFolderPath.setText(contentFolder.getAbsolutePath());
         directoryChooser.setInitialDirectory(contentFolder);
-        NeuralImage[] images = FileUtils.getImages(contentFolder);
-        contentImages.setAll(images);
+        contentImages.setAll(FileUtils.getImages(contentFolder));
     }
 
     private void setOutputFolder(File outputFolder) {
