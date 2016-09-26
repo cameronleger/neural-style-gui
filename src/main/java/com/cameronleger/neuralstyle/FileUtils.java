@@ -337,9 +337,14 @@ public class FileUtils {
 
         // Retrieve all of the layer names that are ReLUs
         List<String> layersList = netParams.getLayersList().stream()
-                .filter(layer -> layer.getType() == Loadcaffe.V1LayerParameter.LayerType.RELU)
+                .filter(layer1 -> layer1.getType() == Loadcaffe.V1LayerParameter.LayerType.RELU)
                 .map(Loadcaffe.V1LayerParameter::getName).collect(Collectors.toList());
 
+        layersList.addAll(netParams.getLayerList().stream()
+                .filter(lp -> lp.getType().equalsIgnoreCase("ReLU"))
+                .map(Loadcaffe.LayerParameter::getName).collect(Collectors.toList()));
+
+        // Create the array of ReLU layer names
         String[] layers = new String[layersList.size()];
         for (int i = 0; i < layersList.size(); i++)
             layers[i] = layersList.get(i);

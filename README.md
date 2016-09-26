@@ -57,6 +57,8 @@ In the Output Tab and next to the Image is the Output History Tree. Any started 
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
 # Changelog
+### 1.1.1
+* Prototxt parsing supports current version of Loadcaffe Layers
 ### 1.1.0
 * Saving an Output Image also saves the Style with it
 * Style and Content Images are sorted by their name
