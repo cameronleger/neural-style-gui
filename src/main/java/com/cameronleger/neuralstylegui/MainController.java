@@ -178,6 +178,10 @@ public class MainController implements Initializable {
     @FXML
     private ChoiceBox<String> initChoice;
     @FXML
+    private Button initImageButton;
+    @FXML
+    private TextField initImagePath;
+    @FXML
     private ChoiceBox<String> poolingChoice;
     @FXML
     private CheckBox originalColors;
@@ -331,7 +335,7 @@ public class MainController implements Initializable {
 
     private void updateImageView() {
         File imageFile = getOutputImage(null);
-        if (imageFile != null)
+        if (imageFile != null && stage.isShowing())
             outputImageView.setImage(imageFile);
     }
 
@@ -341,6 +345,16 @@ public class MainController implements Initializable {
         else
             neuralPath.setText(neuralStylePath.getAbsolutePath());
         neuralStyle.setNeuralStylePath(neuralStylePath);
+    }
+
+    private void setInitImageFile(File initImageFile) {
+        neuralStyle.setInitImage(initImageFile);
+        if (initImageFile != null) {
+            initImagePath.setText(initImageFile.getAbsolutePath());
+            fileChooser.setInitialDirectory(initImageFile.getParentFile());
+        } else {
+            initImagePath.setText("");
+        }
     }
 
     private void setModelFile(File modelFile) {
@@ -699,6 +713,7 @@ public class MainController implements Initializable {
         setProtoFile(neuralStyle.getProtoFile());
         setModelFile(neuralStyle.getModelFile());
         setOutputFolder(neuralStyle.getOutputFolder());
+        setInitImageFile(neuralStyle.getInitImage());
 
         // Set selected layers after updating layers from paths
         updateLayerSelections(selectedStyleLayers, this.styleLayers);
@@ -796,6 +811,8 @@ public class MainController implements Initializable {
         assert tvWeightSlider != null : "fx:id=\"tvWeightSlider\" was not injected.";
         assert tvWeightField != null : "fx:id=\"tvWeightField\" was not injected.";
         assert initChoice != null : "fx:id=\"initChoice\" was not injected.";
+        assert initImageButton != null : "fx:id=\"initImageButton\" was not injected.";
+        assert initImagePath != null : "fx:id=\"initImagePath\" was not injected.";
         assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
         assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
         assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
@@ -989,6 +1006,15 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Actual Size listener.");
         EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent ->
                 outputImageView.scaleImageViewport(1));
+
+        log.log(Level.FINER, "Setting Init Image listener.");
+        EventStreams.eventsOf(initImageButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing init image file chooser.");
+            fileChooser.setTitle(bundle.getString("initImageChooser"));
+            File initImageFile = fileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "init image file chosen: {0}", initImageFile);
+            setInitImageFile(initImageFile);
+        });
 
         log.log(Level.FINER, "Setting Proto File listener.");
         EventStreams.eventsOf(protoFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
@@ -1246,7 +1272,7 @@ public class MainController implements Initializable {
         imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
 
         log.log(Level.FINER, "Setting image timer.");
-        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
+        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), () -> {
             log.log(Level.FINER, "Timer: checking service");
             if (neuralService == null || !neuralService.isRunning())
                 return;
@@ -1270,7 +1296,7 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting nvidia timer.");
-        nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
+        nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(2000), () -> {
             log.log(Level.FINER, "Timer: checking service");
             if (nvidiaService == null || nvidiaService.isRunning())
                 return;

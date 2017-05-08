@@ -34,6 +34,7 @@ public class NeuralStyle {
     private double tvWeight = 0.0001;
     private boolean originalColors = false;
     private String init = "image";
+    private File initImage;
     private String pooling = "max";
     private boolean normalizeGradients = false;
     private int gpu = 0;
@@ -188,6 +189,14 @@ public class NeuralStyle {
         this.init = init;
     }
 
+    public File getInitImage() {
+        return initImage;
+    }
+
+    public void setInitImage(File initImage) {
+        this.initImage = initImage;
+    }
+
     public String getPooling() {
         return pooling;
     }
@@ -313,8 +322,7 @@ public class NeuralStyle {
         }
 
         ArrayList<String> commandList = new ArrayList<>(
-                Arrays.asList(new String[] {
-                        "th",
+                Arrays.asList("th",
                         "neural_style.lua",
                         "-style_image",
                         styleImagesBuilder.toString(),
@@ -357,8 +365,7 @@ public class NeuralStyle {
                         "-optimizer",
                         getOptimizer(),
                         "-learning_rate",
-                        String.valueOf(getLearningRate()),
-                }));
+                        String.valueOf(getLearningRate())));
 
         commandList.add("-original_colors");
         if (isOriginalColors())
@@ -371,6 +378,11 @@ public class NeuralStyle {
 
         if (isAutotune())
             commandList.add("-cudnn_autotune");
+
+        if (getInit().equals("image") && FileUtils.checkFileExists(getInitImage())) {
+            commandList.add("-init_image");
+            commandList.add(getInitImage().getAbsolutePath());
+        }
 
         if (FileUtils.checkFileExists(getProtoFile())) {
             commandList.add("-proto_file");
