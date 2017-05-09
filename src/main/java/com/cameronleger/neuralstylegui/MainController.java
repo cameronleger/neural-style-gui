@@ -6,7 +6,7 @@ import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
-import com.cameronleger.neuralstylegui.model.NeuralLayer;
+import com.cameronleger.neuralstylegui.model.NamedSelection;
 import com.cameronleger.neuralstylegui.model.NeuralOutput;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
@@ -64,8 +64,9 @@ public class MainController implements Initializable {
 
     private ObservableList<NeuralImage> styleImages;
     private ObservableList<NeuralImage> contentImages;
-    private ObservableList<NeuralLayer> styleLayers;
-    private ObservableList<NeuralLayer> contentLayers;
+    private ObservableList<NamedSelection> gpuIndices;
+    private ObservableList<NamedSelection> styleLayers;
+    private ObservableList<NamedSelection> contentLayers;
     private final TreeItem<NeuralOutput> outputRoot = new TreeItem<>(new NeuralOutput(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
@@ -118,22 +119,22 @@ public class MainController implements Initializable {
     @FXML
     private Button styleLayerRemove;
     @FXML
-    private TableView<NeuralLayer> styleLayersTable;
+    private TableView<NamedSelection> styleLayersTable;
     @FXML
-    private TableColumn<NeuralLayer, Boolean> styleLayersTableSelected;
+    private TableColumn<NamedSelection, Boolean> styleLayersTableSelected;
     @FXML
-    private TableColumn<NeuralLayer, String> styleLayersTableName;
+    private TableColumn<NamedSelection, String> styleLayersTableName;
 
     @FXML
     private Button contentLayerAdd;
     @FXML
     private Button contentLayerRemove;
     @FXML
-    private TableView<NeuralLayer> contentLayersTable;
+    private TableView<NamedSelection> contentLayersTable;
     @FXML
-    private TableColumn<NeuralLayer, Boolean> contentLayersTableSelected;
+    private TableColumn<NamedSelection, Boolean> contentLayersTableSelected;
     @FXML
-    private TableColumn<NeuralLayer, String> contentLayersTableName;
+    private TableColumn<NamedSelection, String> contentLayersTableName;
 
     @FXML
     private ProgressBar vramBar;
@@ -189,9 +190,13 @@ public class MainController implements Initializable {
     private CheckBox normalizeGradients;
 
     @FXML
-    private Slider gpuSlider;
+    private CheckBox cpuMode;
     @FXML
-    private TextField gpuField;
+    private TableView<NamedSelection> gpuTable;
+    @FXML
+    private TableColumn<NamedSelection, Boolean> gpuTableSelected;
+    @FXML
+    private TableColumn<NamedSelection, String> gpuTableIndex;
     @FXML
     private ChoiceBox<String> optimizerChoice;
     @FXML
@@ -270,6 +275,7 @@ public class MainController implements Initializable {
 
         setupStyleImageList();
         setupContentImageList();
+        setupGpuIndexTable();
         setupStyleLayersTable();
         setupContentLayersTable();
         setupOutputTreeTable();
@@ -387,7 +393,7 @@ public class MainController implements Initializable {
             }
         } else {
             protoFilePath.setText("");
-            setDefaultLayers();
+            setDefaultNamedSelections();
         }
     }
 
@@ -413,85 +419,97 @@ public class MainController implements Initializable {
         }
     }
 
-    private void setDefaultLayers() {
+    private void setDefaultNamedSelections() {
+        gpuIndices.setAll(
+                new NamedSelection("0", true),
+                new NamedSelection("1", false),
+                new NamedSelection("2", false),
+                new NamedSelection("3", false),
+                new NamedSelection("4", false),
+                new NamedSelection("5", false),
+                new NamedSelection("6", false),
+                new NamedSelection("7", false),
+                new NamedSelection("8", false),
+                new NamedSelection("9", false)
+        );
         styleLayers.setAll(
-                new NeuralLayer("relu1_1", true),
-                new NeuralLayer("relu1_2", false),
-                new NeuralLayer("relu2_1", true),
-                new NeuralLayer("relu2_2", false),
-                new NeuralLayer("relu3_1", true),
-                new NeuralLayer("relu3_2", false),
-                new NeuralLayer("relu3_3", false),
-                new NeuralLayer("relu3_4", false),
-                new NeuralLayer("relu4_1", true),
-                new NeuralLayer("relu4_2", false),
-                new NeuralLayer("relu4_3", false),
-                new NeuralLayer("relu4_4", false),
-                new NeuralLayer("relu5_1", true),
-                new NeuralLayer("relu5_2", false),
-                new NeuralLayer("relu5_3", false),
-                new NeuralLayer("relu5_4", false),
-                new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false)
+                new NamedSelection("relu1_1", true),
+                new NamedSelection("relu1_2", false),
+                new NamedSelection("relu2_1", true),
+                new NamedSelection("relu2_2", false),
+                new NamedSelection("relu3_1", true),
+                new NamedSelection("relu3_2", false),
+                new NamedSelection("relu3_3", false),
+                new NamedSelection("relu3_4", false),
+                new NamedSelection("relu4_1", true),
+                new NamedSelection("relu4_2", false),
+                new NamedSelection("relu4_3", false),
+                new NamedSelection("relu4_4", false),
+                new NamedSelection("relu5_1", true),
+                new NamedSelection("relu5_2", false),
+                new NamedSelection("relu5_3", false),
+                new NamedSelection("relu5_4", false),
+                new NamedSelection("relu6", false),
+                new NamedSelection("relu7", false)
         );
         contentLayers.setAll(
-                new NeuralLayer("relu1_1", false),
-                new NeuralLayer("relu1_2", false),
-                new NeuralLayer("relu2_1", false),
-                new NeuralLayer("relu2_2", false),
-                new NeuralLayer("relu3_1", false),
-                new NeuralLayer("relu3_2", false),
-                new NeuralLayer("relu3_3", false),
-                new NeuralLayer("relu3_4", false),
-                new NeuralLayer("relu4_1", false),
-                new NeuralLayer("relu4_2", true),
-                new NeuralLayer("relu4_3", false),
-                new NeuralLayer("relu4_4", false),
-                new NeuralLayer("relu5_1", false),
-                new NeuralLayer("relu5_2", false),
-                new NeuralLayer("relu5_3", false),
-                new NeuralLayer("relu5_4", false),
-                new NeuralLayer("relu6", false),
-                new NeuralLayer("relu7", false)
+                new NamedSelection("relu1_1", false),
+                new NamedSelection("relu1_2", false),
+                new NamedSelection("relu2_1", false),
+                new NamedSelection("relu2_2", false),
+                new NamedSelection("relu3_1", false),
+                new NamedSelection("relu3_2", false),
+                new NamedSelection("relu3_3", false),
+                new NamedSelection("relu3_4", false),
+                new NamedSelection("relu4_1", false),
+                new NamedSelection("relu4_2", true),
+                new NamedSelection("relu4_3", false),
+                new NamedSelection("relu4_4", false),
+                new NamedSelection("relu5_1", false),
+                new NamedSelection("relu5_2", false),
+                new NamedSelection("relu5_3", false),
+                new NamedSelection("relu5_4", false),
+                new NamedSelection("relu6", false),
+                new NamedSelection("relu7", false)
         );
     }
 
     private void updateLayers(String[] layers) {
-        List<NeuralLayer> newStyleLayers = new ArrayList<>();
-        List<NeuralLayer> newContentLayers = new ArrayList<>();
+        List<NamedSelection> newStyleLayers = new ArrayList<>();
+        List<NamedSelection> newContentLayers = new ArrayList<>();
         for (String layer : layers) {
-            newStyleLayers.add(new NeuralLayer(layer, false));
-            newContentLayers.add(new NeuralLayer(layer, false));
+            newStyleLayers.add(new NamedSelection(layer, false));
+            newContentLayers.add(new NamedSelection(layer, false));
         }
         styleLayers.setAll(newStyleLayers);
         contentLayers.setAll(newContentLayers);
     }
 
-    private void updateLayerSelections(String[] selectedLayers, ObservableList<NeuralLayer> existingLayers) {
-        // ensure all NeuralLayers are deselected
-        List<NeuralLayer> newNeuralLayers = existingLayers.stream()
-                .map(neuralLayer -> new NeuralLayer(neuralLayer.getName(), false))
+    private void updateNamedSelections(String[] selectedNames, ObservableList<NamedSelection> existingNames) {
+        // ensure all NamedSelections are deselected
+        List<NamedSelection> newSelectedNamed = existingNames.stream()
+                .map(namedSelection -> new NamedSelection(namedSelection.getName(), false))
                 .collect(Collectors.toList());
 
-        if (selectedLayers != null && selectedLayers.length > 0) {
-            // select NeuralLayers
-            for (String selectedLayer : selectedLayers) {
+        if (selectedNames != null && selectedNames.length > 0) {
+            // select NamedSelections
+            for (String selectedName : selectedNames) {
                 boolean existed = false;
-                for (NeuralLayer neuralLayer : newNeuralLayers) {
-                    if (neuralLayer.getName().equalsIgnoreCase(selectedLayer)) {
-                        neuralLayer.setSelected(true);
+                for (NamedSelection namedSelection : newSelectedNamed) {
+                    if (namedSelection.getName().equalsIgnoreCase(selectedName)) {
+                        namedSelection.setSelected(true);
                         existed = true;
                         break;
                     }
                 }
 
-                // create new layer for selection if necessary
+                // create new name for selection if necessary
                 if (!existed) {
-                    newNeuralLayers.add(new NeuralLayer(selectedLayer, true));
+                    newSelectedNamed.add(new NamedSelection(selectedName, true));
                 }
             }
 
-            existingLayers.setAll(newNeuralLayers);
+            existingNames.setAll(newSelectedNamed);
         }
     }
 
@@ -702,6 +720,7 @@ public class MainController implements Initializable {
         File[] selectedStyleImages = neuralStyle.getStyleImages();
         double[] selectedStyleWeights = neuralStyle.getStyleWeights();
         File contentImage = neuralStyle.getContentImage();
+        String[] selectedGpuIndices = neuralStyle.getGpu();
         String[] selectedStyleLayers = neuralStyle.getStyleLayers();
         String[] selectedContentLayers = neuralStyle.getContentLayers();
 
@@ -716,8 +735,9 @@ public class MainController implements Initializable {
         setInitImageFile(neuralStyle.getInitImage());
 
         // Set selected layers after updating layers from paths
-        updateLayerSelections(selectedStyleLayers, this.styleLayers);
-        updateLayerSelections(selectedContentLayers, this.contentLayers);
+        updateNamedSelections(selectedGpuIndices, this.gpuIndices);
+        updateNamedSelections(selectedStyleLayers, this.styleLayers);
+        updateNamedSelections(selectedContentLayers, this.contentLayers);
 
         // Set simple inputs
         maxIterSlider.setValue(neuralStyle.getIterations());
@@ -733,7 +753,7 @@ public class MainController implements Initializable {
         initChoice.setValue(neuralStyle.getInit());
         poolingChoice.setValue(neuralStyle.getPooling());
         normalizeGradients.setSelected(neuralStyle.isNormalizeGradients());
-        gpuSlider.setValue(neuralStyle.getGpu());
+        cpuMode.setSelected(neuralStyle.isCpu());
         backendChoice.setValue(neuralStyle.getBackend());
         optimizerChoice.setValue(neuralStyle.getOptimizer());
         learningRateSlider.setValue(neuralStyle.getLearningRate());
@@ -816,8 +836,10 @@ public class MainController implements Initializable {
         assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
         assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
         assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
-        assert gpuSlider != null : "fx:id=\"gpuSlider\" was not injected.";
-        assert gpuField != null : "fx:id=\"gpuField\" was not injected.";
+        assert cpuMode != null : "fx:id=\"cpuMode\" was not injected.";
+        assert gpuTable != null : "fx:id=\"gpuTable\" was not injected.";
+        assert gpuTableSelected != null : "fx:id=\"gpuTableSelected\" was not injected.";
+        assert gpuTableIndex != null : "fx:id=\"gpuTableIndex\" was not injected.";
         assert backendChoice != null : "fx:id=\"backendChoice\" was not injected.";
         assert optimizerChoice != null : "fx:id=\"optimizerChoice\" was not injected.";
         assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
@@ -850,12 +872,14 @@ public class MainController implements Initializable {
                         styleMultipleSelect.selectedProperty()});
         contentImages = FXCollections.observableArrayList(neuralImage ->
                 new Observable[] {neuralImage.selectedProperty()});
+        gpuIndices = FXCollections.observableArrayList(gpuIndex ->
+                new Observable[] {gpuIndex.selectedProperty()});
         styleLayers = FXCollections.observableArrayList(neuralLayer ->
                 new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
         contentLayers = FXCollections.observableArrayList(neuralLayer ->
                 new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
 
-        setDefaultLayers();
+        setDefaultNamedSelections();
     }
 
     private void setupButtonListeners() {
@@ -1036,7 +1060,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Style Layer Add listener.");
         EventStreams.eventsOf(styleLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> styleLayers.add(new NeuralLayer("newLayer", false)));
+                actionEvent -> styleLayers.add(new NamedSelection("newLayer", false)));
 
         log.log(Level.FINER, "Setting Style Layer Remove listener.");
         EventStreams.eventsOf(styleLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1044,7 +1068,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Content Layer Add listener.");
         EventStreams.eventsOf(contentLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> contentLayers.add(new NeuralLayer("newLayer", false)));
+                actionEvent -> contentLayers.add(new NamedSelection("newLayer", false)));
 
         log.log(Level.FINER, "Setting Content Layer Remove listener.");
         EventStreams.eventsOf(contentLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1138,9 +1162,14 @@ public class MainController implements Initializable {
                 .subscribe(numberChange -> neuralStyle.setTvWeight(
                         doubleConverter.fromString(numberChange.getNewValue()).doubleValue()));
 
-        // init choicebox updates the style
-        EventStreams.changesOf(initChoice.valueProperty())
-                .subscribe(stringChange -> neuralStyle.setInit(stringChange.getNewValue()));
+        // init choicebox updates the style and toggles init path
+        EventStreams.changesOf(initChoice.valueProperty()).subscribe(stringChange -> {
+            String init = stringChange.getNewValue();
+            neuralStyle.setInit(init);
+            boolean notInitImage = !init.equalsIgnoreCase("image");
+            initImageButton.setDisable(notInitImage);
+            initImagePath.setDisable(notInitImage);
+        });
 
         // pooling choicebox updates the style
         EventStreams.changesOf(poolingChoice.valueProperty())
@@ -1154,13 +1183,12 @@ public class MainController implements Initializable {
         EventStreams.changesOf(normalizeGradients.selectedProperty())
                 .subscribe(booleanChange -> neuralStyle.setNormalizeGradients(booleanChange.getNewValue()));
 
-        // keep gpu slider and text field synced and the slider updates the style
-        gpuField.textProperty().bindBidirectional(gpuSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(gpuField.textProperty()).subscribe(numberChange ->  {
-                int device = intConverter.fromString(numberChange.getNewValue()).intValue();
-                neuralStyle.setGpu(device);
-                nvidiaService.setDevice(device);
-            });
+        // CPU checkbox updates the style and toggles GPU
+        EventStreams.changesOf(cpuMode.selectedProperty()).subscribe(booleanChange -> {
+            boolean useCpu = booleanChange.getNewValue();
+            neuralStyle.setCpu(useCpu);
+            gpuTable.setDisable(useCpu);
+        });
 
         // backend choicebox updates the style and toggles autotune
         EventStreams.changesOf(backendChoice.valueProperty()).subscribe(stringChange -> {
@@ -1440,6 +1468,46 @@ public class MainController implements Initializable {
         });
     }
 
+    private void setupGpuIndexTable() {
+        log.log(Level.FINER, "Setting GPU index table list.");
+        gpuTable.setItems(gpuIndices);
+        gpuTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        log.log(Level.FINER, "Setting GPU index table selection listener.");
+        EventStreams.changesOf(gpuIndices).subscribe(change -> {
+            log.log(Level.FINE, "gpuIndices changed");
+
+            List<NamedSelection> selectedGpuIndices = gpuIndices.stream()
+                    .filter(NamedSelection::isSelected)
+                    .collect(Collectors.toList());
+
+            String[] newGpuIndices = new String[selectedGpuIndices.size()];
+            for (int i = 0; i < selectedGpuIndices.size(); i++)
+                newGpuIndices[i] = selectedGpuIndices.get(i).getName();
+            neuralStyle.setGpu(newGpuIndices);
+
+            toggleStyleButtons();
+        });
+
+        log.log(Level.FINER, "Setting GPU index table shortcut listener");
+        gpuTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (spaceBar.match(event)) {
+                ObservableList<NamedSelection> selectedGpuIndices =
+                        gpuTable.getSelectionModel().getSelectedItems();
+                for (NamedSelection gpuIndex : selectedGpuIndices) {
+                    gpuIndex.setSelected(!gpuIndex.isSelected());
+                }
+            }
+        });
+
+        log.log(Level.FINER, "Setting GPU index table column factories.");
+        gpuTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        gpuTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(gpuTableSelected));
+
+        gpuTableIndex.setCellValueFactory(new PropertyValueFactory<>("name"));
+        gpuTableIndex.setCellFactory(TextFieldTableCell.forTableColumn());
+    }
+
     private void setupStyleLayersTable() {
         log.log(Level.FINER, "Setting style layer table list.");
         styleLayersTable.setItems(styleLayers);
@@ -1449,8 +1517,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(styleLayers).subscribe(change -> {
             log.log(Level.FINE, "styleLayers changed");
 
-            List<NeuralLayer> selectedStyleLayers = styleLayers.stream()
-                    .filter(NeuralLayer::isSelected)
+            List<NamedSelection> selectedStyleLayers = styleLayers.stream()
+                    .filter(NamedSelection::isSelected)
                     .collect(Collectors.toList());
 
             String[] newStyleLayers = new String[selectedStyleLayers.size()];
@@ -1464,9 +1532,9 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         styleLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
             if (spaceBar.match(event)) {
-                ObservableList<NeuralLayer> selectedStyleLayers =
+                ObservableList<NamedSelection> selectedStyleLayers =
                         styleLayersTable.getSelectionModel().getSelectedItems();
-                for (NeuralLayer neuralLayer : selectedStyleLayers) {
+                for (NamedSelection neuralLayer : selectedStyleLayers) {
                     neuralLayer.setSelected(!neuralLayer.isSelected());
                 }
             }
@@ -1489,8 +1557,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(contentLayers).subscribe(change -> {
             log.log(Level.FINE, "contentLayers changed");
 
-            List<NeuralLayer> selectedContentLayers = contentLayers.stream()
-                    .filter(NeuralLayer::isSelected)
+            List<NamedSelection> selectedContentLayers = contentLayers.stream()
+                    .filter(NamedSelection::isSelected)
                     .collect(Collectors.toList());
 
             String[] newContentLayers = new String[selectedContentLayers.size()];
@@ -1504,9 +1572,9 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         contentLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
             if (spaceBar.match(event)) {
-                ObservableList<NeuralLayer> selectedStyleLayers =
+                ObservableList<NamedSelection> selectedStyleLayers =
                         contentLayersTable.getSelectionModel().getSelectedItems();
-                for (NeuralLayer neuralLayer : selectedStyleLayers) {
+                for (NamedSelection neuralLayer : selectedStyleLayers) {
                     neuralLayer.setSelected(!neuralLayer.isSelected());
                 }
             }

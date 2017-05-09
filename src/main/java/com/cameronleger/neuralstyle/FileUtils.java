@@ -4,6 +4,7 @@ import caffe.Loadcaffe;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.protobuf.TextFormat;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -114,12 +115,30 @@ public class FileUtils {
         }
     }
 
+    private static NeuralStyle loadStyleV1(File styleFile) {
+        final FileInputStream fileStream;
+        try {
+            fileStream = new FileInputStream(styleFile);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
+            NeuralStyleV1 oldNeuralStyle = gson.fromJson(reader, NeuralStyleV1.class);
+            return oldNeuralStyle.upgrade();
+        } catch (Exception e) {
+            log.log(Level.FINE, "Exception loading input style.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
+    }
+
     public static NeuralStyle loadStyle(File styleFile) {
         final FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(styleFile);
             final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
             return gson.fromJson(reader, NeuralStyle.class);
+        } catch(JsonSyntaxException e) {
+            log.log(Level.FINE, "Exception loading input style, trying another version.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return loadStyleV1(styleFile);
         } catch (Exception e) {
             log.log(Level.FINE, "Exception loading input style.");
             log.log(Level.SEVERE, e.toString(), e);

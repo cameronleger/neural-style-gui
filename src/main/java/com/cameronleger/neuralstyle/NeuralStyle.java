@@ -37,7 +37,10 @@ public class NeuralStyle {
     private File initImage;
     private String pooling = "max";
     private boolean normalizeGradients = false;
-    private int gpu = 0;
+    private boolean cpu = false;
+    private String[] gpu = new String[] {
+            "0"
+    };
     private String backend = "nn";
     private String optimizer = "lbfgs";
     private int learningRate = 10;
@@ -213,11 +216,19 @@ public class NeuralStyle {
         this.normalizeGradients = normalizeGradients;
     }
 
-    public int getGpu() {
+    public boolean isCpu() {
+        return cpu;
+    }
+
+    public void setCpu(boolean cpu) {
+        this.cpu = cpu;
+    }
+
+    public String[] getGpu() {
         return gpu;
     }
 
-    public void setGpu(int gpu) {
+    public void setGpu(String[] gpu) {
         this.gpu = gpu;
     }
 
@@ -278,6 +289,7 @@ public class NeuralStyle {
                 styleWeights != null && styleWeights.length == styleImages.length &&
                 styleLayers != null && styleLayers.length > 0 &&
                 contentLayers != null && contentLayers.length > 0 &&
+                (isCpu() || getGpu().length > 0) &&
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
@@ -321,6 +333,14 @@ public class NeuralStyle {
                 contentLayersBuilder.append(",");
         }
 
+        StringBuilder gpuIndicesBuilder = new StringBuilder();
+        String[] gpuIndices = getGpu();
+        for (int i = 0; i < gpuIndices.length; i++) {
+            gpuIndicesBuilder.append(gpuIndices[i]);
+            if (i != gpuIndices.length - 1)
+                gpuIndicesBuilder.append(",");
+        }
+
         ArrayList<String> commandList = new ArrayList<>(
                 Arrays.asList("th",
                         "neural_style.lua",
@@ -358,8 +378,6 @@ public class NeuralStyle {
                         getInit(),
                         "-pooling",
                         getPooling(),
-                        "-gpu",
-                        String.valueOf(getGpu()),
                         "-backend",
                         getBackend(),
                         "-optimizer",
@@ -378,6 +396,12 @@ public class NeuralStyle {
 
         if (isAutotune())
             commandList.add("-cudnn_autotune");
+
+        commandList.add("-gpu");
+        if (isCpu())
+            commandList.add("-1");
+        else
+            commandList.add(gpuIndicesBuilder.toString());
 
         if (getInit().equals("image") && FileUtils.checkFileExists(getInitImage())) {
             commandList.add("-init_image");

@@ -2,11 +2,11 @@ package com.cameronleger.neuralstylegui.model;
 
 import javafx.beans.property.*;
 
-public class NeuralLayer {
+public class NamedSelection {
     private BooleanProperty selected;
     private StringProperty name;
 
-    public NeuralLayer(String name, boolean selected) {
+    public NamedSelection(String name, boolean selected) {
         this.selected = new SimpleBooleanProperty(selected);
         this.name = new SimpleStringProperty(name);
     }
