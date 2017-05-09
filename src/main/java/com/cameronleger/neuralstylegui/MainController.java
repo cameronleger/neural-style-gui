@@ -198,9 +198,15 @@ public class MainController implements Initializable {
     @FXML
     private TableColumn<NamedSelection, String> gpuTableIndex;
     @FXML
+    private TextField multiGpuSplit;
+    @FXML
     private ChoiceBox<String> optimizerChoice;
     @FXML
     private ChoiceBox<String> backendChoice;
+    @FXML
+    private Slider nCorrectionSlider;
+    @FXML
+    private TextField nCorrectionField;
     @FXML
     private Slider learningRateSlider;
     @FXML
@@ -282,6 +288,11 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
+
+        log.log(Level.FINER, "Loading last used style.");
+        NeuralStyle loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
+        if (loadedNeuralStyle != null)
+            loadStyle(loadedNeuralStyle);
     }
 
     void setStage(Stage stage) {
@@ -323,6 +334,7 @@ public class MainController implements Initializable {
             tabs.getSelectionModel().select(outputTab);
 
             FileUtils.saveTempOutputStyle(neuralStyle);
+            FileUtils.saveLastUsedOutputStyle(neuralStyle);
         }
     }
 
@@ -754,8 +766,10 @@ public class MainController implements Initializable {
         poolingChoice.setValue(neuralStyle.getPooling());
         normalizeGradients.setSelected(neuralStyle.isNormalizeGradients());
         cpuMode.setSelected(neuralStyle.isCpu());
+        multiGpuSplit.setText(neuralStyle.getMultiGpuStrategy());
         backendChoice.setValue(neuralStyle.getBackend());
         optimizerChoice.setValue(neuralStyle.getOptimizer());
+        nCorrectionSlider.setValue(neuralStyle.getNCorrection());
         learningRateSlider.setValue(neuralStyle.getLearningRate());
         autotune.setSelected(neuralStyle.isAutotune());
 
@@ -840,8 +854,11 @@ public class MainController implements Initializable {
         assert gpuTable != null : "fx:id=\"gpuTable\" was not injected.";
         assert gpuTableSelected != null : "fx:id=\"gpuTableSelected\" was not injected.";
         assert gpuTableIndex != null : "fx:id=\"gpuTableIndex\" was not injected.";
+        assert multiGpuSplit != null : "fx:id=\"multiGpuSplit\" was not injected.";
         assert backendChoice != null : "fx:id=\"backendChoice\" was not injected.";
         assert optimizerChoice != null : "fx:id=\"optimizerChoice\" was not injected.";
+        assert nCorrectionSlider != null : "fx:id=\"nCorrectionSlider\" was not injected.";
+        assert nCorrectionField != null : "fx:id=\"nCorrectionField\" was not injected.";
         assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
         assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
         assert autotune != null : "fx:id=\"autotune\" was not injected.";
@@ -1188,7 +1205,12 @@ public class MainController implements Initializable {
             boolean useCpu = booleanChange.getNewValue();
             neuralStyle.setCpu(useCpu);
             gpuTable.setDisable(useCpu);
+            multiGpuSplit.setDisable(useCpu);
         });
+
+        // Multi-GPU updates the style
+        EventStreams.changesOf(multiGpuSplit.textProperty())
+                .subscribe(stringChange -> neuralStyle.setMultiGpuStrategy(stringChange.getNewValue()));
 
         // backend choicebox updates the style and toggles autotune
         EventStreams.changesOf(backendChoice.valueProperty()).subscribe(stringChange -> {
@@ -1207,14 +1229,25 @@ public class MainController implements Initializable {
             String optimizer = stringChange.getNewValue();
             neuralStyle.setOptimizer(optimizer);
             if (optimizer.equalsIgnoreCase("adam")) {
+                nCorrectionSlider.setDisable(true);
+                nCorrectionField.setDisable(true);
+                nCorrectionField.setText("-1");
                 learningRateSlider.setDisable(false);
                 learningRateField.setDisable(false);
             } else {
+                nCorrectionSlider.setDisable(false);
+                nCorrectionField.setDisable(false);
                 learningRateSlider.setDisable(true);
                 learningRateField.setDisable(true);
                 learningRateField.setText("10");
             }
         });
+
+        // keep nCorrection slider and text field synced and the slider updates the style
+        nCorrectionField.textProperty().bindBidirectional(nCorrectionSlider.valueProperty(), intConverter);
+        EventStreams.changesOf(nCorrectionField.textProperty())
+                .subscribe(numberChange -> neuralStyle.setNCorrection(
+                        intConverter.fromString(numberChange.getNewValue()).intValue()));
 
         // keep learning rate slider and text field synced and the slider updates the style
         learningRateField.textProperty().bindBidirectional(learningRateSlider.valueProperty(), intConverter);

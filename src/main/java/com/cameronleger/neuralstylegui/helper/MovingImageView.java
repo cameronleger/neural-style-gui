@@ -7,6 +7,10 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import org.reactfx.EventStream;
+import org.reactfx.EventStreams;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,30 +33,27 @@ public class MovingImageView {
     private void setupListeners() {
         ObjectProperty<Point2D> mouseDown = new SimpleObjectProperty<>();
 
-        imageView.setOnMousePressed(e -> {
+        EventStreams.eventsOf(imageView, MouseEvent.MOUSE_PRESSED).subscribe(e -> {
             Point2D mousePress = imageViewToImage(new Point2D(e.getX(), e.getY()));
             mouseDown.set(mousePress);
         });
 
-        imageView.setOnMouseDragged(e -> {
+        EventStreams.eventsOf(imageView, MouseEvent.MOUSE_DRAGGED).subscribe(e -> {
             Point2D dragPoint = imageViewToImage(new Point2D(e.getX(), e.getY()));
             shift(dragPoint.subtract(mouseDown.get()));
             mouseDown.set(imageViewToImage(new Point2D(e.getX(), e.getY())));
         });
 
-        imageView.setOnScroll(e -> {
-            if (e.getDeltaY() < 0)
-                scale = Math.min(scale + 0.25, 3);
-            else
-                scale = Math.max(scale - 0.25, 0.25);
-            scaleImageViewport(scale);
-        });
+        EventStream<ScrollEvent> scrollEvents = EventStreams.eventsOf(imageView, ScrollEvent.SCROLL);
+        EventStream<ScrollEvent> scrollEventsUp = scrollEvents.filter(scrollEvent -> scrollEvent.getDeltaY() < 0);
+        EventStream<ScrollEvent> scrollEventsDown = scrollEvents.filter(scrollEvent -> scrollEvent.getDeltaY() > 0);
+        scrollEventsUp.subscribe(scrollEvent -> scale = Math.min(scale + 0.25, 3));
+        scrollEventsDown.subscribe(scrollEvent -> scale = Math.max(scale - 0.25, 0.25));
+        EventStreams.merge(scrollEventsUp, scrollEventsDown).subscribe(scrollEvent -> scaleImageViewport(scale));
 
-        imageView.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                fitToView();
-            }
-        });
+        EventStreams.eventsOf(imageView, MouseEvent.MOUSE_CLICKED)
+                .filter(mouseEvent -> mouseEvent.getClickCount() == 2)
+                .subscribe(mouseEvent -> fitToView());
     }
 
     public void setImage(File imageFile) {

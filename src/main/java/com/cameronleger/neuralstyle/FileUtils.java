@@ -26,6 +26,7 @@ public class FileUtils {
     private static final String[] EXTENSIONS = new String[] {
             "jpg", "jpeg", "png"
     };
+    private static final String LAST_STYLE_JSON = "lastStyle.json";
     private static File tempDir;
     private static String uniqueText;
     private static Gson gson = new GsonBuilder()
@@ -103,6 +104,19 @@ public class FileUtils {
         return saveOutputStyle(neuralStyle, tempOutputStyle);
     }
 
+    public static File saveLastUsedOutputStyle(NeuralStyle neuralStyle) {
+        File lastUsedOutputStyle = new File(".", LAST_STYLE_JSON);
+        if (lastUsedOutputStyle.exists() && !lastUsedOutputStyle.canWrite()) {
+            log.log(Level.FINE, "Unable to open file to save output style.");
+            return null;
+        }
+        return saveOutputStyle(neuralStyle, lastUsedOutputStyle);
+    }
+
+    public static File getLastUsedOutputStyle() {
+        return new File(".", LAST_STYLE_JSON);
+    }
+
     public static File saveOutputStyle(NeuralStyle neuralStyle, File outputFile) {
         try (FileWriter file = new FileWriter(outputFile)) {
             file.write(gson.toJson(neuralStyle));
@@ -130,6 +144,10 @@ public class FileUtils {
     }
 
     public static NeuralStyle loadStyle(File styleFile) {
+        if (!FileUtils.checkFileExists(styleFile)) {
+            log.log(Level.FINE, "Cannot load a missing file.");
+            return null;
+        }
         final FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(styleFile);

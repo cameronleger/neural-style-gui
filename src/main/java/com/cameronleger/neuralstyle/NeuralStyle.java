@@ -41,8 +41,10 @@ public class NeuralStyle {
     private String[] gpu = new String[] {
             "0"
     };
+    private String multiGpuStrategy = "";
     private String backend = "nn";
     private String optimizer = "lbfgs";
+    private int nCorrection = -1;
     private int learningRate = 10;
     private boolean autotune = false;
     private File protoFile;
@@ -232,6 +234,14 @@ public class NeuralStyle {
         this.gpu = gpu;
     }
 
+    public String getMultiGpuStrategy() {
+        return multiGpuStrategy;
+    }
+
+    public void setMultiGpuStrategy(String multiGpuStrategy) {
+        this.multiGpuStrategy = multiGpuStrategy;
+    }
+
     public String getBackend() {
         return backend;
     }
@@ -246,6 +256,14 @@ public class NeuralStyle {
 
     public void setOptimizer(String optimizer) {
         this.optimizer = optimizer;
+    }
+
+    public int getNCorrection() {
+        return nCorrection;
+    }
+
+    public void setNCorrection(int nCorrection) {
+        this.nCorrection = nCorrection;
     }
 
     public int getLearningRate() {
@@ -400,12 +418,23 @@ public class NeuralStyle {
         commandList.add("-gpu");
         if (isCpu())
             commandList.add("-1");
-        else
+        else {
             commandList.add(gpuIndicesBuilder.toString());
+            String multiGpuStrategy = getMultiGpuStrategy();
+            if (multiGpuStrategy != null && !multiGpuStrategy.isEmpty()) {
+                commandList.add("-multigpu_strategy");
+                commandList.add(multiGpuStrategy);
+            }
+        }
 
         if (getInit().equals("image") && FileUtils.checkFileExists(getInitImage())) {
             commandList.add("-init_image");
             commandList.add(getInitImage().getAbsolutePath());
+        }
+
+        if (getNCorrection() > 0) {
+            commandList.add("-lbfgs_num_correction");
+            commandList.add(String.valueOf(getNCorrection()));
         }
 
         if (FileUtils.checkFileExists(getProtoFile())) {

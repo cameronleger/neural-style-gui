@@ -61,6 +61,9 @@ The Neural Style Log Tab will show the output from the most recent running proce
 * Support for recent neural-style features:
   * Initialization Image
   * Multi-GPU Setups
+  * lbfgs nCorrection
+* Simple/Advanced Tabs in the Settings Pane
+* The most recently started Style is loaded when the app starts
 ### 1.1.1
 * Prototxt parsing supports current version of Loadcaffe Layers
 ### 1.1.0

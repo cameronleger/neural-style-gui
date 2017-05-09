@@ -18,6 +18,32 @@ public class NeuralService extends Service {
     private static final Pattern iterationPattern = Pattern.compile("Iteration (\\d+) / (\\d+)");
     private NeuralStyle neuralStyle;
 
+    private static class Iteration {
+        private int progress;
+        private int total;
+
+        Iteration(int progress, int total) {
+            this.progress = progress;
+            this.total = total;
+        }
+
+        int getProgress() {
+            return progress;
+        }
+
+        void setProgress(int progress) {
+            this.progress = progress;
+        }
+
+        int getTotal() {
+            return total;
+        }
+
+        void setTotal(int total) {
+            this.total = total;
+        }
+    }
+
     public NeuralStyle getNeuralStyle() {
         return neuralStyle;
     }
@@ -30,24 +56,17 @@ public class NeuralService extends Service {
         log.addHandler(handler);
     }
 
-    private static int parseIterationProgress(String logLine) {
-        int progress = -1;
+    private static Iteration parseIteration(String logLine) {
         if (logLine == null)
-            return progress;
+            return null;
         Matcher matcher = iterationPattern.matcher(logLine);
-        if (matcher.matches())
-            progress = Integer.parseInt(matcher.group(1));
-        return progress;
-    }
+        if (!matcher.matches())
+            return null;
 
-    private static int parseIterationTotal(String logLine) {
-        int total = -1;
-        if (logLine == null)
-            return total;
-        Matcher matcher = iterationPattern.matcher(logLine);
-        if (matcher.matches())
-            total = Integer.parseInt(matcher.group(2));
-        return total;
+        Iteration i = new Iteration(-1, -1);
+        i.setProgress(Integer.parseInt(matcher.group(1)));
+        i.setTotal(Integer.parseInt(matcher.group(2)));
+        return i;
     }
 
     @Override
@@ -89,16 +108,20 @@ public class NeuralService extends Service {
                             log.log(Level.INFO, line);
 
                             // Check for an iteration progress update
-                            int progress = parseIterationProgress(line.trim());
-                            if (progress != -1) {
-                                int total = parseIterationTotal(line.trim());
-                                if (total <= 0)
-                                    total = neuralStyleForTask.getIterations();
-                                updateProgress(progress, total);
+                            Iteration i = parseIteration(line.trim());
+                            if (i != null) {
+                                int progress = i.getProgress();
+                                if (progress != -1) {
+                                    int total = i.getTotal();
+                                    if (total <= 0)
+                                        total = neuralStyleForTask.getIterations();
+                                    updateProgress(progress, total);
+                                }
                             }
 
                             // Kill the task if stopped by user
                             if (isCancelled()) {
+                                input.close();
                                 p.destroy();
                                 return null;
                             }
@@ -106,6 +129,7 @@ public class NeuralService extends Service {
                         input.close();
                     } catch (IOException e) {
                         log.log(Level.SEVERE, e.toString(), e);
+                        input.close();
                     }
 
                     exitCode = p.waitFor();

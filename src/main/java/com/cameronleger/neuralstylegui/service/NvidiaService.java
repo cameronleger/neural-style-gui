@@ -88,6 +88,7 @@ public class NvidiaService extends Service {
 
                             // Kill the task if stopped by user
                             if (isCancelled()) {
+                                input.close();
                                 p.destroy();
                                 return null;
                             }
