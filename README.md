@@ -21,7 +21,8 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 * Shortcuts for common operations
 * Immediate image feedback during iterations supports zoom/pan
 * Quick permanent saving of feedback images
-* View session output image history and load recently used settings
+* View session output image history
+* Load recently used settings or initialize with recently created images
 * vRAM usage gauge (NVIDIA only)
 * Log of Neural Style command output
 
@@ -64,6 +65,9 @@ The Neural Style Log Tab will show the output from the most recent running proce
   * lbfgs nCorrection
 * Simple/Advanced Tabs in the Settings Pane
 * The most recently started Style is loaded when the app starts
+* Ability to quickly initialize with any previously generated images
+* Significantly improved performance when running many iterations repeatedly
+* Bugfixes
 ### 1.1.1
 * Prototxt parsing supports current version of Loadcaffe Layers
 ### 1.1.0

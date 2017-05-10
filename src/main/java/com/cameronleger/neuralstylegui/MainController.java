@@ -10,6 +10,7 @@ import com.cameronleger.neuralstylegui.model.NamedSelection;
 import com.cameronleger.neuralstylegui.model.NeuralOutput;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
+import com.cameronleger.neuralstylegui.service.OutputService;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
@@ -54,6 +55,7 @@ public class MainController implements Initializable {
     private Stage stage;
     private ResourceBundle bundle;
 
+    private OutputService imageOutputService = new OutputService();
     private NvidiaService nvidiaService = new NvidiaService();
     private NeuralService neuralService = new NeuralService();
 
@@ -369,7 +371,9 @@ public class MainController implements Initializable {
         neuralStyle.setInitImage(initImageFile);
         if (initImageFile != null) {
             initImagePath.setText(initImageFile.getAbsolutePath());
-            fileChooser.setInitialDirectory(initImageFile.getParentFile());
+            File parentFile = initImageFile.getParentFile();
+            if (FileUtils.checkFolderExists(parentFile))
+                fileChooser.setInitialDirectory(parentFile);
         } else {
             initImagePath.setText("");
         }
@@ -379,7 +383,9 @@ public class MainController implements Initializable {
         neuralStyle.setModelFile(modelFile);
         if (modelFile != null) {
             modelFilePath.setText(modelFile.getAbsolutePath());
-            fileChooser.setInitialDirectory(modelFile.getParentFile());
+            File parentFile = modelFile.getParentFile();
+            if (FileUtils.checkFolderExists(parentFile))
+                fileChooser.setInitialDirectory(parentFile);
         } else {
             modelFilePath.setText("");
         }
@@ -389,7 +395,9 @@ public class MainController implements Initializable {
         neuralStyle.setProtoFile(protoFile);
         if (protoFile != null) {
             protoFilePath.setText(protoFile.getAbsolutePath());
-            fileChooser.setInitialDirectory(protoFile.getParentFile());
+            File parentFile = protoFile.getParentFile();
+            if (FileUtils.checkFolderExists(parentFile))
+                fileChooser.setInitialDirectory(parentFile);
 
             String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
 
@@ -411,19 +419,21 @@ public class MainController implements Initializable {
 
     private void setStyleFolder(File styleFolder) {
         styleFolderPath.setText(styleFolder.getAbsolutePath());
-        directoryChooser.setInitialDirectory(styleFolder);
+        if (FileUtils.checkFolderExists(styleFolder))
+            directoryChooser.setInitialDirectory(styleFolder);
         styleImages.setAll(FileUtils.getImages(styleFolder));
     }
 
     private void setContentFolder(File contentFolder) {
         contentFolderPath.setText(contentFolder.getAbsolutePath());
-        directoryChooser.setInitialDirectory(contentFolder);
+        if (FileUtils.checkFolderExists(contentFolder))
+            directoryChooser.setInitialDirectory(contentFolder);
         contentImages.setAll(FileUtils.getImages(contentFolder));
     }
 
     private void setOutputFolder(File outputFolder) {
         neuralStyle.setOutputFolder(outputFolder);
-        if (outputFolder != null) {
+        if (FileUtils.checkFolderExists(outputFolder)) {
             outputPath.setText(outputFolder.getAbsolutePath());
             directoryChooser.setInitialDirectory(outputFolder);
         } else {
@@ -1263,69 +1273,73 @@ public class MainController implements Initializable {
     private void setupServiceListeners() {
         // handle each Worker.State
         log.log(Level.FINER, "Setting state listener.");
-        neuralService.stateProperty().addListener(new ChangeListener<Worker.State>() {
-            @Override
-            public void changed(ObservableValue<? extends Worker.State> observableValue,
-                                Worker.State oldState, Worker.State newState) {
-                switch (newState) {
-                    case SCHEDULED:
-                        log.log(Level.FINER, "Neural service: Scheduled.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusScheduled"));
-                        startButton.setDisable(true);
-                        stopButton.setDisable(false);
-                        progress.setProgress(0);
-                        break;
-                    case READY:
-                        log.log(Level.FINER, "Neural service: Ready.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusReady"));
-                        startButton.setDisable(false);
-                        stopButton.setDisable(true);
-                        break;
-                    case RUNNING:
-                        log.log(Level.FINER, "Neural service: Running.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusRunning"));
-                        startButton.setDisable(true);
-                        stopButton.setDisable(false);
-                        break;
-                    case SUCCEEDED:
-                        log.log(Level.FINER, "Neural service: Succeeded.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusFinished"));
-                        startButton.setDisable(false);
-                        stopButton.setDisable(true);
-                        progress.setProgress(100);
-                        imageOutputTimer.stop();
-                        break;
-                    case CANCELLED:
-                        log.log(Level.FINER, "Neural service: Cancelled.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
-                        startButton.setDisable(false);
-                        stopButton.setDisable(true);
-                        imageOutputTimer.stop();
-                        break;
-                    case FAILED:
-                        log.log(Level.FINER, "Neural service: Failed.");
-                        statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
-                        startButton.setDisable(false);
-                        stopButton.setDisable(true);
-                        imageOutputTimer.stop();
-                        break;
-                }
+        EventStreams.valuesOf(neuralService.stateProperty()).subscribe(state -> {
+            switch (state) {
+                case SCHEDULED:
+                    log.log(Level.FINER, "Neural service: Scheduled.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusScheduled"));
+                    startButton.setDisable(true);
+                    stopButton.setDisable(false);
+                    progress.setProgress(0);
+                    break;
+                case READY:
+                    log.log(Level.FINER, "Neural service: Ready.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusReady"));
+                    startButton.setDisable(false);
+                    stopButton.setDisable(true);
+                    break;
+                case RUNNING:
+                    log.log(Level.FINER, "Neural service: Running.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusRunning"));
+                    startButton.setDisable(true);
+                    stopButton.setDisable(false);
+                    break;
+                case SUCCEEDED:
+                    log.log(Level.FINER, "Neural service: Succeeded.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusFinished"));
+                    startButton.setDisable(false);
+                    stopButton.setDisable(true);
+                    progress.setProgress(100);
+                    imageOutputTimer.stop();
+                    break;
+                case CANCELLED:
+                    log.log(Level.FINER, "Neural service: Cancelled.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
+                    startButton.setDisable(false);
+                    stopButton.setDisable(true);
+                    imageOutputTimer.stop();
+                    break;
+                case FAILED:
+                    log.log(Level.FINER, "Neural service: Failed.");
+                    statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
+                    startButton.setDisable(false);
+                    stopButton.setDisable(true);
+                    imageOutputTimer.stop();
+                    break;
             }
+        });
+
+        log.log(Level.FINER, "Setting Image Output Service listener.");
+        EventStreams.nonNullValuesOf(imageOutputService.valueProperty()).subscribe(valueProperty -> {
+            log.log(Level.FINER, "Received updated Image Outputs from Service.");
+            Map<String, Set<String>> results = imageOutputService.getValue();
+            updateNeuralOutputs(results);
+            updateImageView();
         });
 
         log.log(Level.FINER, "Setting progress listener.");
-        neuralService.progressProperty().addListener((observable, oldValue, newValue) ->
-                progress.setProgress(newValue.doubleValue()));
+        EventStreams.nonNullValuesOf(neuralService.progressProperty())
+                .subscribe(value -> progress.setProgress(value.doubleValue()));
 
         log.log(Level.FINER, "Setting running listener.");
         final ColorAdjust highlighted = new ColorAdjust(0, 0, 0.3, 0);
-        neuralService.runningProperty().addListener((observableValue, aBoolean, isRunning) -> {
-            if (isRunning) {
-                statusLabel.setEffect(highlighted);
-            } else {
-                statusLabel.setEffect(null);
-            }
-        });
+        EventStreams.nonNullValuesOf(neuralService.runningProperty())
+                .subscribe(running -> {
+                   if (running)
+                       statusLabel.setEffect(highlighted);
+                   else
+                       statusLabel.setEffect(null);
+                });
     }
 
     private void setupOutputImageListeners() {
@@ -1333,31 +1347,27 @@ public class MainController implements Initializable {
         imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
 
         log.log(Level.FINER, "Setting image timer.");
-        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), () -> {
+        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
             log.log(Level.FINER, "Timer: checking service");
+
             if (neuralService == null || !neuralService.isRunning())
                 return;
-            NeuralStyle neuralStyle = neuralService.getNeuralStyle();
-            if (neuralStyle == null)
-                return;
 
-            log.log(Level.FINER, "Timer: checking images & styles");
-            updateNeuralOutputs(FileUtils.getTempOutputs());
-
-            updateImageView();
+            if (imageOutputService != null && !imageOutputService.isRunning()) {
+                imageOutputService.reset();
+                imageOutputService.start();
+            }
         });
     }
 
     private void setupNvidiaListener() {
         log.log(Level.FINER, "Setting nvidia ram listener.");
-        nvidiaService.progressProperty().addListener((observable, oldValue, newValue) -> {
-            double progress = newValue.doubleValue();
-            if (progress > 0)
-                vramBar.setProgress(progress);
-        });
+        EventStreams.nonNullValuesOf(nvidiaService.progressProperty())
+                .filter(vramUsage -> vramUsage.doubleValue() > 0)
+                .subscribe(vramUsage -> vramBar.setProgress(vramUsage.doubleValue()));
 
         log.log(Level.FINER, "Setting nvidia timer.");
-        nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(2000), () -> {
+        nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), () -> {
             log.log(Level.FINER, "Timer: checking service");
             if (nvidiaService == null || nvidiaService.isRunning())
                 return;
@@ -1419,13 +1429,12 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting style image list shortcut listener");
-        styleImageList.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (spaceBar.match(event) && styleMultipleSelect.isSelected()) {
+        EventStreams.eventsOf(styleImageList, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
+            if (styleMultipleSelect.isSelected()) {
                 ObservableList<NeuralImage> selectedStyleImages =
                         styleImageList.getSelectionModel().getSelectedItems();
-                for (NeuralImage neuralImage : selectedStyleImages) {
+                for (NeuralImage neuralImage : selectedStyleImages)
                     neuralImage.setSelected(!neuralImage.isSelected());
-                }
             }
         });
 
@@ -1523,14 +1532,11 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting GPU index table shortcut listener");
-        gpuTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (spaceBar.match(event)) {
-                ObservableList<NamedSelection> selectedGpuIndices =
-                        gpuTable.getSelectionModel().getSelectedItems();
-                for (NamedSelection gpuIndex : selectedGpuIndices) {
-                    gpuIndex.setSelected(!gpuIndex.isSelected());
-                }
-            }
+        EventStreams.eventsOf(gpuTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
+            ObservableList<NamedSelection> selectedGpuIndices =
+                    gpuTable.getSelectionModel().getSelectedItems();
+            for (NamedSelection gpuIndex : selectedGpuIndices)
+                gpuIndex.setSelected(!gpuIndex.isSelected());
         });
 
         log.log(Level.FINER, "Setting GPU index table column factories.");
@@ -1563,14 +1569,11 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
-        styleLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (spaceBar.match(event)) {
-                ObservableList<NamedSelection> selectedStyleLayers =
-                        styleLayersTable.getSelectionModel().getSelectedItems();
-                for (NamedSelection neuralLayer : selectedStyleLayers) {
-                    neuralLayer.setSelected(!neuralLayer.isSelected());
-                }
-            }
+        EventStreams.eventsOf(styleLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
+            ObservableList<NamedSelection> selectedStyleLayers =
+                    styleLayersTable.getSelectionModel().getSelectedItems();
+            for (NamedSelection neuralLayer : selectedStyleLayers)
+                neuralLayer.setSelected(!neuralLayer.isSelected());
         });
 
         log.log(Level.FINER, "Setting style layer table column factories.");
@@ -1603,14 +1606,11 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
-        contentLayersTable.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (spaceBar.match(event)) {
-                ObservableList<NamedSelection> selectedStyleLayers =
-                        contentLayersTable.getSelectionModel().getSelectedItems();
-                for (NamedSelection neuralLayer : selectedStyleLayers) {
-                    neuralLayer.setSelected(!neuralLayer.isSelected());
-                }
-            }
+        EventStreams.eventsOf(contentLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
+            ObservableList<NamedSelection> selectedStyleLayers =
+                    contentLayersTable.getSelectionModel().getSelectedItems();
+            for (NamedSelection neuralLayer : selectedStyleLayers)
+                neuralLayer.setSelected(!neuralLayer.isSelected());
         });
 
         log.log(Level.FINER, "Setting content layer table column factories.");
@@ -1638,7 +1638,7 @@ public class MainController implements Initializable {
                 return new TreeTableCell<NeuralOutput, File>() {
                     Button loadButton;
                     {
-                        loadButton = new Button(bundle.getString("outputTreeTableButtonText"));
+                        loadButton = new Button();
                         setText(null);
                         setGraphic(loadButton);
                     }
@@ -1646,10 +1646,10 @@ public class MainController implements Initializable {
                     @Override
                     public void updateItem(File file, boolean empty) {
                         super.updateItem(file, empty);
-                        if (empty || file == null || !FilenameUtils.isExtension(file.getAbsolutePath(), "json")) {
+                        if (empty || file == null) {
                             setText(null);
                             setGraphic(null);
-                        } else {
+                        } else if (FilenameUtils.isExtension(file.getAbsolutePath(), "json")) {
                             loadButton.setOnAction(event -> {
                                 NeuralStyle loadedStyle = FileUtils.loadStyle(file);
                                 if (loadedStyle == null)
@@ -1659,6 +1659,16 @@ public class MainController implements Initializable {
                                     showTooltipNextTo(loadButton, bundle.getString("loadStyleSuccess"));
                                 }
                             });
+                            loadButton.setText(bundle.getString("outputTreeTableLoadButtonText"));
+                            setText(null);
+                            setGraphic(loadButton);
+                        } else if (FilenameUtils.isExtension(file.getAbsolutePath(), "png")) {
+                            loadButton.setOnAction(event -> {
+                                initChoice.setValue("image");
+                                setInitImageFile(file);
+                                showTooltipNextTo(initImagePath, bundle.getString("outputTreeTableInitTooltip"));
+                            });
+                            loadButton.setText(bundle.getString("outputTreeTableInitButtonText"));
                             setText(null);
                             setGraphic(loadButton);
                         }

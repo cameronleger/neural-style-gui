@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NeuralService extends Service {
+public class NeuralService extends Service<Integer> {
     private static final Logger log = Logger.getLogger(NeuralService.class.getName());
     private static final Pattern iterationPattern = Pattern.compile("Iteration (\\d+) / (\\d+)");
     private NeuralStyle neuralStyle;
