@@ -7,17 +7,14 @@ import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NamedSelection;
-import com.cameronleger.neuralstylegui.model.NeuralOutput;
+import com.cameronleger.neuralstylegui.model.QueueItem;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -69,7 +66,7 @@ public class MainController implements Initializable {
     private ObservableList<NamedSelection> gpuIndices;
     private ObservableList<NamedSelection> styleLayers;
     private ObservableList<NamedSelection> contentLayers;
-    private final TreeItem<NeuralOutput> outputRoot = new TreeItem<>(new NeuralOutput(null));
+    private final TreeItem<QueueItem> outputRoot = new TreeItem<>(new QueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
 
@@ -237,13 +234,13 @@ public class MainController implements Initializable {
     private Button imageViewModeActual;
 
     @FXML
-    private TreeTableView<NeuralOutput> outputTreeTable;
+    private TreeTableView<QueueItem> outputTreeTable;
     @FXML
-    private TreeTableColumn<NeuralOutput, File> outputTreeTableButton;
+    private TreeTableColumn<QueueItem, File> outputTreeTableButton;
     @FXML
-    private TreeTableColumn<NeuralOutput, String> outputTreeTableName;
+    private TreeTableColumn<QueueItem, String> outputTreeTableName;
     @FXML
-    private TreeTableColumn<NeuralOutput, Integer> outputTreeTableIteration;
+    private TreeTableColumn<QueueItem, Integer> outputTreeTableIteration;
 
     @FXML
     private ImageView imageView;
@@ -625,7 +622,7 @@ public class MainController implements Initializable {
                         .collect(Collectors.toList()));
 
         // remove any output images that are no longer there
-        for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+        for (TreeItem<QueueItem> existingOutput : outputRoot.getChildren()) {
             Set<String> updatedOutputImages = updatedOutputs.get(existingOutput.getValue().getFile().getAbsolutePath());
             existingOutput.getChildren().removeAll(
                     existingOutput.getChildren().stream()
@@ -635,36 +632,36 @@ public class MainController implements Initializable {
         }
 
         // add any new outputs
-        List<TreeItem<NeuralOutput>> newOutputs = new ArrayList<>();
+        List<TreeItem<QueueItem>> newOutputs = new ArrayList<>();
         for (String updatedOutput : updatedOutputs.keySet()) {
             boolean exists = false;
-            for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+            for (TreeItem<QueueItem> existingOutput : outputRoot.getChildren()) {
                 if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
                     exists = true;
                     break;
                 }
             }
             if (!exists)
-                newOutputs.add(new TreeItem<>(new NeuralOutput(new File(updatedOutput))));
+                newOutputs.add(new TreeItem<>(new QueueItem(new File(updatedOutput))));
         }
         outputRoot.getChildren().addAll(newOutputs);
 
         // add any new output images
         for (String updatedOutput : updatedOutputs.keySet()) {
-            for (TreeItem<NeuralOutput> existingOutput : outputRoot.getChildren()) {
+            for (TreeItem<QueueItem> existingOutput : outputRoot.getChildren()) {
                 if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
                     // found matching style to add this to
-                    List<TreeItem<NeuralOutput>> newOutputImages = new ArrayList<>();
+                    List<TreeItem<QueueItem>> newOutputImages = new ArrayList<>();
                     for (String updatedOutputImage : updatedOutputs.get(updatedOutput)) {
                         boolean exists = false;
-                        for (TreeItem<NeuralOutput> existingOutputImage : existingOutput.getChildren()) {
+                        for (TreeItem<QueueItem> existingOutputImage : existingOutput.getChildren()) {
                             if (existingOutputImage.getValue().getFile().getAbsolutePath().equals(updatedOutputImage)) {
                                 exists = true;
                                 break;
                             }
                         }
                         if (!exists)
-                            newOutputImages.add(new TreeItem<>(new NeuralOutput(new File(updatedOutputImage))));
+                            newOutputImages.add(new TreeItem<>(new QueueItem(new File(updatedOutputImage))));
                     }
                     existingOutput.getChildren().addAll(newOutputImages);
                     break;
@@ -674,7 +671,7 @@ public class MainController implements Initializable {
     }
 
     private File getOutputImage(Region tooltipRegion) {
-        TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
+        TreeItem<QueueItem> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Image: no output selection, checking for latest current output");
             File[] images = FileUtils.getTempOutputImageIterations();
@@ -689,10 +686,10 @@ public class MainController implements Initializable {
                 return null;
             }
         } else {
-            NeuralOutput output = outputSelection.getValue();
+            QueueItem output = outputSelection.getValue();
             if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
                 log.log(Level.FINER, "Output Image: output selection is style, using latest child");
-                ObservableList<TreeItem<NeuralOutput>> outputChildren = outputSelection.getChildren();
+                ObservableList<TreeItem<QueueItem>> outputChildren = outputSelection.getChildren();
                 if (outputChildren != null && !outputChildren.isEmpty())
                     return outputChildren.get(outputChildren.size() - 1).getValue().getFile();
                 else {
@@ -711,7 +708,7 @@ public class MainController implements Initializable {
     }
 
     private File getOutputStyle(Region tooltipRegion) {
-        TreeItem<NeuralOutput> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
+        TreeItem<QueueItem> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Style: no output selection, checking for latest current output");
             File style = FileUtils.getTempOutputImageStyle();
@@ -724,7 +721,7 @@ public class MainController implements Initializable {
                 return null;
             }
         } else {
-            NeuralOutput output = outputSelection.getValue();
+            QueueItem output = outputSelection.getValue();
             if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
                 log.log(Level.FINER, "Output Style: output selection is style, using selection");
                 return output.getFile();
@@ -1385,10 +1382,10 @@ public class MainController implements Initializable {
         styleImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
         log.log(Level.FINER, "Setting style image list selection mode listener.");
-        EventStreams.changesOf(styleMultipleSelect.selectedProperty()).subscribe(booleanChange -> {
-            if (booleanChange.getNewValue()) {
+        EventStreams.valuesOf(styleMultipleSelect.selectedProperty()).subscribe(booleanChange -> {
+            if (booleanChange)
                 styleImageList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-            } else {
+            else {
                 for (NeuralImage neuralImage : styleImages)
                     neuralImage.setSelected(false);
                 styleImageList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -1472,9 +1469,8 @@ public class MainController implements Initializable {
         contentImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
 
         log.log(Level.FINER, "Setting content image list selection listener.");
-        EventStreams.changesOf(contentImageList.getSelectionModel().selectedItemProperty())
-                .subscribe(neuralImageChange -> {
-                    NeuralImage newSelection = neuralImageChange.getNewValue();
+        EventStreams.valuesOf(contentImageList.getSelectionModel().selectedItemProperty())
+                .subscribe(newSelection -> {
                     log.log(Level.FINE, "Content image changed: " + newSelection);
                     if (newSelection == null)
                         neuralStyle.setContentImage(null);
@@ -1544,7 +1540,6 @@ public class MainController implements Initializable {
         gpuTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(gpuTableSelected));
 
         gpuTableIndex.setCellValueFactory(new PropertyValueFactory<>("name"));
-        gpuTableIndex.setCellFactory(TextFieldTableCell.forTableColumn());
     }
 
     private void setupStyleLayersTable() {
@@ -1629,18 +1624,18 @@ public class MainController implements Initializable {
         EventStreams.changesOf(outputTreeTable.getSelectionModel().selectedItemProperty())
                 .subscribe(neuralOutputChange -> updateImageView());
 
-        log.log(Level.FINER, "Setting content layer table column factories.");
+        log.log(Level.FINER, "Setting output tree table column factories.");
         outputTreeTableButton.setCellValueFactory(param ->
                 new ReadOnlyObjectWrapper<>(param.getValue().getValue().getFile()));
-        outputTreeTableButton.setCellFactory(new Callback<TreeTableColumn<NeuralOutput, File>, TreeTableCell<NeuralOutput, File>>() {
+        outputTreeTableButton.setCellFactory(new Callback<TreeTableColumn<QueueItem, File>, TreeTableCell<QueueItem, File>>() {
             @Override
-            public TreeTableCell<NeuralOutput, File> call(TreeTableColumn<NeuralOutput, File> param) {
-                return new TreeTableCell<NeuralOutput, File>() {
-                    Button loadButton;
+            public TreeTableCell<QueueItem, File> call(TreeTableColumn<QueueItem, File> param) {
+                return new TreeTableCell<QueueItem, File>() {
+                    Button button;
                     {
-                        loadButton = new Button();
+                        button = new Button();
                         setText(null);
-                        setGraphic(loadButton);
+                        setGraphic(button);
                     }
 
                     @Override
@@ -1650,27 +1645,27 @@ public class MainController implements Initializable {
                             setText(null);
                             setGraphic(null);
                         } else if (FilenameUtils.isExtension(file.getAbsolutePath(), "json")) {
-                            loadButton.setOnAction(event -> {
+                            button.setOnAction(event -> {
                                 NeuralStyle loadedStyle = FileUtils.loadStyle(file);
                                 if (loadedStyle == null)
-                                    showTooltipNextTo(loadButton, bundle.getString("loadStyleFailed"));
+                                    showTooltipNextTo(button, bundle.getString("loadStyleFailed"));
                                 else {
                                     loadStyle(loadedStyle);
-                                    showTooltipNextTo(loadButton, bundle.getString("loadStyleSuccess"));
+                                    showTooltipNextTo(button, bundle.getString("loadStyleSuccess"));
                                 }
                             });
-                            loadButton.setText(bundle.getString("outputTreeTableLoadButtonText"));
+                            button.setText(bundle.getString("outputTreeTableLoadButtonText"));
                             setText(null);
-                            setGraphic(loadButton);
+                            setGraphic(button);
                         } else if (FilenameUtils.isExtension(file.getAbsolutePath(), "png")) {
-                            loadButton.setOnAction(event -> {
+                            button.setOnAction(event -> {
                                 initChoice.setValue("image");
                                 setInitImageFile(file);
                                 showTooltipNextTo(initImagePath, bundle.getString("outputTreeTableInitTooltip"));
                             });
-                            loadButton.setText(bundle.getString("outputTreeTableInitButtonText"));
+                            button.setText(bundle.getString("outputTreeTableInitButtonText"));
                             setText(null);
-                            setGraphic(loadButton);
+                            setGraphic(button);
                         }
                     }
                 };
@@ -1682,10 +1677,10 @@ public class MainController implements Initializable {
 
         outputTreeTableIteration.setCellValueFactory(param ->
                 new ReadOnlyObjectWrapper<>(param.getValue().getValue().getIteration()));
-        outputTreeTableIteration.setCellFactory(new Callback<TreeTableColumn<NeuralOutput, Integer>, TreeTableCell<NeuralOutput, Integer>>() {
+        outputTreeTableIteration.setCellFactory(new Callback<TreeTableColumn<QueueItem, Integer>, TreeTableCell<QueueItem, Integer>>() {
             @Override
-            public TreeTableCell<NeuralOutput, Integer> call(TreeTableColumn<NeuralOutput, Integer> param) {
-                return new TreeTableCell<NeuralOutput, Integer>() {
+            public TreeTableCell<QueueItem, Integer> call(TreeTableColumn<QueueItem, Integer> param) {
+                return new TreeTableCell<QueueItem, Integer>() {
                     @Override
                     public void updateItem(Integer integer, boolean empty) {
                         super.updateItem(integer, empty);

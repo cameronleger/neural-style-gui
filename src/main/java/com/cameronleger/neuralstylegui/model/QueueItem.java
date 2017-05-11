@@ -5,12 +5,12 @@ import javafx.beans.property.*;
 
 import java.io.File;
 
-public class NeuralOutput {
+public class QueueItem {
     private StringProperty name;
     private ObjectProperty<File> file;
     private IntegerProperty iteration;
 
-    public NeuralOutput(File file) {
+    public QueueItem(File file) {
         if (file == null) {
             this.name = new SimpleStringProperty("");
             this.file = new SimpleObjectProperty<>(null);

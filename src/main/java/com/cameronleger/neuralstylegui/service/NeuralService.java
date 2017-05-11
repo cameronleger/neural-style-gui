@@ -44,7 +44,7 @@ public class NeuralService extends Service<Integer> {
         }
     }
 
-    public NeuralStyle getNeuralStyle() {
+    private NeuralStyle getNeuralStyle() {
         return neuralStyle;
     }
 
