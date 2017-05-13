@@ -604,12 +604,15 @@
                                     </HBox>
                                     <TreeTableView fx:id="outputTreeTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="320.0" showRoot="false" sortMode="ONLY_FIRST_LEVEL">
                                       <columns>
-                                          <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="-1.0" minWidth="90.0" prefWidth="90.0" sortable="false" text="%outputTreeTableButton" />
-                                          <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="250.0" minWidth="165.0" prefWidth="165.0" sortable="false" text="%outputTreeTableName" />
-                                          <TreeTableColumn fx:id="outputTreeTableIteration" editable="false" maxWidth="100.0" minWidth="60.0" prefWidth="60.0" sortable="false" text="%outputTreeTableIteration" />
+                                          <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="100.0" sortable="false" text="%outputTreeTableButton" />
+                                          <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="165.0" prefWidth="180.0" sortable="false" text="%outputTreeTableName" />
+                                          <TreeTableColumn fx:id="outputTreeTableIteration" editable="false" maxWidth="1.7976931348623157E308" minWidth="60.0" prefWidth="60.0" sortable="false" text="%outputTreeTableIteration" />
                                       </columns>
                                     </TreeTableView>
                                  </items>
+                                 <VBox.margin>
+                                    <Insets top="4.0" />
+                                 </VBox.margin>
                               </SplitPane>
                            </children>
                            <padding>
