@@ -1,10 +1,12 @@
 package com.cameronleger.neuralstylegui.service;
 
+import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Handler;
@@ -16,7 +18,6 @@ import java.util.regex.Pattern;
 public class NeuralService extends Service<Integer> {
     private static final Logger log = Logger.getLogger(NeuralService.class.getName());
     private static final Pattern iterationPattern = Pattern.compile("Iteration (\\d+) / (\\d+)");
-    private NeuralStyle neuralStyle;
 
     private static class Iteration {
         private int progress;
@@ -44,12 +45,25 @@ public class NeuralService extends Service<Integer> {
         }
     }
 
-    private NeuralStyle getNeuralStyle() {
-        return neuralStyle;
-    }
+    private static class Workload {
+        private NeuralStyle neuralStyle;
+        private File file;
 
-    public void setNeuralStyle(NeuralStyle neuralStyle) {
-        this.neuralStyle = neuralStyle;
+        public NeuralStyle getNeuralStyle() {
+            return neuralStyle;
+        }
+
+        public void setNeuralStyle(NeuralStyle neuralStyle) {
+            this.neuralStyle = neuralStyle;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public void setFile(File file) {
+            this.file = file;
+        }
     }
 
     public void addLogHandler(Handler handler) {
@@ -69,27 +83,62 @@ public class NeuralService extends Service<Integer> {
         return i;
     }
 
-    @Override
-    protected Task<Integer> createTask() {
-        log.log(Level.FINE, "Getting neural style for task.");
-        final NeuralStyle neuralStyleForTask = getNeuralStyle();
+    private static Workload getNextNeuralStyle() {
+        log.log(Level.FINE, "Looking for styles to run.");
+        File[] neuralStyleFiles = FileUtils.getTempOutputStyles();
+        if (neuralStyleFiles == null) {
+            log.log(Level.FINE, "No styles found.");
+            return null;
+        }
 
         log.log(Level.FINE, "Checking that style is valid.");
-        if (neuralStyleForTask == null)
-            return null;
-        log.log(Level.FINE, "Checking that style can be run with arguments.");
-        if (!neuralStyleForTask.checkArguments())
-            return null;
+        for (File neuralStyleFile : neuralStyleFiles) {
+            NeuralStyle possibleNeuralStyle = FileUtils.loadStyle(neuralStyleFile);
 
-        log.log(Level.FINE, "Generating run command.");
-        final String[] buildCommand = neuralStyleForTask.buildCommand();
-        for (String buildCommandPart : buildCommand)
-            log.log(Level.FINE, buildCommandPart);
+            log.log(Level.FINE, "Checking that style is valid.");
+            if (possibleNeuralStyle == null) {
+                log.log(Level.FINE, "Unable to load style from file.");
+                continue;
+            }
 
+            if (possibleNeuralStyle.getQueueStatus() != NeuralStyle.QUEUED) {
+                log.log(Level.FINE, "Style isn't queued.");
+                continue;
+            }
+
+            Workload workload = new Workload();
+            workload.setNeuralStyle(possibleNeuralStyle);
+            workload.setFile(neuralStyleFile);
+
+            if (!possibleNeuralStyle.checkArguments()) {
+                log.log(Level.FINE, "Style has invalid arguments.");
+                setNeuralStyleQueueStatus(workload, NeuralStyle.INVALID_ARGUMENTS);
+                return null;
+            }
+
+            return workload;
+        }
+
+        return null;
+    }
+
+    private static void setNeuralStyleQueueStatus(Workload workload, int status) {
+        try {
+            workload.getNeuralStyle().setQueueStatus(status);
+            FileUtils.saveOutputStyle(workload.getNeuralStyle(), workload.getFile());
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.toString(), e);
+        }
+    }
+
+    @Override
+    protected Task<Integer> createTask() {
         return new Task<Integer>() {
-            @Override protected Integer call() throws InterruptedException {
-                updateMessage("Starting neural-style.");
-                log.log(Level.FINE, "Starting neural-style process.");
+            private int runNeuralStyleCommand(NeuralStyle neuralStyleForTask) {
+                log.log(Level.FINE, "Generating run command.");
+                final String[] buildCommand = neuralStyleForTask.buildCommand();
+                for (String buildCommandPart : buildCommand)
+                    log.log(Level.FINE, buildCommandPart);
 
                 int exitCode = -1;
                 String line;
@@ -120,15 +169,12 @@ public class NeuralService extends Service<Integer> {
                             }
 
                             // Kill the task if stopped by user
-                            if (isCancelled()) {
-                                input.close();
+                            if (isCancelled())
                                 p.destroy();
-                                return null;
-                            }
                         }
-                        input.close();
                     } catch (IOException e) {
                         log.log(Level.SEVERE, e.toString(), e);
+                    } finally {
                         input.close();
                     }
 
@@ -137,10 +183,31 @@ public class NeuralService extends Service<Integer> {
                 } catch (Exception e) {
                     log.log(Level.SEVERE, e.toString(), e);
                 }
-
-                if (exitCode != 0)
-                    throw new RuntimeException("Exit Code: " + String.valueOf(exitCode));
                 return exitCode;
+            }
+
+            @Override protected Integer call() throws InterruptedException {
+                log.log(Level.FINE, "Getting neural style for task.");
+                Workload workload = getNextNeuralStyle();
+                while (workload != null) {
+                    updateMessage("Starting neural-style.");
+                    log.log(Level.FINE, "Starting neural-style process.");
+                    setNeuralStyleQueueStatus(workload, NeuralStyle.IN_PROGRESS);
+
+                    int exitCode = runNeuralStyleCommand(workload.getNeuralStyle());
+
+                    if (isCancelled())
+                        setNeuralStyleQueueStatus(workload, NeuralStyle.CANCELLED);
+                    else if (exitCode != 0)
+                        setNeuralStyleQueueStatus(workload, NeuralStyle.FAILED);
+                    else
+                        setNeuralStyleQueueStatus(workload, NeuralStyle.FINISHED);
+
+                    workload = getNextNeuralStyle();
+                }
+
+                log.log(Level.FINE, "No more work to do.");
+                return 0;
             }
         };
     }

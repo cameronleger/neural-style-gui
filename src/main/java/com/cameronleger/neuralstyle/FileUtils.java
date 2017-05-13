@@ -187,15 +187,19 @@ public class FileUtils {
         return images;
     }
 
-    public static Map<String, Set<String>> getTempOutputs() {
-        Map<String, Set<String>> outputs = new LinkedHashMap<>();
-
+    public static File[] getTempOutputStyles() {
         if (tempDir == null || !tempDir.isDirectory())
-            return outputs;
+            return null;
 
         // Unix-like searching for styles
         FileFilter styleFileFilter = new WildcardFileFilter("*.json");
-        File[] styleFiles = tempDir.listFiles(styleFileFilter);
+        return tempDir.listFiles(styleFileFilter);
+    }
+
+    public static Map<String, Set<String>> getTempOutputs() {
+        Map<String, Set<String>> outputs = new LinkedHashMap<>();
+
+        File[] styleFiles = getTempOutputStyles();
 
         if (styleFiles == null)
             return outputs;

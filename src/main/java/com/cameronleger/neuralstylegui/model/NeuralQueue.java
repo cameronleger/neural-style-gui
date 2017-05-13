@@ -1,14 +1,22 @@
 package com.cameronleger.neuralstylegui.model;
 
 import com.cameronleger.neuralstyle.FileUtils;
+import com.cameronleger.neuralstyle.NeuralStyle;
 import javafx.beans.property.*;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.util.ResourceBundle;
 
 public final class NeuralQueue {
     public final static int QUEUED_STYLE = 1;
     public final static int QUEUED_IMAGE = 2;
+
+    private static ResourceBundle bundle;
+
+    public static void setBundle(ResourceBundle bundle) {
+        NeuralQueue.bundle = bundle;
+    }
 
     public static NeuralQueueItem createQueueItem(File file) {
         if (file == null)
@@ -77,11 +85,43 @@ public final class NeuralQueue {
     }
 
     private static class NeuralQueueStyleItem extends NeuralQueueItem {
+        private NeuralStyle style;
+
         NeuralQueueStyleItem(File file) {
             super(file);
             this.type = QUEUED_STYLE;
-            this.actionText = "outputTreeTableLoadButtonText";
-//            this.status.setValue("Queued");
+            this.actionText = bundle.getString("outputTreeTableLoadButtonText");
+
+            style = FileUtils.loadStyle(file);
+            if (style == null)
+                this.status.setValue(bundle.getString("neuralQueueItemInvalidFile"));
+            else {
+                String statusValue = "";
+                switch (style.getQueueStatus()) {
+                    case NeuralStyle.INVALID_FILE:
+                        statusValue = bundle.getString("neuralQueueItemInvalidFile");
+                        break;
+                    case NeuralStyle.INVALID_ARGUMENTS:
+                        statusValue = bundle.getString("neuralQueueItemInvalidArguments");
+                        break;
+                    case NeuralStyle.QUEUED:
+                        statusValue = bundle.getString("neuralQueueItemQueued");
+                        break;
+                    case NeuralStyle.IN_PROGRESS:
+                        statusValue = bundle.getString("neuralQueueItemInProgress");
+                        break;
+                    case NeuralStyle.CANCELLED:
+                        statusValue = bundle.getString("neuralQueueItemCancelled");
+                        break;
+                    case NeuralStyle.FAILED:
+                        statusValue = bundle.getString("neuralQueueItemFailed");
+                        break;
+                    case NeuralStyle.FINISHED:
+                        statusValue = bundle.getString("neuralQueueItemFinished");
+                        break;
+                }
+                this.status.setValue(statusValue);
+            }
         }
     }
 
@@ -89,7 +129,7 @@ public final class NeuralQueue {
         NeuralQueueImageItem(File file) {
             super(file);
             this.type = QUEUED_IMAGE;
-            this.actionText = "outputTreeTableInitButtonText";
+            this.actionText = bundle.getString("outputTreeTableInitButtonText");
             this.status.setValue(String.valueOf(FileUtils.parseImageIteration(file)));
         }
     }

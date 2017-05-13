@@ -8,6 +8,15 @@ import java.util.Arrays;
 import java.util.Locale;
 
 public class NeuralStyle {
+    public final static int INVALID_ARGUMENTS = -2;
+    public final static int INVALID_FILE = -1;
+    public final static int QUEUED = 0;
+    public final static int IN_PROGRESS = 1;
+    public final static int CANCELLED = 2;
+    public final static int FAILED = 3;
+    public final static int FINISHED = 4;
+    private int queueStatus = QUEUED;
+
     private File neuralStylePath;
     private File[] styleImages;
     private double[] styleWeights;
@@ -49,6 +58,14 @@ public class NeuralStyle {
     private boolean autotune = false;
     private File protoFile;
     private File modelFile;
+
+    public int getQueueStatus() {
+        return queueStatus;
+    }
+
+    public void setQueueStatus(int queueStatus) {
+        this.queueStatus = queueStatus;
+    }
 
     public File getNeuralStylePath() {
         return neuralStylePath;

@@ -21,6 +21,7 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 * Shortcuts for common operations
 * Immediate image feedback during iterations supports zoom/pan
 * Quick permanent saving of feedback images
+* Output Queue for batching of style outputs
 * View session output image history
 * Load recently used settings or initialize with recently created images
 * vRAM usage gauge (NVIDIA only)
@@ -36,7 +37,8 @@ Unzip the release to a folder of your choice (or build from source and check the
 4. Select a style image in the Style Image List
 5. Set the Content Folder path to a folder containing content images
 6. Select a content image in the Content Image List
-7. Press Start!
+7. Press Queue
+8. Press Start!
 
 # Usage
 After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application.
@@ -51,9 +53,9 @@ The Input Tab and Content List can be quickly accessed with the shortcut Ctrl+C.
 
 The Layers Tab and Lists are normally filled with the default values for the default Proto & Model files, but they will update based on other Proto & Model file selections. It's possible to add or remove layers from these lists with the relevant buttons. Layers can be renamed by double-clicking their names.
 
-The Output Tab can be quickly accessed with the shortcut Ctrl+O. Additionally, Ctrl+Enter will start the Neural Style process, and any time this process is started the Output tab is focused. The Fit to View and Actual Size buttons are quick ways to view the image. The mouse scroll-wheel zooms the image, and clicking-and-dragging pans. If an image with a different aspect ratio is loaded, the view is reset in the Fit to View mode. The Save Image button (and optional file name) will save the currently shown image to the selected Output Folder.
+The Output Tab can be quickly accessed with the shortcut Ctrl+O. Ctrl+Enter will Queue the current settings. Additionally, Ctrl+Shift+Enter will start the Neural Style Queue, and any time this process is started the Output tab is focused. The Fit to View and Actual Size buttons are quick ways to view the image. The mouse scroll-wheel zooms the image, and clicking-and-dragging pans. If an image with a different aspect ratio is loaded, the view is reset in the Fit to View mode. The Save Image button (and optional file name) will save the currently shown image to the selected Output Folder.
 
-In the Output Tab and next to the Image is the Output History Tree. Any started process will show up here, and items are grouped by each process run. The top-level items contain a Load button to re-load the style settings used for that process. The child items are each iteration image. With no selection, the Image will always show the most recent iteration processed. Selecting a top-level style will continuously update the Image with the most recent iteration from that process. Selecting a child image will only show that selection in the Image.
+In the Output Tab and next to the Image is the Output Queue Tree. Any started process will show up here, and items are grouped by each process run. The top-level items contain a Load button to re-load the style settings used for that process. The child items are each iteration image, and can quickly set the Initialize With Image setting. With no selection, the Image will always show the most recent iteration processed. Selecting a top-level style will continuously update the Image with the most recent iteration from that process. Selecting a child image will only show that selection in the Image.
 
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
@@ -67,6 +69,8 @@ The Neural Style Log Tab will show the output from the most recent running proce
 * The most recently started Style is loaded when the app starts
 * Ability to quickly initialize with any previously generated images
 * Significantly improved performance when running many iterations repeatedly
+* History Tree is now a Queue Tree to show past and future outputs
+* The Neural Service now runs until all Queued items are finished
 * Bugfixes
 ### 1.1.1
 * Prototxt parsing supports current version of Loadcaffe Layers

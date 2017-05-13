@@ -223,6 +223,8 @@ public class MainController implements Initializable {
     private TextField modelFilePath;
 
     @FXML
+    private Button queueButton;
+    @FXML
     private Button startButton;
     @FXML
     private Button stopButton;
@@ -263,6 +265,7 @@ public class MainController implements Initializable {
         checkInjections();
 
         bundle = resources;
+        NeuralQueue.setBundle(resources);
         outputImageView = new MovingImageView(imageView);
 
         log.log(Level.FINER, "Setting observable lists.");
@@ -292,6 +295,9 @@ public class MainController implements Initializable {
         NeuralStyle loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
         if (loadedNeuralStyle != null)
             loadStyle(loadedNeuralStyle);
+
+        log.log(Level.FINER, "Starting output timer.");
+        imageOutputTimer.restart();
     }
 
     void setStage(Stage stage) {
@@ -303,6 +309,7 @@ public class MainController implements Initializable {
         final KeyCombination ctrlL = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN);
+        final KeyCombination ctrlShiftEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
         stage.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
             if (ctrlS.match(event)) {
                 tabs.getSelectionModel().select(inputTab);
@@ -316,24 +323,27 @@ public class MainController implements Initializable {
             } else if (ctrlO.match(event)) {
                 tabs.getSelectionModel().select(outputTab);
             } else if (ctrlEnter.match(event)) {
+                queueStyle();
+            } else if (ctrlShiftEnter.match(event)) {
                 startService();
             }
         });
     }
 
-    void startService() {
+    private void queueStyle() {
+        log.log(Level.FINE, "Queueing neural style.");
+        FileUtils.generateUniqueText();
+        FileUtils.saveTempOutputStyle(neuralStyle);
+        FileUtils.saveLastUsedOutputStyle(neuralStyle);
+    }
+
+    private void startService() {
         if (!neuralService.isRunning() && neuralStyle != null) {
             log.log(Level.FINE, "Starting neural service.");
-            FileUtils.generateUniqueText();
-            neuralService.setNeuralStyle(neuralStyle);
             logTextArea.clear();
             neuralService.reset();
             neuralService.start();
-            imageOutputTimer.restart();
             tabs.getSelectionModel().select(outputTab);
-
-            FileUtils.saveTempOutputStyle(neuralStyle);
-            FileUtils.saveLastUsedOutputStyle(neuralStyle);
         }
     }
 
@@ -341,12 +351,12 @@ public class MainController implements Initializable {
         if (neuralService.isRunning()) {
             log.log(Level.FINE, "Cancelling neural service.");
             neuralService.cancel();
-            imageOutputTimer.stop();
         }
     }
 
     private void toggleStyleButtons() {
-        startButton.setDisable(!neuralStyle.checkArguments() || neuralService.isRunning());
+        queueButton.setDisable(!neuralStyle.checkArguments());
+        startButton.setDisable(neuralService.isRunning());
         commandButton.setDisable(!neuralStyle.checkArguments());
     }
 
@@ -903,6 +913,7 @@ public class MainController implements Initializable {
         assert protoFilePath != null : "fx:id=\"protoFilePath\" was not injected.";
         assert modelFileButton != null : "fx:id=\"modelFileButton\" was not injected.";
         assert modelFilePath != null : "fx:id=\"modelFilePath\" was not injected.";
+        assert queueButton != null : "fx:id=\"queueButton\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
         assert commandButton != null : "fx:id=\"commandButton\" was not injected.";
@@ -1040,6 +1051,13 @@ public class MainController implements Initializable {
                             bundle.getString("outputImageSavedImage") + "\n" + savedFiles[0].getName());
                 }
             }
+        });
+
+        log.log(Level.FINER, "Setting Queue listener.");
+        EventStreams.eventsOf(queueButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINE, "Start button hit.");
+            outputImageView.fitToView();
+            queueStyle();
         });
 
         log.log(Level.FINER, "Setting Start listener.");
@@ -1327,21 +1345,18 @@ public class MainController implements Initializable {
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
                     progress.setProgress(100);
-                    imageOutputTimer.stop();
                     break;
                 case CANCELLED:
                     log.log(Level.FINER, "Neural service: Cancelled.");
                     statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
-                    imageOutputTimer.stop();
                     break;
                 case FAILED:
                     log.log(Level.FINER, "Neural service: Failed.");
                     statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
-                    imageOutputTimer.stop();
                     break;
             }
         });
@@ -1678,7 +1693,7 @@ public class MainController implements Initializable {
                             setText(null);
                             setGraphic(null);
                         } else {
-                            button.setText(bundle.getString(queueItem.getActionText()));
+                            button.setText(queueItem.getActionText());
                             EventStreams.eventsOf(button, ActionEvent.ACTION)
                                     .subscribe(actionEvent -> queueItem.doAction());
                             setText(null);

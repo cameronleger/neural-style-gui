@@ -414,7 +414,15 @@
          <children>
             <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
-                  <Button fx:id="startButton" defaultButton="true" disable="true" mnemonicParsing="false" text="%startButton" />
+                  <Button fx:id="queueButton" defaultButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%queueButton">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="startButton" disable="true" mnemonicParsing="false" text="%startButton">
+                     <HBox.margin>
+                        <Insets left="4.0" />
+                     </HBox.margin></Button>
                   <Button fx:id="stopButton" cancelButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
                      <HBox.margin>
                         <Insets left="4.0" />
