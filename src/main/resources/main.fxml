@@ -614,7 +614,7 @@
                                       <columns>
                                           <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="100.0" sortable="false" text="%outputTreeTableButton" />
                                           <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="165.0" prefWidth="180.0" sortable="false" text="%outputTreeTableName" />
-                                          <TreeTableColumn fx:id="outputTreeTableIteration" editable="false" maxWidth="1.7976931348623157E308" minWidth="60.0" prefWidth="60.0" sortable="false" text="%outputTreeTableIteration" />
+                                          <TreeTableColumn fx:id="outputTreeTableStatus" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="90.0" sortable="false" text="%outputTreeTableIteration" />
                                       </columns>
                                     </TreeTableView>
                                  </items>

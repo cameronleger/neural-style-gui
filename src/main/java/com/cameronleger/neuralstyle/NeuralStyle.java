@@ -22,6 +22,7 @@ public class NeuralStyle {
     private double[] styleWeights;
     private File contentImage;
     private File outputFolder;
+    private File outputFile;
     private int iterations = 1000;
     private int iterationsPrint = 10;
     private int iterationsSave = 10;
@@ -105,6 +106,14 @@ public class NeuralStyle {
 
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
+    }
+
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
     }
 
     public int getIterations() {
@@ -315,11 +324,18 @@ public class NeuralStyle {
         this.modelFile = modelFile;
     }
 
+    public void generateUniqueName() {
+        FileUtils.generateUniqueText();
+        outputFile = FileUtils.getTempOutputImage();
+    }
+
     public boolean checkArguments() {
         File[] styleImages = getStyleImages();
         double[] styleWeights = getStyleWeights();
         String[] styleLayers = getStyleLayers();
         String[] contentLayers = getContentLayers();
+        if (outputFile == null)
+            generateUniqueName();
         return styleImages != null && styleImages.length > 0 &&
                 styleWeights != null && styleWeights.length == styleImages.length &&
                 styleLayers != null && styleLayers.length > 0 &&
@@ -327,6 +343,7 @@ public class NeuralStyle {
                 (isCpu() || getGpu().length > 0) &&
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
+                !FileUtils.checkFileExists(getOutputFile()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
                 FileUtils.checkFolderExists(FileUtils.getTempDir());
     }
@@ -386,7 +403,7 @@ public class NeuralStyle {
                         "-content_image",
                         getContentImage().getAbsolutePath(),
                         "-output_image",
-                        FileUtils.getTempOutputImage().getAbsolutePath(),
+                        getOutputFile().getAbsolutePath(),
                         "-print_iter",
                         String.valueOf(getIterationsPrint()),
                         "-save_iter",

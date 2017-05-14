@@ -15,6 +15,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -242,7 +244,7 @@ public class MainController implements Initializable {
     @FXML
     private TreeTableColumn<NeuralQueue.NeuralQueueItem, String> outputTreeTableName;
     @FXML
-    private TreeTableColumn<NeuralQueue.NeuralQueueItem, String> outputTreeTableIteration;
+    private TreeTableColumn<NeuralQueue.NeuralQueueItem, String> outputTreeTableStatus;
 
     @FXML
     private ImageView imageView;
@@ -332,7 +334,7 @@ public class MainController implements Initializable {
 
     private void queueStyle() {
         log.log(Level.FINE, "Queueing neural style.");
-        FileUtils.generateUniqueText();
+        neuralStyle.generateUniqueName();
         FileUtils.saveTempOutputStyle(neuralStyle);
         FileUtils.saveLastUsedOutputStyle(neuralStyle);
     }
@@ -641,6 +643,17 @@ public class MainController implements Initializable {
                     .collect(Collectors.toList()));
         }
 
+        // update any outputs that are still there
+        for (String updatedOutput : updatedOutputs.keySet()) {
+            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
+                NeuralQueue.NeuralQueueItem queueItem = existingOutput.getValue();
+                if (queueItem.getFile().getAbsolutePath().equals(updatedOutput)) {
+                    queueItem.setFile(new File(updatedOutput));
+                    break;
+                }
+            }
+        }
+
         // add any new outputs
         List<TreeItem<NeuralQueue.NeuralQueueItem>> newOutputs = new ArrayList<>();
         for (String updatedOutput : updatedOutputs.keySet()) {
@@ -684,14 +697,30 @@ public class MainController implements Initializable {
         TreeItem<NeuralQueue.NeuralQueueItem> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Image: no output selection, checking for latest current output");
-            File[] images = FileUtils.getTempOutputImageIterations();
-            if (images != null && images.length > 0)
-                return images[images.length - 1];
-            else {
+
+            FilteredList<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
+                    outputTreeTable.getRoot().getChildren()
+                    .filtered(queueItem -> queueItem.getValue().getStatus().getValue()
+                            .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")));
+
+            if (inProgressItems != null && !inProgressItems.isEmpty()) {
+                File inProgressStyle = inProgressItems.get(0).getValue().getFile();
+                File[] inProgressImages = FileUtils.getTempOutputImageIterations(inProgressStyle);
+                if (inProgressImages != null && inProgressImages.length > 0)
+                    return inProgressImages[inProgressImages.length - 1];
+                else {
+                    log.log(Level.FINER, "Output Image: no output selection nor latest image");
+                    if (tooltipRegion != null && inProgressImages == null)
+                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                    else if (tooltipRegion != null && inProgressImages.length <= 0)
+                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
+                    return null;
+                }
+            } else {
                 log.log(Level.FINER, "Output Image: no output selection nor latest image");
-                if (tooltipRegion != null && images == null)
+                if (tooltipRegion != null && inProgressItems == null)
                     showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
-                else if (tooltipRegion != null && images.length <= 0)
+                else if (tooltipRegion != null && inProgressItems.isEmpty())
                     showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
                 return null;
             }
@@ -922,7 +951,7 @@ public class MainController implements Initializable {
         assert outputTreeTable != null : "fx:id=\"outputTreeTable\" was not injected.";
         assert outputTreeTableButton != null : "fx:id=\"outputTreeTableButton\" was not injected.";
         assert outputTreeTableName != null : "fx:id=\"outputTreeTableName\" was not injected.";
-        assert outputTreeTableIteration != null : "fx:id=\"outputTreeTableIteration\" was not injected.";
+        assert outputTreeTableStatus != null : "fx:id=\"outputTreeTableStatus\" was not injected.";
         assert imageView != null : "fx:id=\"imageView\" was not injected.";
         assert imageViewSizer != null : "fx:id=\"imageViewSizer\" was not injected.";
         assert statusLabel != null : "fx:id=\"statusLabel\" was not injected.";
@@ -1055,7 +1084,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Queue listener.");
         EventStreams.eventsOf(queueButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINE, "Start button hit.");
+            log.log(Level.FINE, "Queue button hit.");
             outputImageView.fitToView();
             queueStyle();
         });
@@ -1077,6 +1106,7 @@ public class MainController implements Initializable {
         EventStreams.eventsOf(commandButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Command button hit.");
             if (neuralStyle.checkArguments()) {
+                neuralStyle.generateUniqueName();
                 String[] command = neuralStyle.buildCommand();
                 StringBuilder builder = new StringBuilder();
                 for (String commandPart : command) {
@@ -1392,9 +1422,6 @@ public class MainController implements Initializable {
         imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
             log.log(Level.FINER, "Timer: checking service");
 
-            if (neuralService == null || !neuralService.isRunning())
-                return;
-
             if (imageOutputService != null && !imageOutputService.isRunning()) {
                 imageOutputService.reset();
                 imageOutputService.start();
@@ -1704,10 +1731,8 @@ public class MainController implements Initializable {
             }
         });
 
-        outputTreeTableName.setCellValueFactory(param ->
-                new ReadOnlyObjectWrapper<>(param.getValue().getValue().getName()));
+        outputTreeTableName.setCellValueFactory(param -> param.getValue().getValue().getName());
 
-        outputTreeTableIteration.setCellValueFactory(param ->
-                new ReadOnlyObjectWrapper<>(param.getValue().getValue().getStatus()));
+        outputTreeTableStatus.setCellValueFactory(param -> param.getValue().getValue().getStatus());
     }
 }

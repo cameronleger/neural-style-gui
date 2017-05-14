@@ -58,12 +58,19 @@ public final class NeuralQueue {
         public File getFile() {
             return file.getValue();
         }
-        public String getName() {
-            return name.getValue();
+
+        public void setFile(File file) {
+            this.file.set(file);
         }
-        public String getStatus() {
-            return status.getValue();
+
+        public StringProperty getName() {
+            return name;
         }
+
+        public StringProperty getStatus() {
+            return status;
+        }
+
         public String getActionText() {
             return actionText;
         }
@@ -91,8 +98,17 @@ public final class NeuralQueue {
             super(file);
             this.type = QUEUED_STYLE;
             this.actionText = bundle.getString("outputTreeTableLoadButtonText");
+            updateStyle();
+        }
 
-            style = FileUtils.loadStyle(file);
+        @Override
+        public void setFile(File file) {
+            super.setFile(file);
+            updateStyle();
+        }
+
+        private void updateStyle() {
+            style = FileUtils.loadStyle(file.getValue());
             if (style == null)
                 this.status.setValue(bundle.getString("neuralQueueItemInvalidFile"));
             else {

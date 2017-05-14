@@ -193,7 +193,21 @@ public class FileUtils {
 
         // Unix-like searching for styles
         FileFilter styleFileFilter = new WildcardFileFilter("*.json");
-        return tempDir.listFiles(styleFileFilter);
+        File[] files = tempDir.listFiles(styleFileFilter);
+
+        if (files != null && files.length > 1) {
+            long[] fileIters = new long[files.length];
+            for (int i = 0; i < files.length; i++) {
+                try {
+                    fileIters[i] = Long.valueOf(FileUtils.getFileName(files[i]));
+                } catch (Exception e) {
+                    fileIters[i] = 0;
+                }
+            }
+            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
+        }
+
+        return files;
     }
 
     public static Map<String, Set<String>> getTempOutputs() {
@@ -232,8 +246,7 @@ public class FileUtils {
         return outputs;
     }
 
-    public static File[] getTempOutputImageIterations() {
-        File outputImage = getTempOutputImage();
+    public static File[] getTempOutputImageIterations(File outputImage) {
         if (tempDir == null || !tempDir.isDirectory() || outputImage == null)
             return null;
 
@@ -330,6 +343,31 @@ public class FileUtils {
         return true;
     }
 
+    private static int partition(long iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
+        int i = firstIndex, j = lastIndex;
+        long tmp;
+        File tmp2;
+        long pivot = iterations[(firstIndex + lastIndex) / 2];
+
+        while (i <= j) {
+            while (iterations[i] < pivot)
+                i++;
+            while (iterations[j] > pivot)
+                j--;
+            if (i <= j) {
+                tmp = iterations[i];
+                tmp2 = iterationFiles[i];
+                iterations[i] = iterations[j];
+                iterationFiles[i] = iterationFiles[j];
+                iterations[j] = tmp;
+                iterationFiles[j] = tmp2;
+                i++;
+                j--;
+            }
+        }
+        return i;
+    }
+
     private static int partition(int iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
         int i = firstIndex, j = lastIndex;
         int tmp;
@@ -356,6 +394,14 @@ public class FileUtils {
     }
 
     public static void quickSort(int iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
+        int index = partition(iterations, iterationFiles, firstIndex, lastIndex);
+        if (firstIndex < index - 1)
+            quickSort(iterations, iterationFiles, firstIndex, index - 1);
+        if (index < lastIndex)
+            quickSort(iterations, iterationFiles, index, lastIndex);
+    }
+
+    public static void quickSort(long iterations[], File iterationFiles[], int firstIndex, int lastIndex) {
         int index = partition(iterations, iterationFiles, firstIndex, lastIndex);
         if (firstIndex < index - 1)
             quickSort(iterations, iterationFiles, firstIndex, index - 1);
