@@ -35,7 +35,9 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.apache.commons.io.FilenameUtils;
+import org.reactfx.EventStream;
 import org.reactfx.EventStreams;
+import org.reactfx.Subscription;
 import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
 
@@ -698,10 +700,11 @@ public class MainController implements Initializable {
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Image: no output selection, checking for latest current output");
 
-            FilteredList<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
-                    outputTreeTable.getRoot().getChildren()
-                    .filtered(queueItem -> queueItem.getValue().getStatus().getValue()
-                            .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")));
+            List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
+                    outputTreeTable.getRoot().getChildren().stream()
+                    .filter(queueItem -> queueItem.getValue().getStatus().getValue()
+                            .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")))
+                    .collect(Collectors.toList());
 
             if (inProgressItems != null && !inProgressItems.isEmpty()) {
                 File inProgressStyle = inProgressItems.get(0).getValue().getFile();
@@ -1707,6 +1710,8 @@ public class MainController implements Initializable {
             call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
                 return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
                     Button button;
+                    EventStream<ActionEvent> buttonActions = EventStreams.eventsOf(button, ActionEvent.ACTION);
+                    Subscription subscribe;
                     {
                         button = new Button();
                         setText(null);
@@ -1719,10 +1724,13 @@ public class MainController implements Initializable {
                         if (empty || queueItem == null) {
                             setText(null);
                             setGraphic(null);
+                            if (subscribe != null) {
+                                subscribe.unsubscribe();
+                                subscribe = null;
+                            }
                         } else {
                             button.setText(queueItem.getActionText());
-                            EventStreams.eventsOf(button, ActionEvent.ACTION)
-                                    .subscribe(actionEvent -> queueItem.doAction());
+                            subscribe = buttonActions.subscribe(actionEvent -> queueItem.doAction());
                             setText(null);
                             setGraphic(button);
                         }
