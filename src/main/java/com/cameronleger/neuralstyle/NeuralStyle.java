@@ -3,11 +3,9 @@ package com.cameronleger.neuralstyle;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 
-public class NeuralStyle {
+public class NeuralStyle implements Cloneable {
     public final static int INVALID_ARGUMENTS = -2;
     public final static int INVALID_FILE = -1;
     public final static int QUEUED = 0;
@@ -59,6 +57,9 @@ public class NeuralStyle {
     private boolean autotune = false;
     private File protoFile;
     private File modelFile;
+    private int chainLength = 1;
+    private double chainIterationRatio = 0.5;
+    private double chainSizeRatio = 0.5;
 
     public int getQueueStatus() {
         return queueStatus;
@@ -324,9 +325,85 @@ public class NeuralStyle {
         this.modelFile = modelFile;
     }
 
+    public int getChainLength() {
+        return chainLength;
+    }
+
+    public void setChainLength(int chainLength) {
+        this.chainLength = chainLength;
+    }
+
+    public double getChainIterationRatio() {
+        return chainIterationRatio;
+    }
+
+    public void setChainIterationRatio(double chainIterationRatio) {
+        this.chainIterationRatio = chainIterationRatio;
+    }
+
+    public double getChainSizeRatio() {
+        return chainSizeRatio;
+    }
+
+    public void setChainSizeRatio(double chainSizeRatio) {
+        this.chainSizeRatio = chainSizeRatio;
+    }
+
     public void generateUniqueName() {
         FileUtils.generateUniqueText();
         outputFile = FileUtils.getTempOutputImage();
+    }
+
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public List<NeuralStyle> getQueueItems() {
+        List<NeuralStyle> queueItems = new ArrayList<>();
+
+        // Simple one-run case
+        if (getChainLength() == 1)
+            queueItems.add(this);
+
+        // Chaining case
+        else if (getChainLength() > 1) {
+            // Need some variables for the math
+            final int outputSize = getOutputSize();
+            final double chainSizeRatio = getChainSizeRatio();
+            final int iterations = getIterations();
+            final double chainIterationRatio = getChainIterationRatio();
+            File previousChainOutput = null;
+            NeuralStyle queueItem;
+
+            for (int i = 1; i <= getChainLength(); i++) {
+                // This power increases further back in the chain
+                int ratioPower = getChainLength() - i;
+                try {
+                    queueItem = (NeuralStyle) this.clone();
+
+                    // ratioPower is an exponent for the ratio and is finally applied to the original 'final' value
+                    queueItem.setOutputSize((int) Math.round(Math.pow(chainSizeRatio, ratioPower) * outputSize));
+                    queueItem.setIterations((int) Math.round(Math.pow(chainIterationRatio, ratioPower) * iterations));
+
+                    // The first link in the chain uses the original initialization values
+                    // Each subsequent link is initialized with the output of the previous
+                    if (previousChainOutput != null) {
+                        queueItem.setInit("image");
+                        queueItem.setInitImage(previousChainOutput);
+                    }
+
+                    // Generate a new unique chain output and prepare to link it to the next
+                    queueItem.setOutputFile(FileUtils.getTempOutputImage(i));
+                    previousChainOutput = queueItem.getOutputFile();
+
+                    queueItems.add(queueItem);
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return queueItems;
     }
 
     public boolean checkArguments() {
@@ -343,7 +420,6 @@ public class NeuralStyle {
                 (isCpu() || getGpu().length > 0) &&
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
-                !FileUtils.checkFileExists(getOutputFile()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
                 FileUtils.checkFolderExists(FileUtils.getTempDir());
     }

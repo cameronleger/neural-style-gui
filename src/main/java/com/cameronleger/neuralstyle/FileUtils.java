@@ -44,6 +44,12 @@ public class FileUtils {
         return uniqueText;
     }
 
+    private static String getUniqueChainText(int chainIndex) {
+        if (uniqueText == null)
+            generateUniqueText();
+        return String.format("%s_%s", uniqueText, chainIndex);
+    }
+
     public static boolean checkFileExists(File file) {
         return file != null && file.exists() && file.isFile();
     }
@@ -84,23 +90,36 @@ public class FileUtils {
         File tempOutputDir = FileUtils.getTempDir();
         if (tempOutputDir == null)
             return null;
-        return new File(tempOutputDir, getUniqueText() + "." + extension);
+        return new File(tempOutputDir, String.format("%s.%s", getUniqueText(), extension));
+    }
+
+    private static File getTempOutputFile(int chainIndex, String extension) {
+        File tempOutputDir = FileUtils.getTempDir();
+        if (tempOutputDir == null)
+            return null;
+        return new File(tempOutputDir, String.format("%s.%s", getUniqueChainText(chainIndex), extension));
     }
 
     public static File getTempOutputImage() {
         return getTempOutputFile("png");
     }
 
-    public static File getTempOutputStyle() {
-        return getTempOutputFile("json");
+    public static File getTempOutputImage(int chainIndex) {
+        return getTempOutputFile(chainIndex, "png");
     }
 
-    public static File saveTempOutputStyle(NeuralStyle neuralStyle) {
-        File tempOutputStyle = FileUtils.getTempOutputStyle();
-        if (tempOutputStyle == null) {
-            log.log(Level.FINE, "Unable to open file to save output style.");
+    public static File getLastUsedOutputStyle() {
+        return new File(".", LAST_STYLE_JSON);
+    }
+
+    public static File saveOutputStyle(NeuralStyle neuralStyle) {
+        File tempOutputDir = FileUtils.getTempDir();
+        if (tempOutputDir == null) {
+            log.log(Level.FINE, "Unable to open file in temporary folder to save output style.");
             return null;
         }
+        File tempOutputStyle = new File(tempOutputDir,
+                String.format("%s.%s", getFileName(neuralStyle.getOutputFile()), "json"));
         return saveOutputStyle(neuralStyle, tempOutputStyle);
     }
 
@@ -111,10 +130,6 @@ public class FileUtils {
             return null;
         }
         return saveOutputStyle(neuralStyle, lastUsedOutputStyle);
-    }
-
-    public static File getLastUsedOutputStyle() {
-        return new File(".", LAST_STYLE_JSON);
     }
 
     public static File saveOutputStyle(NeuralStyle neuralStyle, File outputFile) {
@@ -199,7 +214,7 @@ public class FileUtils {
             long[] fileIters = new long[files.length];
             for (int i = 0; i < files.length; i++) {
                 try {
-                    fileIters[i] = Long.valueOf(FileUtils.getFileName(files[i]));
+                    fileIters[i] = Long.valueOf(FileUtils.getFileName(files[i]).replace("_", ""));
                 } catch (Exception e) {
                     fileIters[i] = 0;
                 }
@@ -269,13 +284,6 @@ public class FileUtils {
         }
 
         return files;
-    }
-
-    public static File getTempOutputImageStyle() {
-        File outputStyle = getTempOutputStyle();
-        if (tempDir == null || !tempDir.isDirectory() || outputStyle == null || !checkFileExists(outputStyle))
-            return null;
-        return outputStyle;
     }
 
     public static File[] saveTempOutputsTo(File tempImage, File tempStyle, File outputFolder, String possibleName) {

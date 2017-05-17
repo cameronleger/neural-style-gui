@@ -20,6 +20,7 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 * Saving/Loading of all style settings, including input images, to a JSON format
 * Shortcuts for common operations
 * Immediate image feedback during iterations supports zoom/pan
+* Easy chaining of multiple Neural Style outputs for better large image quality
 * Quick permanent saving of feedback images
 * Output Queue for batching of style outputs
 * View session output image history
@@ -43,7 +44,11 @@ Unzip the release to a folder of your choice (or build from source and check the
 # Usage
 After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application.
 
-The Progress Update and Image Update inputs allow you to configure how often the Progress Bar and Output Images update. The rest of the settings are better explained in the [Neural-Style](https://github.com/jcjohnson/neural-style) readme, but each input has helpful information in a tooltip if you hover over it for long enough. Numeric inputs can be controlled by their slider or input field; the input fields have unrestricted ranges while the sliders have reasonable ranges for each setting.
+The Chaining section of the Settings Pane allows you to quickly run multiple Neural Style commands that feed into each other with the previous result. A few settings that are commonly changed in this method are available. First, pick how many times to run the network. Then, the ratios determine those settings' values for each run. Basically, the current settings will apply to the final image in the chain, and for each result before the final image the values are multiplied by the ratio. For example, with a 0.5 Size Ratio over 3 runs for a final result of 1200px, the runs will start at 300px before going to 600px and finally 1200px. This can allow you to make higher quality and larger images than with a single run with single settings, and sometimes faster because less iterations are typically used with this.
+
+The Progress Update and Image Update inputs under the Advanced Tab allow you to configure how often the Progress Bar and Output Images update.
+
+The rest of the settings are better explained in the [Neural-Style](https://github.com/jcjohnson/neural-style) readme, but each input has helpful information in a tooltip if you hover over it for long enough. Numeric inputs can be controlled by their slider or input field; the input fields have unrestricted ranges while the sliders have reasonable ranges for each setting.
 
 Choosing different Proto & Model Files will additionally try to parse the layer information and update the Layers tab with the appropriate layers.
 
@@ -71,6 +76,7 @@ The Neural Style Log Tab will show the output from the most recent running proce
 * Significantly improved performance when running many iterations repeatedly
 * History Tree is now a Queue Tree to show past and future outputs
 * The Neural Service now runs until all Queued items are finished
+* Chained runs allow larger images and better results
 * Bugfixes
 ### 1.1.1
 * Prototxt parsing supports current version of Loadcaffe Layers

@@ -15,7 +15,6 @@ import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -35,7 +34,6 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.apache.commons.io.FilenameUtils;
-import org.reactfx.EventStream;
 import org.reactfx.EventStreams;
 import org.reactfx.Subscription;
 import org.reactfx.util.FxTimer;
@@ -45,7 +43,6 @@ import java.io.File;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -227,6 +224,19 @@ public class MainController implements Initializable {
     private TextField modelFilePath;
 
     @FXML
+    private Slider chainLengthSlider;
+    @FXML
+    private TextField chainLengthField;
+    @FXML
+    private Slider chainIterationRatioSlider;
+    @FXML
+    private TextField chainIterationRatioField;
+    @FXML
+    private Slider chainSizeRatioSlider;
+    @FXML
+    private TextField chainSizeRatioField;
+
+    @FXML
     private Button queueButton;
     @FXML
     private Button startButton;
@@ -337,7 +347,8 @@ public class MainController implements Initializable {
     private void queueStyle() {
         log.log(Level.FINE, "Queueing neural style.");
         neuralStyle.generateUniqueName();
-        FileUtils.saveTempOutputStyle(neuralStyle);
+        for (NeuralStyle ns : neuralStyle.getQueueItems())
+            FileUtils.saveOutputStyle(ns);
         FileUtils.saveLastUsedOutputStyle(neuralStyle);
     }
 
@@ -695,20 +706,35 @@ public class MainController implements Initializable {
         }
     }
 
+    private TreeItem<NeuralQueue.NeuralQueueItem> getMostRecentOutput() {
+        List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
+                outputTreeTable.getRoot().getChildren().stream()
+                        .filter(queueItem -> queueItem.getValue().getStatus().getValue()
+                                .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")))
+                        .collect(Collectors.toList());
+        if (!inProgressItems.isEmpty())
+            return inProgressItems.get(0);
+
+        List<TreeItem<NeuralQueue.NeuralQueueItem>> allItems =
+                outputTreeTable.getRoot().getChildren().stream()
+                        .filter(queueItem -> !queueItem.getValue().getStatus().getValue()
+                                .equalsIgnoreCase(bundle.getString("neuralQueueItemFailed")))
+                        .collect(Collectors.toList());
+        if (!allItems.isEmpty())
+            return allItems.get(allItems.size() - 1);
+
+        return null;
+    }
+
     private File getOutputImage(Region tooltipRegion) {
         TreeItem<NeuralQueue.NeuralQueueItem> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Image: no output selection, checking for latest current output");
+            TreeItem<NeuralQueue.NeuralQueueItem> mostRecentOutput = getMostRecentOutput();
 
-            List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
-                    outputTreeTable.getRoot().getChildren().stream()
-                    .filter(queueItem -> queueItem.getValue().getStatus().getValue()
-                            .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")))
-                    .collect(Collectors.toList());
-
-            if (inProgressItems != null && !inProgressItems.isEmpty()) {
-                File inProgressStyle = inProgressItems.get(0).getValue().getFile();
-                File[] inProgressImages = FileUtils.getTempOutputImageIterations(inProgressStyle);
+            if (mostRecentOutput != null) {
+                File mostRecentStyle = mostRecentOutput.getValue().getFile();
+                File[] inProgressImages = FileUtils.getTempOutputImageIterations(mostRecentStyle);
                 if (inProgressImages != null && inProgressImages.length > 0)
                     return inProgressImages[inProgressImages.length - 1];
                 else {
@@ -721,10 +747,8 @@ public class MainController implements Initializable {
                 }
             } else {
                 log.log(Level.FINER, "Output Image: no output selection nor latest image");
-                if (tooltipRegion != null && inProgressItems == null)
+                if (tooltipRegion != null)
                     showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
-                else if (tooltipRegion != null && inProgressItems.isEmpty())
-                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
                 return null;
             }
         } else {
@@ -753,9 +777,10 @@ public class MainController implements Initializable {
         TreeItem<NeuralQueue.NeuralQueueItem> outputSelection = outputTreeTable.getSelectionModel().getSelectedItem();
         if (outputSelection == null) {
             log.log(Level.FINER, "Output Style: no output selection, checking for latest current output");
-            File style = FileUtils.getTempOutputImageStyle();
-            if (style != null)
-                return style;
+            TreeItem<NeuralQueue.NeuralQueueItem> mostRecentOutput = getMostRecentOutput();
+
+            if (mostRecentOutput != null)
+                return mostRecentOutput.getValue().getFile();
             else {
                 log.log(Level.FINER, "Output Style: no output selection nor latest image");
                 if (tooltipRegion != null)
@@ -776,6 +801,9 @@ public class MainController implements Initializable {
 
     private void loadStyle(NeuralStyle loadedNeuralStyle) {
         neuralStyle = loadedNeuralStyle;
+
+        // Reset the Queued status
+        neuralStyle.setQueueStatus(NeuralStyle.QUEUED);
 
         // Retrieve these before paths because that will change them
         File[] selectedStyleImages = neuralStyle.getStyleImages();
@@ -821,6 +849,9 @@ public class MainController implements Initializable {
         nCorrectionSlider.setValue(neuralStyle.getNCorrection());
         learningRateSlider.setValue(neuralStyle.getLearningRate());
         autotune.setSelected(neuralStyle.isAutotune());
+        chainLengthSlider.setValue(neuralStyle.getChainLength());
+        chainIterationRatioSlider.setValue(neuralStyle.getChainIterationRatio());
+        chainSizeRatioSlider.setValue(neuralStyle.getChainSizeRatio());
 
         // Set input folders and image selections last
         if (selectedStyleImages != null && selectedStyleImages.length > 0) {
@@ -941,6 +972,12 @@ public class MainController implements Initializable {
         assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
         assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
         assert autotune != null : "fx:id=\"autotune\" was not injected.";
+        assert chainLengthSlider != null : "fx:id=\"chainLengthSlider\" was not injected.";
+        assert chainLengthField != null : "fx:id=\"chainLengthField\" was not injected.";
+        assert chainIterationRatioSlider != null : "fx:id=\"chainIterationRatioSlider\" was not injected.";
+        assert chainIterationRatioField != null : "fx:id=\"chainIterationRatioField\" was not injected.";
+        assert chainSizeRatioSlider != null : "fx:id=\"chainSizeRatioSlider\" was not injected.";
+        assert chainSizeRatioField != null : "fx:id=\"chainSizeRatioField\" was not injected.";
         assert protoFileButton != null : "fx:id=\"protoFileButton\" was not injected.";
         assert protoFilePath != null : "fx:id=\"protoFilePath\" was not injected.";
         assert modelFileButton != null : "fx:id=\"modelFileButton\" was not injected.";
@@ -1215,61 +1252,51 @@ public class MainController implements Initializable {
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(printIterField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setIterationsPrint(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(printIterField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setIterationsPrint(intConverter.fromString(numberChange).intValue()));
 
         // keep save slider and text field synced and the slider updates the style
         saveIterField.textProperty().bindBidirectional(saveIterSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(saveIterField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setIterationsSave(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(saveIterField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setIterationsSave(intConverter.fromString(numberChange).intValue()));
 
         // keep max slider and text field synced and the slider updates the style
         maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(maxIterField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setIterations(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(maxIterField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setIterations(intConverter.fromString(numberChange).intValue()));
 
         // keep seed slider and text field synced and the slider updates the style
         seedField.textProperty().bindBidirectional(seedSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(seedField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setSeed(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(seedField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setSeed(intConverter.fromString(numberChange).intValue()));
 
         // keep output size slider and text field synced and the slider updates the style
         outputSizeField.textProperty().bindBidirectional(outputSizeSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(outputSizeField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setOutputSize(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(outputSizeField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setOutputSize(intConverter.fromString(numberChange).intValue()));
 
         // keep style size slider and text field synced and the slider updates the style
         styleSizeField.textProperty().bindBidirectional(styleSizeSlider.valueProperty(), doubleConverter);
-        EventStreams.changesOf(styleSizeField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setStyleSize(
-                        doubleConverter.fromString(numberChange.getNewValue()).doubleValue()));
+        EventStreams.valuesOf(styleSizeField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setStyleSize(doubleConverter.fromString(numberChange).doubleValue()));
 
         // keep output weight slider and text field synced and the slider updates the style
         contentWeightField.textProperty().bindBidirectional(contentWeightSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(contentWeightField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setContentWeight(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(contentWeightField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setContentWeight(intConverter.fromString(numberChange).intValue()));
 
         // keep style weight slider and text field synced and the slider updates the style
         styleWeightField.textProperty().bindBidirectional(styleWeightSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(styleWeightField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setStyleWeight(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(styleWeightField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setStyleWeight(intConverter.fromString(numberChange).intValue()));
 
         // keep TV weight slider and text field synced and the slider updates the style
         tvWeightField.textProperty().bindBidirectional(tvWeightSlider.valueProperty(), doubleConverter);
-        EventStreams.changesOf(tvWeightField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setTvWeight(
-                        doubleConverter.fromString(numberChange.getNewValue()).doubleValue()));
+        EventStreams.valuesOf(tvWeightField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setTvWeight(doubleConverter.fromString(numberChange).doubleValue()));
 
         // init choicebox updates the style and toggles init path
-        EventStreams.changesOf(initChoice.valueProperty()).subscribe(stringChange -> {
-            String init = stringChange.getNewValue();
+        EventStreams.valuesOf(initChoice.valueProperty()).subscribe(init -> {
             neuralStyle.setInit(init);
             boolean notInitImage = !init.equalsIgnoreCase("image");
             initImageButton.setDisable(notInitImage);
@@ -1277,32 +1304,30 @@ public class MainController implements Initializable {
         });
 
         // pooling choicebox updates the style
-        EventStreams.changesOf(poolingChoice.valueProperty())
-                .subscribe(stringChange -> neuralStyle.setPooling(stringChange.getNewValue()));
+        EventStreams.valuesOf(poolingChoice.valueProperty()).subscribe(stringChange ->
+                neuralStyle.setPooling(stringChange));
 
         // original colors checkbox updates the style
-        EventStreams.changesOf(originalColors.selectedProperty())
-                .subscribe(booleanChange ->neuralStyle.setOriginalColors(booleanChange.getNewValue()));
+        EventStreams.valuesOf(originalColors.selectedProperty()).subscribe(booleanChange ->
+                neuralStyle.setOriginalColors(booleanChange));
 
         // normalize gradients checkbox updates the style
-        EventStreams.changesOf(normalizeGradients.selectedProperty())
-                .subscribe(booleanChange -> neuralStyle.setNormalizeGradients(booleanChange.getNewValue()));
+        EventStreams.valuesOf(normalizeGradients.selectedProperty()).subscribe(booleanChange ->
+                neuralStyle.setNormalizeGradients(booleanChange));
 
         // CPU checkbox updates the style and toggles GPU
-        EventStreams.changesOf(cpuMode.selectedProperty()).subscribe(booleanChange -> {
-            boolean useCpu = booleanChange.getNewValue();
+        EventStreams.valuesOf(cpuMode.selectedProperty()).subscribe(useCpu -> {
             neuralStyle.setCpu(useCpu);
             gpuTable.setDisable(useCpu);
             multiGpuSplit.setDisable(useCpu);
         });
 
         // Multi-GPU updates the style
-        EventStreams.changesOf(multiGpuSplit.textProperty())
-                .subscribe(stringChange -> neuralStyle.setMultiGpuStrategy(stringChange.getNewValue()));
+        EventStreams.valuesOf(multiGpuSplit.textProperty()).subscribe(stringChange ->
+                neuralStyle.setMultiGpuStrategy(stringChange));
 
         // backend choicebox updates the style and toggles autotune
-        EventStreams.changesOf(backendChoice.valueProperty()).subscribe(stringChange -> {
-            String backend = stringChange.getNewValue();
+        EventStreams.valuesOf(backendChoice.valueProperty()).subscribe(backend -> {
             neuralStyle.setBackend(backend);
             if (backend.equalsIgnoreCase("cudnn")) {
                 autotune.setDisable(false);
@@ -1313,8 +1338,7 @@ public class MainController implements Initializable {
         });
 
         // optimizer choicebox updates the style and toggles learning rate
-        EventStreams.changesOf(optimizerChoice.valueProperty()).subscribe(stringChange -> {
-            String optimizer = stringChange.getNewValue();
+        EventStreams.valuesOf(optimizerChoice.valueProperty()).subscribe(optimizer -> {
             neuralStyle.setOptimizer(optimizer);
             if (optimizer.equalsIgnoreCase("adam")) {
                 nCorrectionSlider.setDisable(true);
@@ -1333,19 +1357,45 @@ public class MainController implements Initializable {
 
         // keep nCorrection slider and text field synced and the slider updates the style
         nCorrectionField.textProperty().bindBidirectional(nCorrectionSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(nCorrectionField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setNCorrection(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(nCorrectionField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setNCorrection(intConverter.fromString(numberChange).intValue()));
 
         // keep learning rate slider and text field synced and the slider updates the style
         learningRateField.textProperty().bindBidirectional(learningRateSlider.valueProperty(), intConverter);
-        EventStreams.changesOf(learningRateField.textProperty())
-                .subscribe(numberChange -> neuralStyle.setLearningRate(
-                        intConverter.fromString(numberChange.getNewValue()).intValue()));
+        EventStreams.valuesOf(learningRateField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setLearningRate(intConverter.fromString(numberChange).intValue()));
 
         // autotune checkbox updates the style
-        EventStreams.changesOf(autotune.selectedProperty())
-                .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange.getNewValue()));
+        EventStreams.valuesOf(autotune.selectedProperty())
+                .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange));
+
+        // keep chain length slider and text field synced and the slider updates the style, some values toggle chain fields
+        chainLengthField.textProperty().bindBidirectional(chainLengthSlider.valueProperty(), intConverter);
+        EventStreams.valuesOf(chainLengthField.textProperty()).subscribe(numberChange -> {
+            int chainLength = intConverter.fromString(numberChange).intValue();
+            neuralStyle.setChainLength(chainLength);
+            if (chainLength <= 1) {
+                chainIterationRatioField.setDisable(true);
+                chainIterationRatioSlider.setDisable(true);
+                chainSizeRatioField.setDisable(true);
+                chainSizeRatioSlider.setDisable(true);
+            } else {
+                chainIterationRatioField.setDisable(false);
+                chainIterationRatioSlider.setDisable(false);
+                chainSizeRatioField.setDisable(false);
+                chainSizeRatioSlider.setDisable(false);
+            }
+        });
+
+        // keep chain iteration ratio slider and text field synced and the slider updates the style
+        chainIterationRatioField.textProperty().bindBidirectional(chainIterationRatioSlider.valueProperty(), doubleConverter);
+        EventStreams.valuesOf(chainIterationRatioField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setChainIterationRatio(doubleConverter.fromString(numberChange).doubleValue()));
+
+        // keep chain size ratio slider and text field synced and the slider updates the style
+        chainSizeRatioField.textProperty().bindBidirectional(chainSizeRatioSlider.valueProperty(), doubleConverter);
+        EventStreams.valuesOf(chainSizeRatioField.textProperty()).subscribe(numberChange ->
+                neuralStyle.setChainSizeRatio(doubleConverter.fromString(numberChange).doubleValue()));
     }
 
     private void setupServiceListeners() {
@@ -1710,7 +1760,6 @@ public class MainController implements Initializable {
             call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
                 return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
                     Button button;
-                    EventStream<ActionEvent> buttonActions = EventStreams.eventsOf(button, ActionEvent.ACTION);
                     Subscription subscribe;
                     {
                         button = new Button();
@@ -1730,7 +1779,8 @@ public class MainController implements Initializable {
                             }
                         } else {
                             button.setText(queueItem.getActionText());
-                            subscribe = buttonActions.subscribe(actionEvent -> queueItem.doAction());
+                            subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
+                                    .subscribe(actionEvent -> queueItem.doAction());
                             setText(null);
                             setGraphic(button);
                         }
