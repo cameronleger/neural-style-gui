@@ -33,7 +33,7 @@ Unzip the release to a folder of your choice (or build from source and check the
 
 # Minimum Required Steps
 1. Set the Neural Style path
-2. Modify settings based on your machine, i.e., CPU or GPU and backend
+2. Modify Advanced settings based on your machine, i.e., CPU or GPU and backend
 3. Set the Style Folder path to a folder containing style images
 4. Select a style image in the Style Image List
 5. Set the Content Folder path to a folder containing content images

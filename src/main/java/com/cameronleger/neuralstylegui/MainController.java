@@ -12,10 +12,13 @@ import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
 import javafx.beans.Observable;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
@@ -1755,42 +1758,81 @@ public class MainController implements Initializable {
         outputTreeTableButton.setCellFactory(
                 new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>,
                         TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>>() {
-            @Override
-            public TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>
-            call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
-                return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
-                    Button button;
-                    Subscription subscribe;
-                    {
-                        button = new Button();
-                        setText(null);
-                        setGraphic(button);
-                    }
-
                     @Override
-                    public void updateItem(NeuralQueue.NeuralQueueItem queueItem, boolean empty) {
-                        super.updateItem(queueItem, empty);
-                        if (empty || queueItem == null) {
-                            setText(null);
-                            setGraphic(null);
-                            if (subscribe != null) {
-                                subscribe.unsubscribe();
-                                subscribe = null;
+                    public TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>
+                    call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
+                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
+                            Button button;
+                            Subscription subscribe;
+                            {
+                                button = new Button();
+                                setText(null);
+                                setGraphic(button);
                             }
-                        } else {
-                            button.setText(queueItem.getActionText());
-                            subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
-                                    .subscribe(actionEvent -> queueItem.doAction());
-                            setText(null);
-                            setGraphic(button);
-                        }
+
+                            @Override
+                            public void updateItem(NeuralQueue.NeuralQueueItem queueItem, boolean empty) {
+                                super.updateItem(queueItem, empty);
+                                if (empty || queueItem == null) {
+                                    setText(null);
+                                    setGraphic(null);
+                                    if (subscribe != null) {
+                                        subscribe.unsubscribe();
+                                        subscribe = null;
+                                    }
+                                } else {
+                                    button.setText(queueItem.getActionText());
+                                    subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
+                                            .subscribe(actionEvent -> queueItem.doAction());
+                                    setText(null);
+                                    setGraphic(button);
+                                }
+                            }
+                        };
                     }
-                };
-            }
-        });
+                });
 
         outputTreeTableName.setCellValueFactory(param -> param.getValue().getValue().getName());
 
         outputTreeTableStatus.setCellValueFactory(param -> param.getValue().getValue().getStatus());
+        outputTreeTableStatus.setCellFactory(
+                new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, String>,
+                        TreeTableCell<NeuralQueue.NeuralQueueItem, String>>() {
+                    @Override
+                    public TreeTableCell<NeuralQueue.NeuralQueueItem, String>
+                    call(TreeTableColumn<NeuralQueue.NeuralQueueItem, String> param) {
+                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, String>() {
+                            @Override
+                            public void updateItem(String queueStatus, boolean empty) {
+                                super.updateItem(queueStatus, empty);
+                                if (empty || queueStatus == null) {
+                                    setText(null);
+                                    setGraphic(null);
+                                    setContextMenu(null);
+                                } else {
+                                    NeuralQueue.NeuralQueueItem queueItem = this.getTreeTableRow().getItem();
+                                    String status = queueItem.getStatus().getValue();
+                                    setText(status);
+                                    setGraphic(null);
+
+                                    if (queueItem.getType() == NeuralQueue.QUEUED_STYLE &&
+                                            status.equalsIgnoreCase(bundle.getString("neuralQueueItemQueued"))) {
+                                        final ContextMenu cellMenu = new ContextMenu();
+
+                                        final MenuItem cancelMenuItem =
+                                                new MenuItem(bundle.getString("neuralQueueItemCancel"));
+                                        cancelMenuItem.setOnAction(event ->
+                                                queueItem.changeStatus(NeuralStyle.CANCELLED));
+
+                                        cellMenu.getItems().addAll(cancelMenuItem);
+                                        setContextMenu(cellMenu);
+                                    } else {
+                                        setContextMenu(null);
+                                    }
+                                }
+                            }
+                        };
+                    }
+                });
     }
 }

@@ -7,7 +7,7 @@
     <name>Neural Style GUI</name>
     <groupId>com.cameronleger</groupId>
     <artifactId>neural-style-gui</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
 
     <dependencies>
         <dependency>

@@ -83,6 +83,10 @@ public final class NeuralQueue {
             if (actionCallback != null)
                 actionCallback.actionCallback();
         }
+
+        public void changeStatus(int newStatus) {
+            return;
+        }
     }
 
     private static class NeuralQueueFakeItem extends NeuralQueueItem {
@@ -137,6 +141,14 @@ public final class NeuralQueue {
                         break;
                 }
                 this.status.setValue(statusValue);
+            }
+        }
+
+        @Override
+        public void changeStatus(int newStatus) {
+            if (style != null) {
+                style.setQueueStatus(newStatus);
+                FileUtils.saveOutputStyle(style);
             }
         }
     }
