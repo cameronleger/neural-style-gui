@@ -15,6 +15,7 @@ public class NeuralStyle implements Cloneable {
     public final static int FINISHED = 4;
     private int queueStatus = QUEUED;
 
+    private File thPath;
     private File neuralStylePath;
     private File[] styleImages;
     private double[] styleWeights;
@@ -67,6 +68,14 @@ public class NeuralStyle implements Cloneable {
 
     public void setQueueStatus(int queueStatus) {
         this.queueStatus = queueStatus;
+    }
+
+    public File getThPath() {
+        return thPath;
+    }
+
+    public void setThPath(File thPath) {
+        this.thPath = thPath;
     }
 
     public File getNeuralStylePath() {
@@ -469,8 +478,12 @@ public class NeuralStyle implements Cloneable {
                 gpuIndicesBuilder.append(",");
         }
 
+        String th = "th";
+        if (getThPath() != null)
+            th = getThPath().getAbsolutePath();
+
         ArrayList<String> commandList = new ArrayList<>(
-                Arrays.asList("th",
+                Arrays.asList(th,
                         "neural_style.lua",
                         "-style_image",
                         styleImagesBuilder.toString(),

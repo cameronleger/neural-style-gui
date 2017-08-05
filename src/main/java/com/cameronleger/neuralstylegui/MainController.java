@@ -12,13 +12,10 @@ import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
 import javafx.beans.Observable;
-import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
@@ -73,6 +70,11 @@ public class MainController implements Initializable {
     private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(createQueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
+
+    @FXML
+    private Button thPathButton;
+    @FXML
+    private TextField thPath;
 
     @FXML
     private Button neuralPathButton;
@@ -382,6 +384,14 @@ public class MainController implements Initializable {
         File imageFile = getOutputImage(null);
         if (imageFile != null && stage.isShowing())
             outputImageView.setImage(imageFile);
+    }
+
+    private void setThPath(File newThPath) {
+        if (newThPath == null)
+            thPath.setText("");
+        else
+            thPath.setText(newThPath.getAbsolutePath());
+        neuralStyle.setThPath(newThPath);
     }
 
     private void setNeuralPath(File neuralStylePath) {
@@ -820,6 +830,7 @@ public class MainController implements Initializable {
             styleMultipleSelect.setSelected(selectedStyleImages.length != 1);
 
         // Set paths
+        setThPath(neuralStyle.getThPath());
         setNeuralPath(neuralStyle.getNeuralStylePath());
         setProtoFile(neuralStyle.getProtoFile());
         setModelFile(neuralStyle.getModelFile());
@@ -909,6 +920,8 @@ public class MainController implements Initializable {
     }
 
     private void checkInjections() {
+        assert thPathButton != null : "fx:id=\"thButton\" was not injected.";
+        assert thPath != null : "fx:id=\"thPath\" was not injected.";
         assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
         assert neuralPath != null : "fx:id=\"neuralPath\" was not injected.";
         assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
@@ -1020,6 +1033,15 @@ public class MainController implements Initializable {
     }
 
     private void setupButtonListeners() {
+        log.log(Level.FINER, "Setting TH listener.");
+        EventStreams.eventsOf(thPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
+            log.log(Level.FINER, "Showing th file chooser.");
+            fileChooser.setTitle(bundle.getString("thPathChooser"));
+            File thPath = fileChooser.showOpenDialog(stage);
+            log.log(Level.FINE, "th file chosen: {0}", thPath);
+            setThPath(thPath);
+        });
+
         log.log(Level.FINER, "Setting Neural Path listener.");
         EventStreams.eventsOf(neuralPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing neural-style folder chooser.");

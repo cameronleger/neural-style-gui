@@ -50,6 +50,26 @@
                   <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
                </padding>
             </HBox>
+            <HBox>
+               <children>
+                  <Button fx:id="thPathButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%thPathButton">
+                      <tooltip>
+                          <Tooltip maxWidth="300.0" text="%thPathTooltip" wrapText="true" />
+                      </tooltip>
+                  </Button>
+                  <TextField fx:id="thPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%thPathHint" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets left="4.0" />
+                     </HBox.margin>
+                      <tooltip>
+                          <Tooltip maxWidth="300.0" text="%thPathTooltip" wrapText="true" />
+                      </tooltip>
+                  </TextField>
+               </children>
+               <padding>
+                  <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+               </padding>
+            </HBox>
             <HBox alignment="CENTER">
                <children>
                   <Button fx:id="saveStyleButton" mnemonicParsing="false" text="%saveStyleButton" />

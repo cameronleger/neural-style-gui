@@ -104,6 +104,8 @@ public class NvidiaService extends Service<Integer> {
 
                     exitCode = p.waitFor();
                     log.log(Level.FINER, String.format("nvidia-smi process exit code: %s", exitCode));
+                } catch (IOException e) {
+                    // No NVIDIA SMI tools, oh well
                 } catch (Exception e) {
                     log.log(Level.SEVERE, e.toString(), e);
                 }

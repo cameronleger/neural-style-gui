@@ -42,7 +42,7 @@ Unzip the release to a folder of your choice (or build from source and check the
 8. Press Start!
 
 # Usage
-After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application.
+After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application. If you're getting a File Not Found exception for the 'th' command because it's not properly in your PATH, you can set the path to 'th' below the Neural Style path.
 
 The Chaining section of the Settings Pane allows you to quickly run multiple Neural Style commands that feed into each other with the previous result. A few settings that are commonly changed in this method are available. First, pick how many times to run the network. Then, the ratios determine those settings' values for each run. Basically, the current settings will apply to the final image in the chain, and for each result before the final image the values are multiplied by the ratio. For example, with a 0.5 Size Ratio over 3 runs for a final result of 1200px, the runs will start at 300px before going to 600px and finally 1200px. This can allow you to make higher quality and larger images than with a single run with single settings, and sometimes faster because less iterations are typically used with this.
 
@@ -65,6 +65,9 @@ In the Output Tab and next to the Image is the Output Queue Tree. Any started pr
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
 # Changelog
+### 1.2.1
+* Fixed an issue where 'nvidia-smi' was not available
+* New optional path to set 'th' in case it cannot be found
 ### 1.2.0
 * Support for recent neural-style features:
   * Initialization Image
