@@ -9,8 +9,8 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 
 # Requirements
 * [Neural-Style](https://github.com/jcjohnson/neural-style)
-* Java 8
-* JavaFX 8 (included with Oracle, separate package for OpenJDK)
+* Java 13
+* JavaFX 13 (included with Oracle, separate package for OpenJDK)
 
 # Features
 * All Neural Style settings are supported, and most are grouped in a settings pane
@@ -65,6 +65,8 @@ In the Output Tab and next to the Image is the Output Queue Tree. Any started pr
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
 # Changelog
+### 1.3.0
+* JDK 13
 ### 1.2.1
 * Fixed an issue where 'nvidia-smi' was not available
 * New optional path to set 'th' in case it cannot be found

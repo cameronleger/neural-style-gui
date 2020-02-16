@@ -1,3 +1,6 @@
 workspace.xml
 tasks.xml
 target/*
+.attach_pid*
+/lastStyle.json
+neural-style-gui-*.zip
