@@ -6,8 +6,8 @@ import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
-import com.cameronleger.neuralstylegui.model.NamedSelection;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
+import com.cameronleger.neuralstylegui.model.properties.NeuralBoolean;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
@@ -64,9 +64,9 @@ public class MainController implements Initializable {
 
     private ObservableList<NeuralImage> styleImages;
     private ObservableList<NeuralImage> contentImages;
-    private ObservableList<NamedSelection> gpuIndices;
-    private ObservableList<NamedSelection> styleLayers;
-    private ObservableList<NamedSelection> contentLayers;
+    private ObservableList<NeuralBoolean> gpuIndices;
+    private ObservableList<NeuralBoolean> styleLayers;
+    private ObservableList<NeuralBoolean> contentLayers;
     private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(createQueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
@@ -124,22 +124,22 @@ public class MainController implements Initializable {
     @FXML
     private Button styleLayerRemove;
     @FXML
-    private TableView<NamedSelection> styleLayersTable;
+    private TableView<NeuralBoolean> styleLayersTable;
     @FXML
-    private TableColumn<NamedSelection, Boolean> styleLayersTableSelected;
+    private TableColumn<NeuralBoolean, Boolean> styleLayersTableSelected;
     @FXML
-    private TableColumn<NamedSelection, String> styleLayersTableName;
+    private TableColumn<NeuralBoolean, String> styleLayersTableName;
 
     @FXML
     private Button contentLayerAdd;
     @FXML
     private Button contentLayerRemove;
     @FXML
-    private TableView<NamedSelection> contentLayersTable;
+    private TableView<NeuralBoolean> contentLayersTable;
     @FXML
-    private TableColumn<NamedSelection, Boolean> contentLayersTableSelected;
+    private TableColumn<NeuralBoolean, Boolean> contentLayersTableSelected;
     @FXML
-    private TableColumn<NamedSelection, String> contentLayersTableName;
+    private TableColumn<NeuralBoolean, String> contentLayersTableName;
 
     @FXML
     private ProgressBar vramBar;
@@ -197,11 +197,11 @@ public class MainController implements Initializable {
     @FXML
     private CheckBox cpuMode;
     @FXML
-    private TableView<NamedSelection> gpuTable;
+    private TableView<NeuralBoolean> gpuTable;
     @FXML
-    private TableColumn<NamedSelection, Boolean> gpuTableSelected;
+    private TableColumn<NeuralBoolean, Boolean> gpuTableSelected;
     @FXML
-    private TableColumn<NamedSelection, String> gpuTableIndex;
+    private TableColumn<NeuralBoolean, String> gpuTableIndex;
     @FXML
     private TextField multiGpuSplit;
     @FXML
@@ -448,7 +448,7 @@ public class MainController implements Initializable {
             }
         } else {
             protoFilePath.setText("");
-            setDefaultNamedSelections();
+            setDefaultNeuralBooleans();
         }
     }
 
@@ -476,85 +476,85 @@ public class MainController implements Initializable {
         }
     }
 
-    private void setDefaultNamedSelections() {
+    private void setDefaultNeuralBooleans() {
         gpuIndices.setAll(
-                new NamedSelection("0", true),
-                new NamedSelection("1", false),
-                new NamedSelection("2", false),
-                new NamedSelection("3", false),
-                new NamedSelection("4", false),
-                new NamedSelection("5", false),
-                new NamedSelection("6", false),
-                new NamedSelection("7", false),
-                new NamedSelection("8", false),
-                new NamedSelection("9", false)
+                new NeuralBoolean("0", true),
+                new NeuralBoolean("1", false),
+                new NeuralBoolean("2", false),
+                new NeuralBoolean("3", false),
+                new NeuralBoolean("4", false),
+                new NeuralBoolean("5", false),
+                new NeuralBoolean("6", false),
+                new NeuralBoolean("7", false),
+                new NeuralBoolean("8", false),
+                new NeuralBoolean("9", false)
         );
         styleLayers.setAll(
-                new NamedSelection("relu1_1", true),
-                new NamedSelection("relu1_2", false),
-                new NamedSelection("relu2_1", true),
-                new NamedSelection("relu2_2", false),
-                new NamedSelection("relu3_1", true),
-                new NamedSelection("relu3_2", false),
-                new NamedSelection("relu3_3", false),
-                new NamedSelection("relu3_4", false),
-                new NamedSelection("relu4_1", true),
-                new NamedSelection("relu4_2", false),
-                new NamedSelection("relu4_3", false),
-                new NamedSelection("relu4_4", false),
-                new NamedSelection("relu5_1", true),
-                new NamedSelection("relu5_2", false),
-                new NamedSelection("relu5_3", false),
-                new NamedSelection("relu5_4", false),
-                new NamedSelection("relu6", false),
-                new NamedSelection("relu7", false)
+                new NeuralBoolean("relu1_1", true),
+                new NeuralBoolean("relu1_2", false),
+                new NeuralBoolean("relu2_1", true),
+                new NeuralBoolean("relu2_2", false),
+                new NeuralBoolean("relu3_1", true),
+                new NeuralBoolean("relu3_2", false),
+                new NeuralBoolean("relu3_3", false),
+                new NeuralBoolean("relu3_4", false),
+                new NeuralBoolean("relu4_1", true),
+                new NeuralBoolean("relu4_2", false),
+                new NeuralBoolean("relu4_3", false),
+                new NeuralBoolean("relu4_4", false),
+                new NeuralBoolean("relu5_1", true),
+                new NeuralBoolean("relu5_2", false),
+                new NeuralBoolean("relu5_3", false),
+                new NeuralBoolean("relu5_4", false),
+                new NeuralBoolean("relu6", false),
+                new NeuralBoolean("relu7", false)
         );
         contentLayers.setAll(
-                new NamedSelection("relu1_1", false),
-                new NamedSelection("relu1_2", false),
-                new NamedSelection("relu2_1", false),
-                new NamedSelection("relu2_2", false),
-                new NamedSelection("relu3_1", false),
-                new NamedSelection("relu3_2", false),
-                new NamedSelection("relu3_3", false),
-                new NamedSelection("relu3_4", false),
-                new NamedSelection("relu4_1", false),
-                new NamedSelection("relu4_2", true),
-                new NamedSelection("relu4_3", false),
-                new NamedSelection("relu4_4", false),
-                new NamedSelection("relu5_1", false),
-                new NamedSelection("relu5_2", false),
-                new NamedSelection("relu5_3", false),
-                new NamedSelection("relu5_4", false),
-                new NamedSelection("relu6", false),
-                new NamedSelection("relu7", false)
+                new NeuralBoolean("relu1_1", false),
+                new NeuralBoolean("relu1_2", false),
+                new NeuralBoolean("relu2_1", false),
+                new NeuralBoolean("relu2_2", false),
+                new NeuralBoolean("relu3_1", false),
+                new NeuralBoolean("relu3_2", false),
+                new NeuralBoolean("relu3_3", false),
+                new NeuralBoolean("relu3_4", false),
+                new NeuralBoolean("relu4_1", false),
+                new NeuralBoolean("relu4_2", true),
+                new NeuralBoolean("relu4_3", false),
+                new NeuralBoolean("relu4_4", false),
+                new NeuralBoolean("relu5_1", false),
+                new NeuralBoolean("relu5_2", false),
+                new NeuralBoolean("relu5_3", false),
+                new NeuralBoolean("relu5_4", false),
+                new NeuralBoolean("relu6", false),
+                new NeuralBoolean("relu7", false)
         );
     }
 
     private void updateLayers(String[] layers) {
-        List<NamedSelection> newStyleLayers = new ArrayList<>();
-        List<NamedSelection> newContentLayers = new ArrayList<>();
+        List<NeuralBoolean> newStyleLayers = new ArrayList<>();
+        List<NeuralBoolean> newContentLayers = new ArrayList<>();
         for (String layer : layers) {
-            newStyleLayers.add(new NamedSelection(layer, false));
-            newContentLayers.add(new NamedSelection(layer, false));
+            newStyleLayers.add(new NeuralBoolean(layer, false));
+            newContentLayers.add(new NeuralBoolean(layer, false));
         }
         styleLayers.setAll(newStyleLayers);
         contentLayers.setAll(newContentLayers);
     }
 
-    private void updateNamedSelections(String[] selectedNames, ObservableList<NamedSelection> existingNames) {
-        // ensure all NamedSelections are deselected
-        List<NamedSelection> newSelectedNamed = existingNames.stream()
-                .map(namedSelection -> new NamedSelection(namedSelection.getName(), false))
+    private void updateNeuralBooleans(String[] selectedNames, ObservableList<NeuralBoolean> existingNames) {
+        // ensure all NeuralBooleans are deselected
+        List<NeuralBoolean> newSelectedNamed = existingNames.stream()
+                .map(namedSelection -> new NeuralBoolean(namedSelection.getName(), false))
                 .collect(Collectors.toList());
 
         if (selectedNames != null && selectedNames.length > 0) {
-            // select NamedSelections
+            // select NeuralBooleans
             for (String selectedName : selectedNames) {
                 boolean existed = false;
-                for (NamedSelection namedSelection : newSelectedNamed) {
+                for (NeuralBoolean namedSelection : newSelectedNamed) {
                     if (namedSelection.getName().equalsIgnoreCase(selectedName)) {
-                        namedSelection.setSelected(true);
+                        namedSelection.setValue(true);
                         existed = true;
                         break;
                     }
@@ -562,7 +562,7 @@ public class MainController implements Initializable {
 
                 // create new name for selection if necessary
                 if (!existed) {
-                    newSelectedNamed.add(new NamedSelection(selectedName, true));
+                    newSelectedNamed.add(new NeuralBoolean(selectedName, true));
                 }
             }
 
@@ -838,9 +838,9 @@ public class MainController implements Initializable {
         setInitImageFile(neuralStyle.getInitImage());
 
         // Set selected layers after updating layers from paths
-        updateNamedSelections(selectedGpuIndices, this.gpuIndices);
-        updateNamedSelections(selectedStyleLayers, this.styleLayers);
-        updateNamedSelections(selectedContentLayers, this.contentLayers);
+        updateNeuralBooleans(selectedGpuIndices, this.gpuIndices);
+        updateNeuralBooleans(selectedStyleLayers, this.styleLayers);
+        updateNeuralBooleans(selectedContentLayers, this.contentLayers);
 
         // Set simple inputs
         maxIterSlider.setValue(neuralStyle.getIterations());
@@ -1023,13 +1023,13 @@ public class MainController implements Initializable {
         contentImages = FXCollections.observableArrayList(neuralImage ->
                 new Observable[] {neuralImage.selectedProperty()});
         gpuIndices = FXCollections.observableArrayList(gpuIndex ->
-                new Observable[] {gpuIndex.selectedProperty()});
+                new Observable[] {gpuIndex.valueProperty()});
         styleLayers = FXCollections.observableArrayList(neuralLayer ->
-                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
+                new Observable[] {neuralLayer.valueProperty(), neuralLayer.nameProperty()});
         contentLayers = FXCollections.observableArrayList(neuralLayer ->
-                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
+                new Observable[] {neuralLayer.valueProperty(), neuralLayer.nameProperty()});
 
-        setDefaultNamedSelections();
+        setDefaultNeuralBooleans();
     }
 
     private void setupButtonListeners() {
@@ -1227,7 +1227,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Style Layer Add listener.");
         EventStreams.eventsOf(styleLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> styleLayers.add(new NamedSelection("newLayer", false)));
+                actionEvent -> styleLayers.add(new NeuralBoolean("newLayer", false)));
 
         log.log(Level.FINER, "Setting Style Layer Remove listener.");
         EventStreams.eventsOf(styleLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1235,7 +1235,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Content Layer Add listener.");
         EventStreams.eventsOf(contentLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> contentLayers.add(new NamedSelection("newLayer", false)));
+                actionEvent -> contentLayers.add(new NeuralBoolean("newLayer", false)));
 
         log.log(Level.FINER, "Setting Content Layer Remove listener.");
         EventStreams.eventsOf(contentLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1665,8 +1665,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(gpuIndices).subscribe(change -> {
             log.log(Level.FINE, "gpuIndices changed");
 
-            List<NamedSelection> selectedGpuIndices = gpuIndices.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedGpuIndices = gpuIndices.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newGpuIndices = new String[selectedGpuIndices.size()];
@@ -1679,14 +1679,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting GPU index table shortcut listener");
         EventStreams.eventsOf(gpuTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedGpuIndices =
+            ObservableList<NeuralBoolean> selectedGpuIndices =
                     gpuTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection gpuIndex : selectedGpuIndices)
-                gpuIndex.setSelected(!gpuIndex.isSelected());
+            for (NeuralBoolean gpuIndex : selectedGpuIndices)
+                gpuIndex.setValue(!gpuIndex.getValue());
         });
 
         log.log(Level.FINER, "Setting GPU index table column factories.");
-        gpuTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        gpuTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         gpuTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(gpuTableSelected));
 
         gpuTableIndex.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1701,8 +1701,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(styleLayers).subscribe(change -> {
             log.log(Level.FINE, "styleLayers changed");
 
-            List<NamedSelection> selectedStyleLayers = styleLayers.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedStyleLayers = styleLayers.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newStyleLayers = new String[selectedStyleLayers.size()];
@@ -1715,14 +1715,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         EventStreams.eventsOf(styleLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedStyleLayers =
+            ObservableList<NeuralBoolean> selectedStyleLayers =
                     styleLayersTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection neuralLayer : selectedStyleLayers)
-                neuralLayer.setSelected(!neuralLayer.isSelected());
+            for (NeuralBoolean neuralLayer : selectedStyleLayers)
+                neuralLayer.setValue(!neuralLayer.getValue());
         });
 
         log.log(Level.FINER, "Setting style layer table column factories.");
-        styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         styleLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleLayersTableSelected));
 
         styleLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1738,8 +1738,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(contentLayers).subscribe(change -> {
             log.log(Level.FINE, "contentLayers changed");
 
-            List<NamedSelection> selectedContentLayers = contentLayers.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedContentLayers = contentLayers.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newContentLayers = new String[selectedContentLayers.size()];
@@ -1752,14 +1752,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         EventStreams.eventsOf(contentLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedStyleLayers =
+            ObservableList<NeuralBoolean> selectedStyleLayers =
                     contentLayersTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection neuralLayer : selectedStyleLayers)
-                neuralLayer.setSelected(!neuralLayer.isSelected());
+            for (NeuralBoolean neuralLayer : selectedStyleLayers)
+                neuralLayer.setValue(!neuralLayer.getValue());
         });
 
         log.log(Level.FINER, "Setting content layer table column factories.");
-        contentLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        contentLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         contentLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(contentLayersTableSelected));
 
         contentLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
