@@ -1,6 +1,7 @@
 package com.cameronleger.neuralstylegui.model;
 
 import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstylegui.model.properties.NeuralChoice;
 import com.cameronleger.neuralstylegui.model.properties.NeuralDouble;
 import com.cameronleger.neuralstylegui.model.properties.NeuralInt;
 
@@ -15,6 +16,7 @@ public class NeuralStyleWrapper {
     private NeuralInt seed = new NeuralInt("seed", "Seed", -1);
     private NeuralInt contentWeight = new NeuralInt("contentWeight", "Content Weight", 5);
     private NeuralInt styleWeight = new NeuralInt("styleWeight", "Style Weight", 100);
+    private NeuralChoice init = new NeuralChoice("init", "Initialize", "random", new String[]{"image", "random"});
 
     public NeuralStyleWrapper() {
 
@@ -60,5 +62,9 @@ public class NeuralStyleWrapper {
 
     public NeuralInt getStyleWeight() {
         return styleWeight;
+    }
+
+    public NeuralChoice getInit() {
+        return init;
     }
 }

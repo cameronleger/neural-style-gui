@@ -2,6 +2,7 @@ package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstylegui.component.ChoiceView;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.component.NeuralImageCellController;
 import com.cameronleger.neuralstylegui.component.NumberView;
@@ -171,6 +172,8 @@ public class MainController {
     private NumberView weightContent;
     @FXML
     private NumberView weightStyle;
+    @FXML
+    private ChoiceView init;
 
     @FXML
     private Slider printIterSlider;
@@ -1287,6 +1290,7 @@ public class MainController {
         seed.linkToInt(neuralStyleV2.getSeed());
         weightContent.linkToInt(neuralStyleV2.getContentWeight());
         weightStyle.linkToInt(neuralStyleV2.getStyleWeight());
+        init.link(neuralStyleV2.getInit());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
