@@ -2,10 +2,8 @@ package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
-import com.cameronleger.neuralstylegui.component.ChoiceView;
+import com.cameronleger.neuralstylegui.component.*;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
-import com.cameronleger.neuralstylegui.component.NeuralImageCellController;
-import com.cameronleger.neuralstylegui.component.NumberView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
@@ -174,6 +172,12 @@ public class MainController {
     private NumberView weightStyle;
     @FXML
     private ChoiceView init;
+    @FXML
+    private FileView initImage;
+    @FXML
+    private CheckboxView originalColors;
+    @FXML
+    private CheckboxView normalizeGradients;
 
     @FXML
     private Slider printIterSlider;
@@ -221,9 +225,9 @@ public class MainController {
     @FXML
     private ChoiceBox<String> poolingChoice;
     @FXML
-    private CheckBox originalColors;
+    private CheckBox originalColorsOld;
     @FXML
-    private CheckBox normalizeGradients;
+    private CheckBox normalizeGradientsOld;
 
     @FXML
     private CheckBox cpuMode;
@@ -884,10 +888,10 @@ public class MainController {
         contentWeightSlider.setValue(neuralStyle.getContentWeight());
         styleWeightSlider.setValue(neuralStyle.getStyleWeight());
         tvWeightSlider.setValue(neuralStyle.getTvWeight());
-        originalColors.setSelected(neuralStyle.isOriginalColors());
+        originalColorsOld.setSelected(neuralStyle.isOriginalColors());
         initChoice.setValue(neuralStyle.getInit());
         poolingChoice.setValue(neuralStyle.getPooling());
-        normalizeGradients.setSelected(neuralStyle.isNormalizeGradients());
+        normalizeGradientsOld.setSelected(neuralStyle.isNormalizeGradients());
         cpuMode.setSelected(neuralStyle.isCpu());
         multiGpuSplit.setText(neuralStyle.getMultiGpuStrategy());
         backendChoice.setValue(neuralStyle.getBackend());
@@ -1008,8 +1012,8 @@ public class MainController {
         assert initImageButton != null : "fx:id=\"initImageButton\" was not injected.";
         assert initImagePath != null : "fx:id=\"initImagePath\" was not injected.";
         assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
-        assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
-        assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
+        assert originalColorsOld != null : "fx:id=\"originalColors\" was not injected.";
+        assert normalizeGradientsOld != null : "fx:id=\"normalizeGradients\" was not injected.";
         assert cpuMode != null : "fx:id=\"cpuMode\" was not injected.";
         assert gpuTable != null : "fx:id=\"gpuTable\" was not injected.";
         assert gpuTableSelected != null : "fx:id=\"gpuTableSelected\" was not injected.";
@@ -1292,6 +1296,15 @@ public class MainController {
         weightStyle.linkToInt(neuralStyleV2.getStyleWeight());
         init.link(neuralStyleV2.getInit());
 
+        initImage.link(neuralStyleV2.getInitImage());
+        EventStreams.valuesOf(neuralStyleV2.getInit().valueProperty()).subscribe(init -> {
+            boolean notInitImage = !"image".equalsIgnoreCase(init);
+            initImage.setDisable(notInitImage);
+        });
+
+        originalColors.link(neuralStyleV2.getOriginalColors());
+        normalizeGradients.link(neuralStyleV2.getNormalizeGradients());
+
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(printIterField.textProperty()).subscribe(numberChange ->
@@ -1350,11 +1363,11 @@ public class MainController {
                 neuralStyle.setPooling(stringChange));
 
         // original colors checkbox updates the style
-        EventStreams.valuesOf(originalColors.selectedProperty()).subscribe(booleanChange ->
+        EventStreams.valuesOf(originalColorsOld.selectedProperty()).subscribe(booleanChange ->
                 neuralStyle.setOriginalColors(booleanChange));
 
         // normalize gradients checkbox updates the style
-        EventStreams.valuesOf(normalizeGradients.selectedProperty()).subscribe(booleanChange ->
+        EventStreams.valuesOf(normalizeGradientsOld.selectedProperty()).subscribe(booleanChange ->
                 neuralStyle.setNormalizeGradients(booleanChange));
 
         // CPU checkbox updates the style and toggles GPU

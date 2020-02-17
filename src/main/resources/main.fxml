@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.cameronleger.neuralstylegui.component.CheckboxView?>
 <?import com.cameronleger.neuralstylegui.component.ChoiceView?>
+<?import com.cameronleger.neuralstylegui.component.FileView?>
 <?import com.cameronleger.neuralstylegui.component.NumberView?>
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
@@ -208,12 +210,12 @@
                                               <Tooltip maxWidth="300.0" text="%initImageTooltip" wrapText="true" />
                                           </tooltip>
                                       </TextField>
-                                      <CheckBox fx:id="originalColors" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10">
+                                      <CheckBox fx:id="originalColorsOld" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10">
                                           <tooltip>
                                               <Tooltip maxWidth="300.0" text="%originalColorsTooltip" wrapText="true" />
                                           </tooltip>
                                       </CheckBox>
-                                      <CheckBox fx:id="normalizeGradients" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="11">
+                                      <CheckBox fx:id="normalizeGradientsOld" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="11">
                                           <tooltip>
                                               <Tooltip maxWidth="300.0" text="%normalizeGradientsTooltip" wrapText="true" />
                                           </tooltip>
@@ -489,7 +491,10 @@
                               </Label>
                               <NumberView fx:id="weightContent" layoutX="14.0" layoutY="122.0" max="50.0" maxWidth="1.7976931348623157E308" min="0" step="5.0" tooltip="%weightContentTooltip" />
                               <NumberView fx:id="weightStyle" layoutX="14.0" layoutY="176.0" max="1000.0" maxWidth="1.7976931348623157E308" min="0" step="100.0" tooltip="%weightStyleTooltip" />
-                              <ChoiceView fx:id="init" maxWidth="1.7976931348623157E308" tooltip="\%initTooltip" />
+                              <ChoiceView fx:id="init" maxWidth="1.7976931348623157E308" tooltip="%initTooltip" />
+                              <FileView fx:id="initImage" maxWidth="1.7976931348623157E308" title="%initImageHint" tooltip="%initImageTooltip" />
+                              <CheckboxView fx:id="originalColors" maxWidth="1.7976931348623157E308" tooltip="%originalColorsTooltip" />
+                              <CheckboxView fx:id="normalizeGradients" layoutX="14.0" layoutY="326.0" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
                               </children>
                            <padding>
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -509,6 +514,21 @@
                                   <NumberView fx:id="printIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersPrintTooltip" />
                                   <NumberView fx:id="saveIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersSaveTooltip" />
                               <NumberView fx:id="seed" max="10.0" maxWidth="1.7976931348623157E308" min="-1.0" step="2.0" tooltip="%seedTooltip" />
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
                               </children>
                            <padding>
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
