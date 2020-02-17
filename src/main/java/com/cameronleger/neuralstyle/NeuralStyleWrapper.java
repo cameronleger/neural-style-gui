@@ -1,6 +1,5 @@
-package com.cameronleger.neuralstylegui.model;
+package com.cameronleger.neuralstyle;
 
-import com.cameronleger.neuralstyle.NeuralStyle;
 import com.cameronleger.neuralstylegui.model.properties.*;
 
 public class NeuralStyleWrapper {
@@ -34,8 +33,8 @@ public class NeuralStyleWrapper {
 
     }
 
-    public NeuralStyle getNeuralStyle() {
-        NeuralStyle s = new NeuralStyle();
+    public NeuralStyleV3 getNeuralStyle() {
+        NeuralStyleV3 s = new NeuralStyleV3();
         s.setIterations(iterations.getValue().intValue());
         return s;
     }

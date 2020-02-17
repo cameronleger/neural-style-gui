@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 
-public class NeuralStyle implements Cloneable {
+public class NeuralStyleV2 implements Cloneable {
     public final static int INVALID_ARGUMENTS = -2;
     public final static int INVALID_FILE = -1;
     public final static int QUEUED = 0;
@@ -367,8 +367,8 @@ public class NeuralStyle implements Cloneable {
         return super.clone();
     }
 
-    public List<NeuralStyle> getQueueItems() {
-        List<NeuralStyle> queueItems = new ArrayList<>();
+    public List<NeuralStyleV2> getQueueItems() {
+        List<NeuralStyleV2> queueItems = new ArrayList<>();
 
         // Simple one-run case
         if (getChainLength() == 1)
@@ -382,13 +382,13 @@ public class NeuralStyle implements Cloneable {
             final int iterations = getIterations();
             final double chainIterationRatio = getChainIterationRatio();
             File previousChainOutput = null;
-            NeuralStyle queueItem;
+            NeuralStyleV2 queueItem;
 
             for (int i = 1; i <= getChainLength(); i++) {
                 // This power increases further back in the chain
                 int ratioPower = getChainLength() - i;
                 try {
-                    queueItem = (NeuralStyle) this.clone();
+                    queueItem = (NeuralStyleV2) this.clone();
 
                     // ratioPower is an exponent for the ratio and is finally applied to the original 'final' value
                     queueItem.setOutputSize((int) Math.round(Math.pow(chainSizeRatio, ratioPower) * outputSize));

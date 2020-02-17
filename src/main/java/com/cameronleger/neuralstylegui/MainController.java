@@ -1,13 +1,13 @@
 package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstyle.NeuralStyleV2;
 import com.cameronleger.neuralstylegui.component.*;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
-import com.cameronleger.neuralstylegui.model.NeuralStyleWrapper;
+import com.cameronleger.neuralstyle.NeuralStyleWrapper;
 import com.cameronleger.neuralstylegui.model.properties.NeuralBoolean;
 import com.cameronleger.neuralstylegui.model.properties.NeuralDouble;
 import com.cameronleger.neuralstylegui.model.properties.NeuralInt;
@@ -59,8 +59,8 @@ public class MainController {
     private NvidiaService nvidiaService = new NvidiaService();
     private NeuralService neuralService = new NeuralService();
 
-    private NeuralStyle neuralStyle = new NeuralStyle();
-    private NeuralStyleWrapper neuralStyleV2 = new NeuralStyleWrapper();
+    private NeuralStyleV2 neuralStyleOLD = new NeuralStyleV2();
+    private NeuralStyleWrapper neuralStyleNEW = new NeuralStyleWrapper();
 
     private Timer imageOutputTimer;
     private Timer nvidiaTimer;
@@ -369,7 +369,7 @@ public class MainController {
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
 
         log.log(Level.FINER, "Loading last used style.");
-        NeuralStyle loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
+        NeuralStyleV2 loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
         if (loadedNeuralStyle != null)
             loadStyle(loadedNeuralStyle);
 
@@ -409,14 +409,14 @@ public class MainController {
 
     private void queueStyle() {
         log.log(Level.FINE, "Queueing neural style.");
-        neuralStyle.generateUniqueName();
-        for (NeuralStyle ns : neuralStyle.getQueueItems())
+        neuralStyleOLD.generateUniqueName();
+        for (NeuralStyleV2 ns : neuralStyleOLD.getQueueItems())
             FileUtils.saveOutputStyle(ns);
-        FileUtils.saveLastUsedOutputStyle(neuralStyle);
+        FileUtils.saveLastUsedOutputStyle(neuralStyleOLD);
     }
 
     private void startService() {
-        if (!neuralService.isRunning() && neuralStyle != null) {
+        if (!neuralService.isRunning() && neuralStyleOLD != null) {
             log.log(Level.FINE, "Starting neural service.");
             logTextArea.clear();
             neuralService.reset();
@@ -433,9 +433,9 @@ public class MainController {
     }
 
     private void toggleStyleButtons() {
-        queueButton.setDisable(!neuralStyle.checkArguments());
+        queueButton.setDisable(!neuralStyleOLD.checkArguments());
         startButton.setDisable(neuralService.isRunning());
-        commandButton.setDisable(!neuralStyle.checkArguments());
+        commandButton.setDisable(!neuralStyleOLD.checkArguments());
     }
 
     private void updateImageView() {
@@ -449,7 +449,7 @@ public class MainController {
             thPath.setText("");
         else
             thPath.setText(newThPath.getAbsolutePath());
-        neuralStyle.setThPath(newThPath);
+        neuralStyleOLD.setThPath(newThPath);
     }
 
     private void setNeuralPath(File neuralStylePath) {
@@ -457,11 +457,11 @@ public class MainController {
             neuralPath.setText("");
         else
             neuralPath.setText(neuralStylePath.getAbsolutePath());
-        neuralStyle.setNeuralStylePath(neuralStylePath);
+        neuralStyleOLD.setNeuralStylePath(neuralStylePath);
     }
 
     private void setInitImageFile(File initImageFile) {
-        neuralStyle.setInitImage(initImageFile);
+        neuralStyleOLD.setInitImage(initImageFile);
         if (initImageFile != null) {
             initImagePath.setText(initImageFile.getAbsolutePath());
             File parentFile = initImageFile.getParentFile();
@@ -473,7 +473,7 @@ public class MainController {
     }
 
     private void setModelFile(File modelFile) {
-        neuralStyle.setModelFile(modelFile);
+        neuralStyleOLD.setModelFile(modelFile);
         if (modelFile != null) {
             modelFilePath.setText(modelFile.getAbsolutePath());
             File parentFile = modelFile.getParentFile();
@@ -485,7 +485,7 @@ public class MainController {
     }
 
     private void setProtoFile(File protoFile) {
-        neuralStyle.setProtoFile(protoFile);
+        neuralStyleOLD.setProtoFile(protoFile);
         if (protoFile != null) {
             protoFilePath.setText(protoFile.getAbsolutePath());
             File parentFile = protoFile.getParentFile();
@@ -525,7 +525,7 @@ public class MainController {
     }
 
     private void setOutputFolder(File outputFolder) {
-        neuralStyle.setOutputFolder(outputFolder);
+        neuralStyleOLD.setOutputFolder(outputFolder);
         if (FileUtils.checkFolderExists(outputFolder)) {
             outputPath.setText(outputFolder.getAbsolutePath());
             directoryChooser.setInitialDirectory(outputFolder);
@@ -870,30 +870,30 @@ public class MainController {
         }
     }
 
-    private void loadStyle(NeuralStyle loadedNeuralStyle) {
-        neuralStyle = loadedNeuralStyle;
+    private void loadStyle(NeuralStyleV2 loadedNeuralStyle) {
+        neuralStyleOLD = loadedNeuralStyle;
 
         // Reset the Queued status
-        neuralStyle.setQueueStatus(NeuralStyle.QUEUED);
+        neuralStyleOLD.setQueueStatus(NeuralStyleV2.QUEUED);
 
         // Retrieve these before paths because that will change them
-        File[] selectedStyleImages = neuralStyle.getStyleImages();
-        double[] selectedStyleWeights = neuralStyle.getStyleWeights();
-        File contentImage = neuralStyle.getContentImage();
-        String[] selectedGpuIndices = neuralStyle.getGpu();
-        String[] selectedStyleLayers = neuralStyle.getStyleLayers();
-        String[] selectedContentLayers = neuralStyle.getContentLayers();
+        File[] selectedStyleImages = neuralStyleOLD.getStyleImages();
+        double[] selectedStyleWeights = neuralStyleOLD.getStyleWeights();
+        File contentImage = neuralStyleOLD.getContentImage();
+        String[] selectedGpuIndices = neuralStyleOLD.getGpu();
+        String[] selectedStyleLayers = neuralStyleOLD.getStyleLayers();
+        String[] selectedContentLayers = neuralStyleOLD.getContentLayers();
 
         if (selectedStyleImages != null)
             styleMultipleSelect.setSelected(selectedStyleImages.length != 1);
 
         // Set paths
-        setThPath(neuralStyle.getThPath());
-        setNeuralPath(neuralStyle.getNeuralStylePath());
-        setProtoFile(neuralStyle.getProtoFile());
-        setModelFile(neuralStyle.getModelFile());
-        setOutputFolder(neuralStyle.getOutputFolder());
-        setInitImageFile(neuralStyle.getInitImage());
+        setThPath(neuralStyleOLD.getThPath());
+        setNeuralPath(neuralStyleOLD.getNeuralStylePath());
+        setProtoFile(neuralStyleOLD.getProtoFile());
+        setModelFile(neuralStyleOLD.getModelFile());
+        setOutputFolder(neuralStyleOLD.getOutputFolder());
+        setInitImageFile(neuralStyleOLD.getInitImage());
 
         // Set selected layers after updating layers from paths
         updateNeuralBooleans(selectedGpuIndices, this.gpuIndices);
@@ -901,29 +901,29 @@ public class MainController {
         updateNeuralBooleans(selectedContentLayers, this.contentLayers);
 
         // Set simple inputs
-        maxIterSlider.setValue(neuralStyle.getIterations());
-        printIterSlider.setValue(neuralStyle.getIterationsPrint());
-        saveIterSlider.setValue(neuralStyle.getIterationsSave());
-        seedSlider.setValue(neuralStyle.getSeed());
-        outputSizeSlider.setValue(neuralStyle.getOutputSize());
-        styleSizeSlider.setValue(neuralStyle.getStyleSize());
-        contentWeightSlider.setValue(neuralStyle.getContentWeight());
-        styleWeightSlider.setValue(neuralStyle.getStyleWeight());
-        tvWeightSlider.setValue(neuralStyle.getTvWeight());
-        originalColorsOld.setSelected(neuralStyle.isOriginalColors());
-        initChoice.setValue(neuralStyle.getInit());
-        poolingChoice.setValue(neuralStyle.getPooling());
-        normalizeGradientsOld.setSelected(neuralStyle.isNormalizeGradients());
-        cpuMode.setSelected(neuralStyle.isCpu());
-        multiGpuSplit.setText(neuralStyle.getMultiGpuStrategy());
-        backendChoice.setValue(neuralStyle.getBackend());
-        optimizerChoice.setValue(neuralStyle.getOptimizer());
-        nCorrectionSlider.setValue(neuralStyle.getNCorrection());
-        learningRateSlider.setValue(neuralStyle.getLearningRate());
-        autotuneOld.setSelected(neuralStyle.isAutotune());
-        chainLengthSlider.setValue(neuralStyle.getChainLength());
-        chainIterationRatioSlider.setValue(neuralStyle.getChainIterationRatio());
-        chainSizeRatioSlider.setValue(neuralStyle.getChainSizeRatio());
+        maxIterSlider.setValue(neuralStyleOLD.getIterations());
+        printIterSlider.setValue(neuralStyleOLD.getIterationsPrint());
+        saveIterSlider.setValue(neuralStyleOLD.getIterationsSave());
+        seedSlider.setValue(neuralStyleOLD.getSeed());
+        outputSizeSlider.setValue(neuralStyleOLD.getOutputSize());
+        styleSizeSlider.setValue(neuralStyleOLD.getStyleSize());
+        contentWeightSlider.setValue(neuralStyleOLD.getContentWeight());
+        styleWeightSlider.setValue(neuralStyleOLD.getStyleWeight());
+        tvWeightSlider.setValue(neuralStyleOLD.getTvWeight());
+        originalColorsOld.setSelected(neuralStyleOLD.isOriginalColors());
+        initChoice.setValue(neuralStyleOLD.getInit());
+        poolingChoice.setValue(neuralStyleOLD.getPooling());
+        normalizeGradientsOld.setSelected(neuralStyleOLD.isNormalizeGradients());
+        cpuMode.setSelected(neuralStyleOLD.isCpu());
+        multiGpuSplit.setText(neuralStyleOLD.getMultiGpuStrategy());
+        backendChoice.setValue(neuralStyleOLD.getBackend());
+        optimizerChoice.setValue(neuralStyleOLD.getOptimizer());
+        nCorrectionSlider.setValue(neuralStyleOLD.getNCorrection());
+        learningRateSlider.setValue(neuralStyleOLD.getLearningRate());
+        autotuneOld.setSelected(neuralStyleOLD.isAutotune());
+        chainLengthSlider.setValue(neuralStyleOLD.getChainLength());
+        chainIterationRatioSlider.setValue(neuralStyleOLD.getChainIterationRatio());
+        chainSizeRatioSlider.setValue(neuralStyleOLD.getChainSizeRatio());
 
         // Set input folders and image selections last
         if (selectedStyleImages != null && selectedStyleImages.length > 0) {
@@ -943,7 +943,7 @@ public class MainController {
 
             case NeuralQueue.QUEUED_STYLE:
                 queueItem.setActionCallback(() -> {
-                    NeuralStyle loadedStyle = FileUtils.loadStyle(file);
+                    NeuralStyleV2 loadedStyle = FileUtils.loadStyle(file);
                     if (loadedStyle == null)
                         showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
                     else {
@@ -1119,7 +1119,7 @@ public class MainController {
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
                 fileChooser.setInitialDirectory(styleFile.getParentFile());
-                File savedStyle = FileUtils.saveOutputStyle(neuralStyle, styleFile);
+                File savedStyle = FileUtils.saveOutputStyle(neuralStyleOLD, styleFile);
                 if (savedStyle == null)
                     showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleFailed"));
                 else
@@ -1135,7 +1135,7 @@ public class MainController {
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
                 fileChooser.setInitialDirectory(styleFile.getParentFile());
-                NeuralStyle loadedStyle = FileUtils.loadStyle(styleFile);
+                NeuralStyleV2 loadedStyle = FileUtils.loadStyle(styleFile);
                 if (loadedStyle == null)
                     showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
                 else {
@@ -1184,7 +1184,7 @@ public class MainController {
             log.log(Level.FINE, "Output Image button hit, checking images.");
 
             // Check for generated image iterations to show
-            File outputFolder = neuralStyle.getOutputFolder();
+            File outputFolder = neuralStyleOLD.getOutputFolder();
 
             if (outputFolder == null) {
                 showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoOutputFolder"));
@@ -1230,9 +1230,9 @@ public class MainController {
         log.log(Level.FINER, "Setting Command listener.");
         EventStreams.eventsOf(commandButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Command button hit.");
-            if (neuralStyle.checkArguments()) {
-                neuralStyle.generateUniqueName();
-                String[] command = neuralStyle.buildCommand();
+            if (neuralStyleOLD.checkArguments()) {
+                neuralStyleOLD.generateUniqueName();
+                String[] command = neuralStyleOLD.buildCommand();
                 StringBuilder builder = new StringBuilder();
                 for (String commandPart : command) {
                     if (commandPart.contains(" "))
@@ -1307,114 +1307,114 @@ public class MainController {
         StringConverter<Number> intConverter = NeuralInt.INT_CONVERTER;
         StringConverter<Number> doubleConverter = NeuralDouble.DOUBLE_CONVERTER;
 
-        chainLength.linkToInt(neuralStyleV2.getChainLength());
-        maxIter.linkToInt(neuralStyleV2.getIterations());
-        printIter.linkToInt(neuralStyleV2.getIterationsPrint());
-        saveIter.linkToInt(neuralStyleV2.getIterationsSave());
-        sizeOutput.linkToInt(neuralStyleV2.getOutputSize());
-        sizeStyle.linkToDouble(neuralStyleV2.getStyleSize());
-        seed.linkToInt(neuralStyleV2.getSeed());
-        weightContent.linkToInt(neuralStyleV2.getContentWeight());
-        weightStyle.linkToInt(neuralStyleV2.getStyleWeight());
-        init.link(neuralStyleV2.getInit());
+        chainLength.linkToInt(neuralStyleNEW.getChainLength());
+        maxIter.linkToInt(neuralStyleNEW.getIterations());
+        printIter.linkToInt(neuralStyleNEW.getIterationsPrint());
+        saveIter.linkToInt(neuralStyleNEW.getIterationsSave());
+        sizeOutput.linkToInt(neuralStyleNEW.getOutputSize());
+        sizeStyle.linkToDouble(neuralStyleNEW.getStyleSize());
+        seed.linkToInt(neuralStyleNEW.getSeed());
+        weightContent.linkToInt(neuralStyleNEW.getContentWeight());
+        weightStyle.linkToInt(neuralStyleNEW.getStyleWeight());
+        init.link(neuralStyleNEW.getInit());
 
-        initImage.link(neuralStyleV2.getInitImage());
-        EventStreams.valuesOf(neuralStyleV2.getInit().valueProperty()).subscribe(init -> {
+        initImage.link(neuralStyleNEW.getInitImage());
+        EventStreams.valuesOf(neuralStyleNEW.getInit().valueProperty()).subscribe(init -> {
             boolean notInitImage = !"image".equalsIgnoreCase(init);
             initImage.setDisable(notInitImage);
         });
 
-        originalColors.link(neuralStyleV2.getOriginalColors());
-        normalizeGradients.link(neuralStyleV2.getNormalizeGradients());
-        tvWeight.linkToDouble(neuralStyleV2.getTvWeight());
-        pooling.link(neuralStyleV2.getPooling());
+        originalColors.link(neuralStyleNEW.getOriginalColors());
+        normalizeGradients.link(neuralStyleNEW.getNormalizeGradients());
+        tvWeight.linkToDouble(neuralStyleNEW.getTvWeight());
+        pooling.link(neuralStyleNEW.getPooling());
 
-        cpu.link(neuralStyleV2.getCpu());
-        multiGpuStrategy.link(neuralStyleV2.getMultiGpuStrategy());
-        EventStreams.valuesOf(neuralStyleV2.getCpu().valueProperty()).subscribe(useCpu -> {
+        cpu.link(neuralStyleNEW.getCpu());
+        multiGpuStrategy.link(neuralStyleNEW.getMultiGpuStrategy());
+        EventStreams.valuesOf(neuralStyleNEW.getCpu().valueProperty()).subscribe(useCpu -> {
             gpuTable.setDisable(useCpu);
             multiGpuStrategy.setDisable(useCpu);
         });
 
-        backend.link(neuralStyleV2.getBackend());
+        backend.link(neuralStyleNEW.getBackend());
 
-        autotune.link(neuralStyleV2.getAutotune());
-        EventStreams.valuesOf(neuralStyleV2.getBackend().valueProperty()).subscribe(backend -> {
+        autotune.link(neuralStyleNEW.getAutotune());
+        EventStreams.valuesOf(neuralStyleNEW.getBackend().valueProperty()).subscribe(backend -> {
             if ("cudnn".equalsIgnoreCase(backend)) {
                 autotune.setDisable(false);
             } else {
                 autotune.setDisable(true);
-                neuralStyleV2.getAutotune().setValue(false);
+                neuralStyleNEW.getAutotune().setValue(false);
             }
         });
 
-        optimizer.link(neuralStyleV2.getOptimizer());
-        nCorrection.linkToDouble(neuralStyleV2.getnCorrection());
-        learningRate.linkToDouble(neuralStyleV2.getLearningRate());
+        optimizer.link(neuralStyleNEW.getOptimizer());
+        nCorrection.linkToDouble(neuralStyleNEW.getnCorrection());
+        learningRate.linkToDouble(neuralStyleNEW.getLearningRate());
 
-        EventStreams.valuesOf(neuralStyleV2.getOptimizer().valueProperty()).subscribe(optimizer -> {
+        EventStreams.valuesOf(neuralStyleNEW.getOptimizer().valueProperty()).subscribe(optimizer -> {
             if ("adam".equalsIgnoreCase(optimizer)) {
                 nCorrection.setDisable(true);
                 learningRate.setDisable(false);
-                neuralStyleV2.getnCorrection().reset();
+                neuralStyleNEW.getnCorrection().reset();
             } else {
                 nCorrection.setDisable(false);
                 learningRate.setDisable(true);
-                neuralStyleV2.getLearningRate().reset();
+                neuralStyleNEW.getLearningRate().reset();
             }
         });
 
-        protoFile.link(neuralStyleV2.getProtoFile());
-        modelFile.link(neuralStyleV2.getModelFile());
+        protoFile.link(neuralStyleNEW.getProtoFile());
+        modelFile.link(neuralStyleNEW.getModelFile());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(printIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterationsPrint(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setIterationsPrint(intConverter.fromString(numberChange).intValue()));
 
         // keep save slider and text field synced and the slider updates the style
         saveIterField.textProperty().bindBidirectional(saveIterSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(saveIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterationsSave(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setIterationsSave(intConverter.fromString(numberChange).intValue()));
 
         // keep max slider and text field synced and the slider updates the style
         maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(maxIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterations(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setIterations(intConverter.fromString(numberChange).intValue()));
 
         // keep seed slider and text field synced and the slider updates the style
         seedField.textProperty().bindBidirectional(seedSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(seedField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setSeed(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setSeed(intConverter.fromString(numberChange).intValue()));
 
         // keep output size slider and text field synced and the slider updates the style
         outputSizeField.textProperty().bindBidirectional(outputSizeSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(outputSizeField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setOutputSize(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setOutputSize(intConverter.fromString(numberChange).intValue()));
 
         // keep style size slider and text field synced and the slider updates the style
         styleSizeField.textProperty().bindBidirectional(styleSizeSlider.valueProperty(), doubleConverter);
         EventStreams.valuesOf(styleSizeField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setStyleSize(doubleConverter.fromString(numberChange).doubleValue()));
+                neuralStyleOLD.setStyleSize(doubleConverter.fromString(numberChange).doubleValue()));
 
         // keep output weight slider and text field synced and the slider updates the style
         contentWeightField.textProperty().bindBidirectional(contentWeightSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(contentWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setContentWeight(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setContentWeight(intConverter.fromString(numberChange).intValue()));
 
         // keep style weight slider and text field synced and the slider updates the style
         styleWeightField.textProperty().bindBidirectional(styleWeightSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(styleWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setStyleWeight(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setStyleWeight(intConverter.fromString(numberChange).intValue()));
 
         // keep TV weight slider and text field synced and the slider updates the style
         tvWeightField.textProperty().bindBidirectional(tvWeightSlider.valueProperty(), doubleConverter);
         EventStreams.valuesOf(tvWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setTvWeight(doubleConverter.fromString(numberChange).doubleValue()));
+                neuralStyleOLD.setTvWeight(doubleConverter.fromString(numberChange).doubleValue()));
 
         // init choicebox updates the style and toggles init path
         EventStreams.valuesOf(initChoice.valueProperty()).subscribe(init -> {
-            neuralStyle.setInit(init);
+            neuralStyleOLD.setInit(init);
             boolean notInitImage = !init.equalsIgnoreCase("image");
             initImageButton.setDisable(notInitImage);
             initImagePath.setDisable(notInitImage);
@@ -1422,30 +1422,30 @@ public class MainController {
 
         // pooling choicebox updates the style
         EventStreams.valuesOf(poolingChoice.valueProperty()).subscribe(stringChange ->
-                neuralStyle.setPooling(stringChange));
+                neuralStyleOLD.setPooling(stringChange));
 
         // original colors checkbox updates the style
         EventStreams.valuesOf(originalColorsOld.selectedProperty()).subscribe(booleanChange ->
-                neuralStyle.setOriginalColors(booleanChange));
+                neuralStyleOLD.setOriginalColors(booleanChange));
 
         // normalize gradients checkbox updates the style
         EventStreams.valuesOf(normalizeGradientsOld.selectedProperty()).subscribe(booleanChange ->
-                neuralStyle.setNormalizeGradients(booleanChange));
+                neuralStyleOLD.setNormalizeGradients(booleanChange));
 
         // CPU checkbox updates the style and toggles GPU
         EventStreams.valuesOf(cpuMode.selectedProperty()).subscribe(useCpu -> {
-            neuralStyle.setCpu(useCpu);
+            neuralStyleOLD.setCpu(useCpu);
             gpuTable.setDisable(useCpu);
             multiGpuSplit.setDisable(useCpu);
         });
 
         // Multi-GPU updates the style
         EventStreams.valuesOf(multiGpuSplit.textProperty()).subscribe(stringChange ->
-                neuralStyle.setMultiGpuStrategy(stringChange));
+                neuralStyleOLD.setMultiGpuStrategy(stringChange));
 
         // backend choicebox updates the style and toggles autotune
         EventStreams.valuesOf(backendChoice.valueProperty()).subscribe(backend -> {
-            neuralStyle.setBackend(backend);
+            neuralStyleOLD.setBackend(backend);
             if (backend.equalsIgnoreCase("cudnn")) {
                 autotuneOld.setDisable(false);
             } else {
@@ -1456,7 +1456,7 @@ public class MainController {
 
         // optimizer choicebox updates the style and toggles learning rate
         EventStreams.valuesOf(optimizerChoice.valueProperty()).subscribe(optimizer -> {
-            neuralStyle.setOptimizer(optimizer);
+            neuralStyleOLD.setOptimizer(optimizer);
             if (optimizer.equalsIgnoreCase("adam")) {
                 nCorrectionSlider.setDisable(true);
                 nCorrectionField.setDisable(true);
@@ -1475,22 +1475,22 @@ public class MainController {
         // keep nCorrection slider and text field synced and the slider updates the style
         nCorrectionField.textProperty().bindBidirectional(nCorrectionSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(nCorrectionField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setNCorrection(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setNCorrection(intConverter.fromString(numberChange).intValue()));
 
         // keep learning rate slider and text field synced and the slider updates the style
         learningRateField.textProperty().bindBidirectional(learningRateSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(learningRateField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setLearningRate(intConverter.fromString(numberChange).intValue()));
+                neuralStyleOLD.setLearningRate(intConverter.fromString(numberChange).intValue()));
 
         // autotune checkbox updates the style
         EventStreams.valuesOf(autotuneOld.selectedProperty())
-                .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange));
+                .subscribe(booleanChange -> neuralStyleOLD.setAutotune(booleanChange));
 
         // keep chain length slider and text field synced and the slider updates the style, some values toggle chain fields
         chainLengthField.textProperty().bindBidirectional(chainLengthSlider.valueProperty(), intConverter);
         EventStreams.valuesOf(chainLengthField.textProperty()).subscribe(numberChange -> {
             int chainLength = intConverter.fromString(numberChange).intValue();
-            neuralStyle.setChainLength(chainLength);
+            neuralStyleOLD.setChainLength(chainLength);
             if (chainLength <= 1) {
                 chainIterationRatioField.setDisable(true);
                 chainIterationRatioSlider.setDisable(true);
@@ -1507,12 +1507,12 @@ public class MainController {
         // keep chain iteration ratio slider and text field synced and the slider updates the style
         chainIterationRatioField.textProperty().bindBidirectional(chainIterationRatioSlider.valueProperty(), doubleConverter);
         EventStreams.valuesOf(chainIterationRatioField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setChainIterationRatio(doubleConverter.fromString(numberChange).doubleValue()));
+                neuralStyleOLD.setChainIterationRatio(doubleConverter.fromString(numberChange).doubleValue()));
 
         // keep chain size ratio slider and text field synced and the slider updates the style
         chainSizeRatioField.textProperty().bindBidirectional(chainSizeRatioSlider.valueProperty(), doubleConverter);
         EventStreams.valuesOf(chainSizeRatioField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setChainSizeRatio(doubleConverter.fromString(numberChange).doubleValue()));
+                neuralStyleOLD.setChainSizeRatio(doubleConverter.fromString(numberChange).doubleValue()));
     }
 
     private void setupServiceListeners() {
@@ -1661,8 +1661,8 @@ public class MainController {
                 neuralFiles[i] = neuralImage.getImageFile();
                 neuralFilesWeights[i] = neuralImage.getWeight();
             }
-            neuralStyle.setStyleImages(neuralFiles);
-            neuralStyle.setStyleWeights(neuralFilesWeights);
+            neuralStyleOLD.setStyleImages(neuralFiles);
+            neuralStyleOLD.setStyleWeights(neuralFilesWeights);
 
             toggleStyleButtons();
         });
@@ -1715,9 +1715,9 @@ public class MainController {
                 .subscribe(newSelection -> {
                     log.log(Level.FINE, "Content image changed: " + newSelection);
                     if (newSelection == null)
-                        neuralStyle.setContentImage(null);
+                        neuralStyleOLD.setContentImage(null);
                     else
-                        neuralStyle.setContentImage(newSelection.getImageFile());
+                        neuralStyleOLD.setContentImage(newSelection.getImageFile());
                     toggleStyleButtons();
                 });
 
@@ -1764,7 +1764,7 @@ public class MainController {
             String[] newGpuIndices = new String[selectedGpuIndices.size()];
             for (int i = 0; i < selectedGpuIndices.size(); i++)
                 newGpuIndices[i] = selectedGpuIndices.get(i).getName();
-            neuralStyle.setGpu(newGpuIndices);
+            neuralStyleOLD.setGpu(newGpuIndices);
 
             toggleStyleButtons();
         });
@@ -1800,7 +1800,7 @@ public class MainController {
             String[] newStyleLayers = new String[selectedStyleLayers.size()];
             for (int i = 0; i < selectedStyleLayers.size(); i++)
                 newStyleLayers[i] = selectedStyleLayers.get(i).getName();
-            neuralStyle.setStyleLayers(newStyleLayers);
+            neuralStyleOLD.setStyleLayers(newStyleLayers);
 
             toggleStyleButtons();
         });
@@ -1837,7 +1837,7 @@ public class MainController {
             String[] newContentLayers = new String[selectedContentLayers.size()];
             for (int i = 0; i < selectedContentLayers.size(); i++)
                 newContentLayers[i] = selectedContentLayers.get(i).getName();
-            neuralStyle.setContentLayers(newContentLayers);
+            neuralStyleOLD.setContentLayers(newContentLayers);
 
             toggleStyleButtons();
         });
@@ -1936,7 +1936,7 @@ public class MainController {
                                         final MenuItem cancelMenuItem =
                                                 new MenuItem(bundle.getString("neuralQueueItemCancel"));
                                         cancelMenuItem.setOnAction(event ->
-                                                queueItem.changeStatus(NeuralStyle.CANCELLED));
+                                                queueItem.changeStatus(NeuralStyleV2.CANCELLED));
 
                                         cellMenu.getItems().addAll(cancelMenuItem);
                                         setContextMenu(cellMenu);

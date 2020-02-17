@@ -112,7 +112,7 @@ public class FileUtils {
         return new File(".", LAST_STYLE_JSON);
     }
 
-    public static File saveOutputStyle(NeuralStyle neuralStyle) {
+    public static File saveOutputStyle(NeuralStyleV2 neuralStyle) {
         File tempOutputDir = FileUtils.getTempDir();
         if (tempOutputDir == null) {
             log.log(Level.FINE, "Unable to open file in temporary folder to save output style.");
@@ -123,7 +123,7 @@ public class FileUtils {
         return saveOutputStyle(neuralStyle, tempOutputStyle);
     }
 
-    public static File saveLastUsedOutputStyle(NeuralStyle neuralStyle) {
+    public static File saveLastUsedOutputStyle(NeuralStyleV2 neuralStyle) {
         File lastUsedOutputStyle = new File(".", LAST_STYLE_JSON);
         if (lastUsedOutputStyle.exists() && !lastUsedOutputStyle.canWrite()) {
             log.log(Level.FINE, "Unable to open file to save output style.");
@@ -132,7 +132,7 @@ public class FileUtils {
         return saveOutputStyle(neuralStyle, lastUsedOutputStyle);
     }
 
-    public static File saveOutputStyle(NeuralStyle neuralStyle, File outputFile) {
+    public static File saveOutputStyle(NeuralStyleV2 neuralStyle, File outputFile) {
         try (FileWriter file = new FileWriter(outputFile)) {
             file.write(gson.toJson(neuralStyle));
             log.log(Level.FINE, "Output style saved: " + outputFile.getAbsolutePath());
@@ -144,7 +144,7 @@ public class FileUtils {
         }
     }
 
-    private static NeuralStyle loadStyleV1(File styleFile) {
+    private static NeuralStyleV2 loadStyleV1(File styleFile) {
         final FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(styleFile);
@@ -158,7 +158,7 @@ public class FileUtils {
         }
     }
 
-    public static NeuralStyle loadStyle(File styleFile) {
+    public static NeuralStyleV2 loadStyle(File styleFile) {
         if (!FileUtils.checkFileExists(styleFile)) {
             log.log(Level.FINE, "Cannot load a missing file.");
             return null;
@@ -167,7 +167,7 @@ public class FileUtils {
         try {
             fileStream = new FileInputStream(styleFile);
             final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
-            return gson.fromJson(reader, NeuralStyle.class);
+            return gson.fromJson(reader, NeuralStyleV2.class);
         } catch(JsonSyntaxException e) {
             log.log(Level.FINE, "Exception loading input style, trying another version.");
             log.log(Level.SEVERE, e.toString(), e);
