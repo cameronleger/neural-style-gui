@@ -43,7 +43,6 @@ public class NumberView extends HBox {
     private String tooltip = "";
 
     public NumberView() {
-        log.info("NumberView Created");
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/numberView.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -57,7 +56,6 @@ public class NumberView extends HBox {
 
     @FXML
     void initialize() {
-        log.info("NumberView initialized");
         assert label != null : "fx:id=\"label\" was not injected: check your FXML file 'numberView.fxml'.";
         assert slider != null : "fx:id=\"slider\" was not injected: check your FXML file 'numberView.fxml'.";
         assert value != null : "fx:id=\"value\" was not injected: check your FXML file 'numberView.fxml'.";
@@ -66,7 +64,7 @@ public class NumberView extends HBox {
         label.setLabelFor(value);
         ratio.setTooltip(new Tooltip("Ratio for Chaining"));
         resetButton.setTooltip(new Tooltip("Reset to Default"));
-        resetButton.setOnAction(e -> this.onResetButton());
+        resetButton.setOnAction(e -> this.property.reset());
     }
 
     public void linkToInt(NeuralInt property) {
@@ -91,8 +89,13 @@ public class NumberView extends HBox {
         value.textProperty().bindBidirectional(property.valueProperty(), NeuralDouble.DOUBLE_CONVERTER);
     }
 
-    public void onResetButton() {
-        property.reset();
+    public boolean isRatioEnabled() {
+        return !ratio.isDisabled();
+    }
+
+    public void setRatioEnabled(boolean enabled) {
+        ratio.setDisable(!enabled);
+        ratio.setVisible(!enabled);
     }
 
     public double getMin() {
@@ -127,6 +130,7 @@ public class NumberView extends HBox {
         this.tooltip = tooltip;
         Tooltip tt = new Tooltip(tooltip);
         tt.setWrapText(true);
+        tt.setMaxWidth(300);
         label.setTooltip(tt);
         value.setTooltip(tt);
         slider.setTooltip(tt);

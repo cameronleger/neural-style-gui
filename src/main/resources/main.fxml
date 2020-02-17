@@ -467,12 +467,27 @@
                       <content>
                           <VBox>
                               <children>
+                              <NumberView fx:id="chainLength" layoutX="14.0" layoutY="38.0" max="5.0" min="1.0" ratioEnabled="false" step="2.0" tooltip="%chainLengthTooltip" />
                               <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
                                  <font>
                                     <Font name="System Bold" size="13.0" />
                                  </font>
                               </Label>
                                   <NumberView fx:id="maxIter" max="1000" min="100" step="100" tooltip="%itersMaxTooltip" />
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%sizeLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <NumberView fx:id="sizeOutput" max="1500.0" min="0" step="250.0" tooltip="%sizeOutputTooltip" />
+                              <NumberView fx:id="sizeStyle" max="3.0" min="0" step="0.5" tooltip="%sizeStyleTooltip" />
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <NumberView fx:id="weightContent" layoutX="14.0" layoutY="122.0" max="50.0" min="0" step="5.0" tooltip="%weightContentTooltip" />
+                              <NumberView fx:id="weightStyle" layoutX="14.0" layoutY="176.0" max="1000.0" min="0" step="100.0" tooltip="%weightStyleTooltip" />
                               </children>
                            <padding>
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -491,6 +506,7 @@
                               </Label>
                                   <NumberView fx:id="printIter" max="100" min="0" step="20" tooltip="%itersPrintTooltip" />
                                   <NumberView fx:id="saveIter" max="100" min="0" step="20" tooltip="%itersSaveTooltip" />
+                              <NumberView fx:id="seed" max="10.0" min="-1.0" step="2.0" tooltip="%seedTooltip" />
                               </children>
                            <padding>
                               <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />

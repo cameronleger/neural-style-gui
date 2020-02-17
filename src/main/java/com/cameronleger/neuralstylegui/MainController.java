@@ -154,11 +154,23 @@ public class MainController {
     private ProgressBar vramBar;
 
     @FXML
+    private NumberView chainLength;
+    @FXML
     private NumberView maxIter;
     @FXML
     private NumberView printIter;
     @FXML
     private NumberView saveIter;
+    @FXML
+    private NumberView sizeOutput;
+    @FXML
+    private NumberView sizeStyle;
+    @FXML
+    private NumberView seed;
+    @FXML
+    private NumberView weightContent;
+    @FXML
+    private NumberView weightStyle;
 
     @FXML
     private Slider printIterSlider;
@@ -1266,9 +1278,15 @@ public class MainController {
         StringConverter<Number> intConverter = NeuralInt.INT_CONVERTER;
         StringConverter<Number> doubleConverter = NeuralDouble.DOUBLE_CONVERTER;
 
+        chainLength.linkToInt(neuralStyleV2.getChainLength());
         maxIter.linkToInt(neuralStyleV2.getIterations());
         printIter.linkToInt(neuralStyleV2.getIterationsPrint());
         saveIter.linkToInt(neuralStyleV2.getIterationsSave());
+        sizeOutput.linkToInt(neuralStyleV2.getOutputSize());
+        sizeStyle.linkToDouble(neuralStyleV2.getStyleSize());
+        seed.linkToInt(neuralStyleV2.getSeed());
+        weightContent.linkToInt(neuralStyleV2.getContentWeight());
+        weightStyle.linkToInt(neuralStyleV2.getStyleWeight());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
