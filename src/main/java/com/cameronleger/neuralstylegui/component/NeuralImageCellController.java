@@ -1,4 +1,4 @@
-package com.cameronleger.neuralstylegui.helper;
+package com.cameronleger.neuralstylegui.component;
 
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import javafx.fxml.FXML;
@@ -12,13 +12,10 @@ import org.reactfx.EventStreams;
 import org.reactfx.Subscription;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static javafx.application.Platform.exit;
-
-public class NeuralImageCell {
-    private static final Logger log = Logger.getLogger(NeuralImageCell.class.getName());
+public class NeuralImageCellController {
+    private static final Logger log = Logger.getLogger(NeuralImageCellController.class.getName());
     private NeuralImage neuralImage;
     private Subscription weightChanges;
 
@@ -47,22 +44,25 @@ public class NeuralImageCell {
     @FXML
     private TextField weight;
 
-    public NeuralImageCell(boolean editable) {
+    public NeuralImageCellController(boolean editable) {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/neuralImageCell.fxml"));
         fxmlLoader.setController(this);
+
         try {
             fxmlLoader.load();
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.toString(), e);
-            exit();
-            return;
+        } catch (IOException exception) {
+            throw new RuntimeException(exception);
         }
+
+        setEditable(editable);
+    }
+
+    @FXML
+    void initialize() {
         assert gridPane != null : "fx:id=\"gridPane\" was not injected.";
         assert image != null : "fx:id=\"image\" was not injected.";
         assert selected != null : "fx:id=\"selected\" was not injected.";
         assert weight != null : "fx:id=\"weight\" was not injected.";
-
-        setEditable(editable);
     }
 
     public void setNeuralImage(NeuralImage newNeuralImage) {

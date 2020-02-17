@@ -3,7 +3,8 @@ package com.cameronleger.neuralstylegui;
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyle;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
-import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
+import com.cameronleger.neuralstylegui.component.NeuralImageCellController;
+import com.cameronleger.neuralstylegui.component.NumberView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
@@ -17,7 +18,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -47,7 +47,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class MainController implements Initializable {
+public class MainController {
     private static final Logger log = Logger.getLogger(MainController.class.getName());
 
     private Stage stage;
@@ -70,6 +70,11 @@ public class MainController implements Initializable {
     private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(createQueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
+
+    @FXML
+    private URL location;
+    @FXML
+    private ResourceBundle resources;
 
     @FXML
     private Button thPathButton;
@@ -143,6 +148,9 @@ public class MainController implements Initializable {
 
     @FXML
     private ProgressBar vramBar;
+
+    @FXML
+    private NumberView maxIter;
 
     @FXML
     private Slider printIterSlider;
@@ -279,7 +287,8 @@ public class MainController implements Initializable {
     private static FileChooser fileChooser = new FileChooser();
     private static DirectoryChooser directoryChooser = new DirectoryChooser();
 
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    public void initialize() {
         log.log(Level.FINER, "Checking that all FXML items were injected.");
         checkInjections();
 
@@ -920,6 +929,8 @@ public class MainController implements Initializable {
     }
 
     private void checkInjections() {
+        assert maxIter != null : "fx:id=\"maxIter\" was not injected.";
+
         assert thPathButton != null : "fx:id=\"thButton\" was not injected.";
         assert thPath != null : "fx:id=\"thPath\" was not injected.";
         assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
@@ -1590,7 +1601,7 @@ public class MainController implements Initializable {
             @Override
             public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
                 return new ListCell<NeuralImage>() {
-                    NeuralImageCell neuralImageCell = new NeuralImageCell(true);
+                    NeuralImageCellController neuralImageCell = new NeuralImageCellController(true);
 
                     @Override
                     public void updateItem(NeuralImage neuralImage, boolean empty) {
@@ -1634,7 +1645,7 @@ public class MainController implements Initializable {
             @Override
             public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
                 return new ListCell<NeuralImage>() {
-                    NeuralImageCell neuralImageCell = new NeuralImageCell(false);
+                    NeuralImageCellController neuralImageCell = new NeuralImageCellController(false);
 
                     @Override
                     public void updateItem(NeuralImage neuralImage, boolean empty) {
