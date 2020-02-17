@@ -197,6 +197,10 @@ public class MainController {
     @FXML
     private NumberView learningRate;
     @FXML
+    private FileView thFile;
+    @FXML
+    private FileView neuralStyleFile;
+    @FXML
     private FileView protoFile;
     @FXML
     private FileView modelFile;
@@ -1364,6 +1368,8 @@ public class MainController {
             }
         });
 
+        thFile.link(neuralStyleNEW.getThPath());
+        neuralStyleFile.link(neuralStyleNEW.getNeuralStylePath());
         protoFile.link(neuralStyleNEW.getProtoFile());
         modelFile.link(neuralStyleNEW.getModelFile());
 

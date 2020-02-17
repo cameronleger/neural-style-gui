@@ -551,13 +551,6 @@
                                     <ChoiceView fx:id="optimizer" layoutX="14.0" layoutY="426.0" maxWidth="1.7976931348623157E308" tooltip="%optimizerTooltip" />
                                     <NumberView fx:id="nCorrection" layoutX="14.0" layoutY="152.0" maxWidth="1.7976931348623157E308" min="-1.0" step="10.0" tooltip="%nCorrectionTooltip" />
                                     <NumberView fx:id="learningRate" layoutX="14.0" layoutY="540.0" max="15.0" maxWidth="1.7976931348623157E308" step="3.0" tooltip="%learningRateTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                    <FileView fx:id="protoFile" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
-                                    <FileView fx:id="modelFile" layoutX="14.0" layoutY="600.0" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
                                     </children>
                                  <padding>
                                     <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -566,6 +559,25 @@
                            </content>
                         </ScrollPane>
                       </content>
+                  </Tab>
+                  <Tab text="FILES v2">
+                    <content>
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
+                           <content>
+                              <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                 <children>
+                                    <FileView fx:id="thFile" layoutX="14.0" layoutY="14.0" maxWidth="1.7976931348623157E308" title="%thPathHint" tooltip="%thPathHint" />
+                                    <FileView fx:id="neuralStyleFile" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
+                                    <FileView fx:id="protoFile" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
+                                    <FileView fx:id="modelFile" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </padding>
+                              </VBox>
+                           </content>
+                        </ScrollPane>
+                    </content>
                   </Tab>
               </tabs>
             </TabPane>

@@ -6,6 +6,9 @@ import java.io.File;
 
 public class NeuralStyleWrapper {
 
+    private NeuralString thPath = new NeuralString("thPath", "th", "");
+    private NeuralString neuralStylePath = new NeuralString("neuralStylePath", "Neural Style", "");
+
     private NeuralInt chainLength = new NeuralInt("chainLength", "Chaining", 1);
     private NeuralInt iterations = new NeuralInt("iterations", "Iterations", 1000);
     private NeuralInt iterationsPrint = new NeuralInt("iterationsPrint", "Progress Update", 20);
@@ -38,8 +41,8 @@ public class NeuralStyleWrapper {
     public NeuralStyleV3 getNeuralStyle() {
         NeuralStyleV3 s = new NeuralStyleV3();
 //        s.setQueueStatus();
-//        s.setThPath();
-//        s.setNeuralStylePath();
+        s.setThPath(new File(thPath.getValue()));
+        s.setNeuralStylePath(new File(neuralStylePath.getValue()));
 //        s.setStyleImages();
 //        s.setStyleWeights();
 //        s.setContentImage();
@@ -84,6 +87,14 @@ public class NeuralStyleWrapper {
         s.setLearningRate(learningRate.getValue().intValue());
         s.setLearningRateRatio(learningRate.getRatio());
         return s;
+    }
+
+    public NeuralString getThPath() {
+        return thPath;
+    }
+
+    public NeuralString getNeuralStylePath() {
+        return neuralStylePath;
     }
 
     public NeuralInt getChainLength() {
