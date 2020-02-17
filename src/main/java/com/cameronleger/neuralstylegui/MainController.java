@@ -8,7 +8,10 @@ import com.cameronleger.neuralstylegui.component.NumberView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
+import com.cameronleger.neuralstylegui.model.NeuralStyleWrapper;
 import com.cameronleger.neuralstylegui.model.properties.NeuralBoolean;
+import com.cameronleger.neuralstylegui.model.properties.NeuralDouble;
+import com.cameronleger.neuralstylegui.model.properties.NeuralInt;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
@@ -58,6 +61,7 @@ public class MainController {
     private NeuralService neuralService = new NeuralService();
 
     private NeuralStyle neuralStyle = new NeuralStyle();
+    private NeuralStyleWrapper neuralStyleV2 = new NeuralStyleWrapper();
 
     private Timer imageOutputTimer;
     private Timer nvidiaTimer;
@@ -151,6 +155,10 @@ public class MainController {
 
     @FXML
     private NumberView maxIter;
+    @FXML
+    private NumberView printIter;
+    @FXML
+    private NumberView saveIter;
 
     @FXML
     private Slider printIterSlider;
@@ -1255,36 +1263,12 @@ public class MainController {
 
     private void setupFieldListeners() {
         // useful to keep sliders synced to text fields
-        StringConverter<Number> intConverter = new StringConverter<Number>() {
-            @Override
-            public String toString(Number t) {
-                return String.valueOf(t.intValue());
-            }
+        StringConverter<Number> intConverter = NeuralInt.INT_CONVERTER;
+        StringConverter<Number> doubleConverter = NeuralDouble.DOUBLE_CONVERTER;
 
-            @Override
-            public Number fromString(String string) {
-                try {
-                    return Integer.parseInt(string);
-                } catch (Exception e) {
-                    return 0;
-                }
-            }
-        };
-        StringConverter<Number> doubleConverter = new StringConverter<Number>() {
-            @Override
-            public String toString(Number t) {
-                return String.valueOf(t.doubleValue());
-            }
-
-            @Override
-            public Number fromString(String string) {
-                try {
-                    return Double.parseDouble(string);
-                } catch (Exception e) {
-                    return 0;
-                }
-            }
-        };
+        maxIter.linkToInt(neuralStyleV2.getIterations());
+        printIter.linkToInt(neuralStyleV2.getIterationsPrint());
+        saveIter.linkToInt(neuralStyleV2.getIterationsSave());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);

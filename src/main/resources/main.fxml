@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.cameronleger.neuralstylegui.component.NumberView?>
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
@@ -33,7 +34,7 @@
 
 <SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
-      <VBox maxWidth="400.0" minWidth="280.0">
+      <VBox maxWidth="480.0" minWidth="430.0">
          <children>
             <HBox>
                <children>
@@ -462,6 +463,41 @@
                         </ScrollPane>
                      </content>
                 </Tab>
+                  <Tab text="SIMPLE V2">
+                      <content>
+                          <VBox>
+                              <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                                  <NumberView fx:id="maxIter" max="1000" min="100" step="100" tooltip="%itersMaxTooltip" />
+                              </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                          </VBox>
+                      </content>
+                  </Tab>
+                  <Tab text="ADVANCED V2">
+                      <content>
+                          <VBox>
+                              <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                                  <NumberView fx:id="printIter" max="100" min="0" step="20" tooltip="%itersPrintTooltip" />
+                                  <NumberView fx:id="saveIter" max="100" min="0" step="20" tooltip="%itersSaveTooltip" />
+                              </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                          </VBox>
+                      </content>
+                  </Tab>
               </tabs>
             </TabPane>
          </children>
