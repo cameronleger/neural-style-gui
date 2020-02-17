@@ -4,6 +4,7 @@
 <?import com.cameronleger.neuralstylegui.component.ChoiceView?>
 <?import com.cameronleger.neuralstylegui.component.FileView?>
 <?import com.cameronleger.neuralstylegui.component.NumberView?>
+<?import com.cameronleger.neuralstylegui.component.TextView?>
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
@@ -37,7 +38,7 @@
 
 <SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="430.0">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="420.0">
          <children>
             <HBox>
                <children>
@@ -378,18 +379,6 @@
                                          </tooltip>
                                      </CheckBox>
                                      <Label text="%gpuLabel" GridPane.rowIndex="9" />
-                                     <TableView fx:id="gpuTable" editable="true" maxHeight="100.0" minHeight="100.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="9">
-                                         <columns>
-                                             <TableColumn fx:id="gpuTableSelected" maxWidth="150.0" minWidth="70.0" prefWidth="-1.0" text="%gpuColumnSelected" />
-                                             <TableColumn fx:id="gpuTableIndex" prefWidth="75.0" text="%gpuColumnIndex" />
-                                         </columns>
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%gpuTooltip" wrapText="true" />
-                                         </tooltip>
-                                         <columnResizePolicy>
-                                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                                         </columnResizePolicy>
-                                     </TableView>
                                      <Label text="%multiGpuSplitLabel" GridPane.rowIndex="10" />
                                      <TextField fx:id="multiGpuSplit" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="10">
                                          <tooltip>
@@ -468,72 +457,97 @@
                 </Tab>
                   <Tab text="SIMPLE V2">
                       <content>
-                          <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                              <children>
-                              <NumberView fx:id="chainLength" layoutX="14.0" layoutY="38.0" max="5.0" maxWidth="1.7976931348623157E308" min="1.0" ratioEnabled="false" step="2.0" tooltip="%chainLengthTooltip" />
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                                  <NumberView fx:id="maxIter" max="1000" maxWidth="1.7976931348623157E308" min="100" step="100" tooltip="%itersMaxTooltip" />
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%sizeLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                              <NumberView fx:id="sizeOutput" max="1500.0" maxWidth="1.7976931348623157E308" min="0" step="250.0" tooltip="%sizeOutputTooltip" />
-                              <NumberView fx:id="sizeStyle" max="3.0" maxWidth="1.7976931348623157E308" min="0" step="0.5" tooltip="%sizeStyleTooltip" />
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                              <NumberView fx:id="weightContent" layoutX="14.0" layoutY="122.0" max="50.0" maxWidth="1.7976931348623157E308" min="0" step="5.0" tooltip="%weightContentTooltip" />
-                              <NumberView fx:id="weightStyle" layoutX="14.0" layoutY="176.0" max="1000.0" maxWidth="1.7976931348623157E308" min="0" step="100.0" tooltip="%weightStyleTooltip" />
-                              <ChoiceView fx:id="init" maxWidth="1.7976931348623157E308" tooltip="%initTooltip" />
-                              <FileView fx:id="initImage" maxWidth="1.7976931348623157E308" title="%initImageHint" tooltip="%initImageTooltip" />
-                              <CheckboxView fx:id="originalColors" maxWidth="1.7976931348623157E308" tooltip="%originalColorsTooltip" />
-                              <CheckboxView fx:id="normalizeGradients" layoutX="14.0" layoutY="326.0" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
-                              </children>
-                           <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </padding>
-                          </VBox>
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
+                           <content>
+                                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                    <children>
+                                    <NumberView fx:id="chainLength" layoutX="14.0" layoutY="38.0" max="5.0" maxWidth="1.7976931348623157E308" min="1.0" ratioEnabled="false" step="2.0" tooltip="%chainLengthTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                        <NumberView fx:id="maxIter" max="1000" maxWidth="1.7976931348623157E308" min="100" step="100" tooltip="%itersMaxTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%sizeLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                    <NumberView fx:id="sizeOutput" max="1500.0" maxWidth="1.7976931348623157E308" min="0" step="250.0" tooltip="%sizeOutputTooltip" />
+                                    <NumberView fx:id="sizeStyle" max="3.0" maxWidth="1.7976931348623157E308" min="0" step="0.5" tooltip="%sizeStyleTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                    <NumberView fx:id="weightContent" layoutX="14.0" layoutY="122.0" max="50.0" maxWidth="1.7976931348623157E308" min="0" step="5.0" tooltip="%weightContentTooltip" />
+                                    <NumberView fx:id="weightStyle" layoutX="14.0" layoutY="176.0" max="1000.0" maxWidth="1.7976931348623157E308" min="0" step="100.0" tooltip="%weightStyleTooltip" />
+                                    <ChoiceView fx:id="init" maxWidth="1.7976931348623157E308" tooltip="%initTooltip" />
+                                    <FileView fx:id="initImage" maxWidth="1.7976931348623157E308" title="%initImageHint" tooltip="%initImageTooltip" />
+                                    <CheckboxView fx:id="originalColors" maxWidth="1.7976931348623157E308" tooltip="%originalColorsTooltip" />
+                                    </children>
+                                 <padding>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </padding>
+                                </VBox>
+                           </content>
+                        </ScrollPane>
                       </content>
                   </Tab>
                   <Tab text="ADVANCED V2">
                       <content>
-                          <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                              <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                                  <NumberView fx:id="printIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersPrintTooltip" />
-                                  <NumberView fx:id="saveIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersSaveTooltip" />
-                              <NumberView fx:id="seed" max="10.0" maxWidth="1.7976931348623157E308" min="-1.0" step="2.0" tooltip="%seedTooltip" />
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER">
-                                 <font>
-                                    <Font name="System Bold" size="13.0" />
-                                 </font>
-                              </Label>
-                              </children>
-                           <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </padding>
-                          </VBox>
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
+                           <content>
+                                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                    <children>
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                        <NumberView fx:id="printIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersPrintTooltip" />
+                                        <NumberView fx:id="saveIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersSaveTooltip" />
+                                    <NumberView fx:id="seed" max="10.0" maxWidth="1.7976931348623157E308" min="-1.0" step="2.0" tooltip="%seedTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                    <NumberView fx:id="tvWeight" layoutX="14.0" layoutY="98.0" max="0.1" maxWidth="1.7976931348623157E308" step="0.01" tooltip="%weightTvTooltip" />
+                                    <ChoiceView fx:id="pooling" maxWidth="1.7976931348623157E308" tooltip="%poolingTooltip" />
+                                    <CheckboxView fx:id="normalizeGradients" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                    <CheckboxView fx:id="cpu" layoutX="14.0" layoutY="212.0" maxWidth="1.7976931348623157E308" tooltip="%cpuTooltip" />
+                                     <TableView fx:id="gpuTable" editable="true" maxHeight="100.0" minHeight="100.0">
+                                         <columns>
+                                             <TableColumn fx:id="gpuTableSelected" maxWidth="150.0" minWidth="70.0" prefWidth="-1.0" text="%gpuColumnSelected" />
+                                             <TableColumn fx:id="gpuTableIndex" prefWidth="75.0" text="%gpuColumnIndex" />
+                                         </columns>
+                                         <tooltip>
+                                             <Tooltip maxWidth="300.0" text="%gpuTooltip" wrapText="true" />
+                                         </tooltip>
+                                         <columnResizePolicy>
+                                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                         </columnResizePolicy>
+                                     </TableView>
+                                    <TextView fx:id="multiGpuStrategy" maxWidth="1.7976931348623157E308" tooltip="%multiGpuSplitTooltip" />
+                                    <ChoiceView fx:id="backend" layoutX="14.0" layoutY="182.0" maxWidth="1.7976931348623157E308" tooltip="%backendTooltip" />
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                    </children>
+                                 <padding>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </padding>
+                                </VBox>
+                           </content>
+                        </ScrollPane>
                       </content>
                   </Tab>
               </tabs>

@@ -3,6 +3,8 @@ package com.cameronleger.neuralstylegui.model.properties;
 import javafx.beans.property.*;
 import javafx.util.StringConverter;
 
+import java.text.DecimalFormat;
+
 public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio {
 
     private DoubleProperty value;
@@ -58,9 +60,11 @@ public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio 
     }
 
     public static StringConverter<Number> DOUBLE_CONVERTER = new StringConverter<Number>() {
+        DecimalFormat format = new DecimalFormat("#.#####");
+
         @Override
         public String toString(Number t) {
-            return String.valueOf(t.doubleValue());
+            return format.format(t);
         }
 
         @Override

@@ -178,6 +178,16 @@ public class MainController {
     private CheckboxView originalColors;
     @FXML
     private CheckboxView normalizeGradients;
+    @FXML
+    private NumberView tvWeight;
+    @FXML
+    private ChoiceView pooling;
+    @FXML
+    private CheckboxView cpu;
+    @FXML
+    private TextView multiGpuStrategy;
+    @FXML
+    private ChoiceView backend;
 
     @FXML
     private Slider printIterSlider;
@@ -1018,7 +1028,7 @@ public class MainController {
         assert gpuTable != null : "fx:id=\"gpuTable\" was not injected.";
         assert gpuTableSelected != null : "fx:id=\"gpuTableSelected\" was not injected.";
         assert gpuTableIndex != null : "fx:id=\"gpuTableIndex\" was not injected.";
-        assert multiGpuSplit != null : "fx:id=\"multiGpuSplit\" was not injected.";
+        assert multiGpuSplit != null : "fx:id=\"multiGpuSplitOld\" was not injected.";
         assert backendChoice != null : "fx:id=\"backendChoice\" was not injected.";
         assert optimizerChoice != null : "fx:id=\"optimizerChoice\" was not injected.";
         assert nCorrectionSlider != null : "fx:id=\"nCorrectionSlider\" was not injected.";
@@ -1304,6 +1314,11 @@ public class MainController {
 
         originalColors.link(neuralStyleV2.getOriginalColors());
         normalizeGradients.link(neuralStyleV2.getNormalizeGradients());
+        tvWeight.linkToDouble(neuralStyleV2.getTvWeight());
+        pooling.link(neuralStyleV2.getPooling());
+        cpu.link(neuralStyleV2.getCpu());
+        multiGpuStrategy.link(neuralStyleV2.getMultiGpuStrategy());
+        backend.link(neuralStyleV2.getBackend());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);

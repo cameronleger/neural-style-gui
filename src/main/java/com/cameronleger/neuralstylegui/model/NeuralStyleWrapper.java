@@ -18,6 +18,11 @@ public class NeuralStyleWrapper {
     private NeuralString initImage = new NeuralString("initImage", "Init. Image", "");
     private NeuralBoolean originalColors = new NeuralBoolean("originalColors", "Original Colors", false);
     private NeuralBoolean normalizeGradients = new NeuralBoolean("normalizeGradients", "Normalize Gradients", true);
+    private NeuralDouble tvWeight = new NeuralDouble("tvWeight", "TV Weight", 0.001);
+    private NeuralChoice pooling = new NeuralChoice("pooling", "Pooling", "max", new String[]{"max", "avg"});
+    private NeuralBoolean cpu = new NeuralBoolean("cpu", "CPU", false);
+    private NeuralString multiGpuStrategy = new NeuralString("multiGpuStrategy", "Multi GPU Split");
+    private NeuralChoice backend = new NeuralChoice("backend", "Backend", "nn", new String[]{"nn", "cudnn", "clnn"});
 
     public NeuralStyleWrapper() {
 
@@ -79,5 +84,25 @@ public class NeuralStyleWrapper {
 
     public NeuralBoolean getNormalizeGradients() {
         return normalizeGradients;
+    }
+
+    public NeuralDouble getTvWeight() {
+        return tvWeight;
+    }
+
+    public NeuralChoice getPooling() {
+        return pooling;
+    }
+
+    public NeuralBoolean getCpu() {
+        return cpu;
+    }
+
+    public NeuralString getMultiGpuStrategy() {
+        return multiGpuStrategy;
+    }
+
+    public NeuralChoice getBackend() {
+        return backend;
     }
 }
