@@ -2,6 +2,7 @@
 
 <?import com.cameronleger.neuralstylegui.component.CheckboxView?>
 <?import com.cameronleger.neuralstylegui.component.ChoiceView?>
+<?import com.cameronleger.neuralstylegui.component.DirectoryView?>
 <?import com.cameronleger.neuralstylegui.component.FileView?>
 <?import com.cameronleger.neuralstylegui.component.NumberView?>
 <?import com.cameronleger.neuralstylegui.component.TextView?>
@@ -568,8 +569,10 @@
                                  <children>
                                     <FileView fx:id="thFile" layoutX="14.0" layoutY="14.0" maxWidth="1.7976931348623157E308" title="%thPathHint" tooltip="%thPathHint" />
                                     <FileView fx:id="neuralStyleFile" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
-                                    <FileView fx:id="protoFile" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
-                                    <FileView fx:id="modelFile" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
+                                    <FileView fx:id="protoFile" maxWidth="1.7976931348623157E308" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
+                                    <FileView fx:id="modelFile" maxWidth="1.7976931348623157E308" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
+                                    <DirectoryView fx:id="outputFolder" maxWidth="1.7976931348623157E308" />
+                                    <DirectoryView fx:id="workingFolder" layoutX="14.0" layoutY="134.0" maxWidth="1.7976931348623157E308" />
                                  </children>
                                  <padding>
                                     <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />

@@ -2,13 +2,14 @@ package com.cameronleger.neuralstylegui.component;
 
 import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstylegui.model.properties.NeuralString;
-import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
 import org.reactfx.EventStreams;
 
 import java.io.File;
@@ -18,11 +19,11 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class FileView extends HBox {
+public class DirectoryView extends HBox {
 
-    private static final Logger log = Logger.getLogger(FileView.class.getName());
+    private static final Logger log = Logger.getLogger(DirectoryView.class.getName());
 
-    public static FileChooser fileChooser = new FileChooser();
+    public static DirectoryChooser directoryChooser = new DirectoryChooser();
 
     @FXML
     private ResourceBundle resources;
@@ -47,7 +48,7 @@ public class FileView extends HBox {
     private String title = "";
     private String tooltip = "";
 
-    public FileView() {
+    public DirectoryView() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fileView.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -70,15 +71,15 @@ public class FileView extends HBox {
         resetButton.setTooltip(new Tooltip("Reset to Default"));
         resetButton.setOnAction(e -> this.property.reset());
         EventStreams.eventsOf(fileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing file chooser.");
-            fileChooser.setTitle(title);
-            File chosenFile = fileChooser.showOpenDialog(null);
-            log.log(Level.FINE, "file chosen: {0}", chosenFile);
-            if (chosenFile != null) {
-                filePathText.setText(chosenFile.getAbsolutePath());
-                File parentFile = chosenFile.getParentFile();
+            log.log(Level.FINER, "Showing directory chooser.");
+            directoryChooser.setTitle(title);
+            File chosenFolder = directoryChooser.showDialog(null);
+            log.log(Level.FINE, "directory chosen: {0}", chosenFolder);
+            if (chosenFolder != null) {
+                filePathText.setText(chosenFolder.getAbsolutePath());
+                File parentFile = chosenFolder.getParentFile();
                 if (FileUtils.checkFolderExists(parentFile))
-                    fileChooser.setInitialDirectory(parentFile);
+                    directoryChooser.setInitialDirectory(parentFile);
             }
         });
     }

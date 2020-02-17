@@ -30,8 +30,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
@@ -204,6 +202,10 @@ public class MainController {
     private FileView protoFile;
     @FXML
     private FileView modelFile;
+    @FXML
+    private DirectoryView outputFolder;
+    @FXML
+    private DirectoryView workingFolder;
 
     @FXML
     private Slider printIterSlider;
@@ -337,9 +339,6 @@ public class MainController {
     @FXML
     private TextArea logTextArea;
 
-    private static FileChooser fileChooser = new FileChooser();
-    private static DirectoryChooser directoryChooser = new DirectoryChooser();
-
     @FXML
     public void initialize() {
         log.log(Level.FINER, "Checking that all FXML items were injected.");
@@ -470,9 +469,7 @@ public class MainController {
             initImagePath.setText(initImageFile.getAbsolutePath());
             File parentFile = initImageFile.getParentFile();
             if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
-        } else {
-            initImagePath.setText("");
+                FileView.fileChooser.setInitialDirectory(parentFile);
         }
     }
 
@@ -482,9 +479,7 @@ public class MainController {
             modelFilePath.setText(modelFile.getAbsolutePath());
             File parentFile = modelFile.getParentFile();
             if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
-        } else {
-            modelFilePath.setText("");
+                FileView.fileChooser.setInitialDirectory(parentFile);
         }
     }
 
@@ -494,7 +489,7 @@ public class MainController {
             protoFilePath.setText(protoFile.getAbsolutePath());
             File parentFile = protoFile.getParentFile();
             if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
+                FileView.fileChooser.setInitialDirectory(parentFile);
 
             String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
 
@@ -510,31 +505,30 @@ public class MainController {
             }
         } else {
             protoFilePath.setText("");
-            setDefaultNeuralBooleans();
+            setDefaultNeuralBooleans(); // TODO
         }
     }
 
     private void setStyleFolder(File styleFolder) {
         styleFolderPath.setText(styleFolder.getAbsolutePath());
         if (FileUtils.checkFolderExists(styleFolder))
-            directoryChooser.setInitialDirectory(styleFolder);
+            DirectoryView.directoryChooser.setInitialDirectory(styleFolder);
         styleImages.setAll(FileUtils.getImages(styleFolder));
     }
 
     private void setContentFolder(File contentFolder) {
         contentFolderPath.setText(contentFolder.getAbsolutePath());
         if (FileUtils.checkFolderExists(contentFolder))
-            directoryChooser.setInitialDirectory(contentFolder);
+            DirectoryView.directoryChooser.setInitialDirectory(contentFolder);
         contentImages.setAll(FileUtils.getImages(contentFolder));
     }
 
     private void setOutputFolder(File outputFolder) {
         neuralStyleOLD.setOutputFolder(outputFolder);
+        neuralStyleNEW.getOutputFolder().setValue(outputFolder.getAbsolutePath());
         if (FileUtils.checkFolderExists(outputFolder)) {
             outputPath.setText(outputFolder.getAbsolutePath());
-            directoryChooser.setInitialDirectory(outputFolder);
-        } else {
-            outputPath.setText("");
+            DirectoryView.directoryChooser.setInitialDirectory(outputFolder);
         }
     }
 
@@ -1100,8 +1094,8 @@ public class MainController {
         log.log(Level.FINER, "Setting TH listener.");
         EventStreams.eventsOf(thPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing th file chooser.");
-            fileChooser.setTitle(bundle.getString("thPathChooser"));
-            File thPath = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("thPathChooser"));
+            File thPath = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "th file chosen: {0}", thPath);
             setThPath(thPath);
         });
@@ -1109,8 +1103,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Neural Path listener.");
         EventStreams.eventsOf(neuralPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing neural-style folder chooser.");
-            directoryChooser.setTitle(bundle.getString("neuralPathChooser"));
-            File neuralStylePath = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(bundle.getString("neuralPathChooser"));
+            File neuralStylePath = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "neural-style folder chosen: {0}", neuralStylePath);
             setNeuralPath(neuralStylePath);
         });
@@ -1118,11 +1112,11 @@ public class MainController {
         log.log(Level.FINER, "Setting Style Save listener.");
         EventStreams.eventsOf(saveStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing save style file chooser.");
-            fileChooser.setTitle(bundle.getString("saveStyleChooser"));
-            File styleFile = fileChooser.showSaveDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("saveStyleChooser"));
+            File styleFile = FileView.fileChooser.showSaveDialog(stage);
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
-                fileChooser.setInitialDirectory(styleFile.getParentFile());
+                FileView.fileChooser.setInitialDirectory(styleFile.getParentFile());
                 File savedStyle = FileUtils.saveOutputStyle(neuralStyleOLD, styleFile);
                 if (savedStyle == null)
                     showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleFailed"));
@@ -1134,11 +1128,11 @@ public class MainController {
         log.log(Level.FINER, "Setting Style Load listener.");
         EventStreams.eventsOf(loadStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing save style file chooser.");
-            fileChooser.setTitle(bundle.getString("loadStyleChooser"));
-            File styleFile = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("loadStyleChooser"));
+            File styleFile = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
-                fileChooser.setInitialDirectory(styleFile.getParentFile());
+                FileView.fileChooser.setInitialDirectory(styleFile.getParentFile());
                 NeuralStyleV2 loadedStyle = FileUtils.loadStyle(styleFile);
                 if (loadedStyle == null)
                     showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
@@ -1152,8 +1146,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Style Folder listener.");
         EventStreams.eventsOf(styleFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing style folder chooser.");
-            directoryChooser.setTitle(bundle.getString("styleFolderChooser"));
-            File styleFolder = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(bundle.getString("styleFolderChooser"));
+            File styleFolder = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Style folder chosen: {0}", styleFolder);
             if (styleFolder != null) {
                 setStyleFolder(styleFolder);
@@ -1163,8 +1157,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Content Folder listener.");
         EventStreams.eventsOf(contentFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing content folder chooser.");
-            directoryChooser.setTitle(bundle.getString("contentFolderChooser"));
-            File contentFolder = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(bundle.getString("contentFolderChooser"));
+            File contentFolder = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Content folder chosen: {0}", contentFolder);
             if (contentFolder != null) {
                 setContentFolder(contentFolder);
@@ -1174,8 +1168,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Output Folder listener.");
         EventStreams.eventsOf(outputFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing output folder chooser.");
-            directoryChooser.setTitle(bundle.getString("outputFolderChooser"));
-            File outputFolder = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(bundle.getString("outputFolderChooser"));
+            File outputFolder = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Output folder chosen: {0}", outputFolder);
             if (outputFolder != null) {
                 setOutputFolder(outputFolder);
@@ -1265,8 +1259,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Init Image listener.");
         EventStreams.eventsOf(initImageButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing init image file chooser.");
-            fileChooser.setTitle(bundle.getString("initImageChooser"));
-            File initImageFile = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("initImageChooser"));
+            File initImageFile = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "init image file chosen: {0}", initImageFile);
             setInitImageFile(initImageFile);
         });
@@ -1274,8 +1268,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Proto File listener.");
         EventStreams.eventsOf(protoFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing proto file chooser.");
-            fileChooser.setTitle(bundle.getString("protoFileChooser"));
-            File protoFile = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("protoFileChooser"));
+            File protoFile = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Proto file chosen: {0}", protoFile);
             setProtoFile(protoFile);
         });
@@ -1283,8 +1277,8 @@ public class MainController {
         log.log(Level.FINER, "Setting Model File listener.");
         EventStreams.eventsOf(modelFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing model file chooser.");
-            fileChooser.setTitle(bundle.getString("modelFileChooser"));
-            File modelFile = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(bundle.getString("modelFileChooser"));
+            File modelFile = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Model file chosen: {0}", modelFile);
             setModelFile(modelFile);
         });
@@ -1372,6 +1366,8 @@ public class MainController {
         neuralStyleFile.link(neuralStyleNEW.getNeuralStylePath());
         protoFile.link(neuralStyleNEW.getProtoFile());
         modelFile.link(neuralStyleNEW.getModelFile());
+        outputFolder.link(neuralStyleNEW.getOutputFolder());
+        workingFolder.link(NeuralStyleWrapper.workingFolder);
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);

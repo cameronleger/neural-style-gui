@@ -6,8 +6,11 @@ import java.io.File;
 
 public class NeuralStyleWrapper {
 
+    public static NeuralString workingFolder = new NeuralString("workingFolder", "Working Dir.", ""); // TODO: Value
+
     private NeuralString thPath = new NeuralString("thPath", "th", "");
     private NeuralString neuralStylePath = new NeuralString("neuralStylePath", "Neural Style", "");
+    private NeuralString outputFolder = new NeuralString("outputFolder", "Output Dir.", "");
 
     private NeuralInt chainLength = new NeuralInt("chainLength", "Chaining", 1);
     private NeuralInt iterations = new NeuralInt("iterations", "Iterations", 1000);
@@ -40,14 +43,12 @@ public class NeuralStyleWrapper {
 
     public NeuralStyleV3 getNeuralStyle() {
         NeuralStyleV3 s = new NeuralStyleV3();
-//        s.setQueueStatus();
         s.setThPath(new File(thPath.getValue()));
         s.setNeuralStylePath(new File(neuralStylePath.getValue()));
 //        s.setStyleImages();
 //        s.setStyleWeights();
 //        s.setContentImage();
-//        s.setOutputFolder();
-//        s.setOutputFile();
+        s.setOutputFolder(new File(outputFolder.getValue()));
         s.setInit(init.getValue());
         s.setInitImage(new File(initImage.getValue()));
         s.setPooling(pooling.getValue());
@@ -95,6 +96,10 @@ public class NeuralStyleWrapper {
 
     public NeuralString getNeuralStylePath() {
         return neuralStylePath;
+    }
+
+    public NeuralString getOutputFolder() {
+        return outputFolder;
     }
 
     public NeuralInt getChainLength() {
