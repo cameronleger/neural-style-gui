@@ -2,6 +2,8 @@ package com.cameronleger.neuralstyle;
 
 import com.cameronleger.neuralstylegui.model.properties.*;
 
+import java.io.File;
+
 public class NeuralStyleWrapper {
 
     private NeuralInt chainLength = new NeuralInt("chainLength", "Chaining", 1);
@@ -35,7 +37,52 @@ public class NeuralStyleWrapper {
 
     public NeuralStyleV3 getNeuralStyle() {
         NeuralStyleV3 s = new NeuralStyleV3();
+//        s.setQueueStatus();
+//        s.setThPath();
+//        s.setNeuralStylePath();
+//        s.setStyleImages();
+//        s.setStyleWeights();
+//        s.setContentImage();
+//        s.setOutputFolder();
+//        s.setOutputFile();
+        s.setInit(init.getValue());
+        s.setInitImage(new File(initImage.getValue()));
+        s.setPooling(pooling.getValue());
+//        s.setStyleLayers();
+//        s.setContentLayers();
+        s.setOriginalColors(originalColors.getValue());
+        s.setNormalizeGradients(normalizeGradients.getValue());
+        s.setCpu(cpu.getValue());
+//        s.setGpu();
+        s.setMultiGpuStrategy(multiGpuStrategy.getValue());
+        s.setBackend(backend.getValue());
+        s.setOptimizer(optimizer.getValue());
+        s.setAutotune(autotune.getValue());
+        s.setProtoFile(new File(protoFile.getValue()));
+        s.setModelFile(new File(modelFile.getValue()));
+        s.setChainLength(chainLength.getValue().intValue());
         s.setIterations(iterations.getValue().intValue());
+        s.setIterationsRatio(iterations.getRatio());
+        s.setIterationsPrint(iterationsPrint.getValue().intValue());
+        s.setIterationsPrintRatio(iterationsPrint.getRatio());
+        s.setIterationsSave(iterationsSave.getValue().intValue());
+        s.setIterationsSaveRatio(iterationsSave.getRatio());
+        s.setSeed(seed.getValue().intValue());
+        s.setSeedRatio(seed.getRatio());
+        s.setOutputSize(outputSize.getValue().intValue());
+        s.setOutputSizeRatio(outputSize.getRatio());
+        s.setStyleSize(styleSize.getValue().doubleValue());
+        s.setStyleSizeRatio(styleSize.getRatio());
+        s.setContentWeight(contentWeight.getValue().intValue());
+        s.setContentWeightRatio(contentWeight.getRatio());
+        s.setStyleWeight(styleWeight.getValue().intValue());
+        s.setStyleWeightRatio(styleWeight.getRatio());
+        s.setTvWeight(tvWeight.getValue().doubleValue());
+        s.setTvWeightRatio(tvWeight.getRatio());
+        s.setnCorrection(nCorrection.getValue().intValue());
+        s.setnCorrectionRatio(nCorrection.getRatio());
+        s.setLearningRate(learningRate.getValue().intValue());
+        s.setLearningRateRatio(learningRate.getRatio());
         return s;
     }
 

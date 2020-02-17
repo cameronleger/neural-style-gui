@@ -5,7 +5,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 public class NeuralStyleV3 implements Cloneable {
@@ -25,10 +24,9 @@ public class NeuralStyleV3 implements Cloneable {
     private File contentImage;
     private File outputFolder;
     private File outputFile;
-    private int iterations = 1000;
-    private int iterationsPrint = 10;
-    private int iterationsSave = 10;
-    private int seed = -1;
+    private String init = "image";
+    private File initImage;
+    private String pooling = "max";
     private String[] styleLayers = new String[] {
             "relu1_1",
             "relu2_1",
@@ -39,15 +37,7 @@ public class NeuralStyleV3 implements Cloneable {
     private String[] contentLayers = new String[] {
             "relu4_2"
     };
-    private int outputSize = 500;
-    private double styleSize = 1.0;
-    private int contentWeight = 5;
-    private int styleWeight = 100;
-    private double tvWeight = 0.0001;
     private boolean originalColors = false;
-    private String init = "image";
-    private File initImage;
-    private String pooling = "max";
     private boolean normalizeGradients = false;
     private boolean cpu = false;
     private String[] gpu = new String[] {
@@ -56,14 +46,44 @@ public class NeuralStyleV3 implements Cloneable {
     private String multiGpuStrategy = "";
     private String backend = "nn";
     private String optimizer = "lbfgs";
-    private int nCorrection = -1;
-    private int learningRate = 10;
     private boolean autotune = false;
     private File protoFile;
     private File modelFile;
+
     private int chainLength = 1;
-    private double chainIterationRatio = 0.5;
-    private double chainSizeRatio = 0.5;
+
+    private int iterations = 1000;
+    private double iterationsRatio = 1.0;
+
+    private int iterationsPrint = 10;
+    private double iterationsPrintRatio = 1.0;
+
+    private int iterationsSave = 10;
+    private double iterationsSaveRatio = 1.0;
+
+    private int seed = -1;
+    private double seedRatio = 1.0;
+
+    private int outputSize = 500;
+    private double outputSizeRatio = 1.0;
+
+    private double styleSize = 1.0;
+    private double styleSizeRatio = 1.0;
+
+    private int contentWeight = 5;
+    private double contentWeightRatio = 1.0;
+
+    private int styleWeight = 100;
+    private double styleWeightRatio = 1.0;
+
+    private double tvWeight = 0.0001;
+    private double tvWeightRatio = 1.0;
+
+    private int nCorrection = -1;
+    private double nCorrectionRatio = 1.0;
+
+    private int learningRate = 10;
+    private double learningRateRatio = 1.0;
 
     public int getQueueStatus() {
         return queueStatus;
@@ -129,102 +149,6 @@ public class NeuralStyleV3 implements Cloneable {
         this.outputFile = outputFile;
     }
 
-    public int getIterations() {
-        return iterations;
-    }
-
-    public void setIterations(int iterations) {
-        this.iterations = iterations;
-    }
-
-    public int getIterationsPrint() {
-        return iterationsPrint;
-    }
-
-    public void setIterationsPrint(int iterationsPrint) {
-        this.iterationsPrint = iterationsPrint;
-    }
-
-    public int getIterationsSave() {
-        return iterationsSave;
-    }
-
-    public void setIterationsSave(int iterationsSave) {
-        this.iterationsSave = iterationsSave;
-    }
-
-    public int getSeed() {
-        return seed;
-    }
-
-    public void setSeed(int seed) {
-        this.seed = seed;
-    }
-
-    public String[] getStyleLayers() {
-        return styleLayers;
-    }
-
-    public void setStyleLayers(String[] styleLayers) {
-        this.styleLayers = styleLayers;
-    }
-
-    public String[] getContentLayers() {
-        return contentLayers;
-    }
-
-    public void setContentLayers(String[] contentLayers) {
-        this.contentLayers = contentLayers;
-    }
-
-    public int getOutputSize() {
-        return outputSize;
-    }
-
-    public void setOutputSize(int outputSize) {
-        this.outputSize = outputSize;
-    }
-
-    public double getStyleSize() {
-        return styleSize;
-    }
-
-    public void setStyleSize(double styleSize) {
-        this.styleSize = styleSize;
-    }
-
-    public int getContentWeight() {
-        return contentWeight;
-    }
-
-    public void setContentWeight(int contentWeight) {
-        this.contentWeight = contentWeight;
-    }
-
-    public int getStyleWeight() {
-        return styleWeight;
-    }
-
-    public void setStyleWeight(int styleWeight) {
-        this.styleWeight = styleWeight;
-    }
-
-    public double getTvWeight() {
-        return tvWeight;
-    }
-
-    public void setTvWeight(double tvWeight) {
-        this.tvWeight = tvWeight;
-    }
-
-    public boolean isOriginalColors() {
-        return originalColors;
-    }
-
-    public void setOriginalColors(boolean originalColors) {
-        this.originalColors = originalColors;
-    }
-
     public String getInit() {
         return init;
     }
@@ -247,6 +171,30 @@ public class NeuralStyleV3 implements Cloneable {
 
     public void setPooling(String pooling) {
         this.pooling = pooling;
+    }
+
+    public String[] getStyleLayers() {
+        return styleLayers;
+    }
+
+    public void setStyleLayers(String[] styleLayers) {
+        this.styleLayers = styleLayers;
+    }
+
+    public String[] getContentLayers() {
+        return contentLayers;
+    }
+
+    public void setContentLayers(String[] contentLayers) {
+        this.contentLayers = contentLayers;
+    }
+
+    public boolean isOriginalColors() {
+        return originalColors;
+    }
+
+    public void setOriginalColors(boolean originalColors) {
+        this.originalColors = originalColors;
     }
 
     public boolean isNormalizeGradients() {
@@ -297,22 +245,6 @@ public class NeuralStyleV3 implements Cloneable {
         this.optimizer = optimizer;
     }
 
-    public int getNCorrection() {
-        return nCorrection;
-    }
-
-    public void setNCorrection(int nCorrection) {
-        this.nCorrection = nCorrection;
-    }
-
-    public int getLearningRate() {
-        return learningRate;
-    }
-
-    public void setLearningRate(int learningRate) {
-        this.learningRate = learningRate;
-    }
-
     public boolean isAutotune() {
         return autotune;
     }
@@ -345,20 +277,180 @@ public class NeuralStyleV3 implements Cloneable {
         this.chainLength = chainLength;
     }
 
-    public double getChainIterationRatio() {
-        return chainIterationRatio;
+    public int getIterations() {
+        return iterations;
     }
 
-    public void setChainIterationRatio(double chainIterationRatio) {
-        this.chainIterationRatio = chainIterationRatio;
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
     }
 
-    public double getChainSizeRatio() {
-        return chainSizeRatio;
+    public double getIterationsRatio() {
+        return iterationsRatio;
     }
 
-    public void setChainSizeRatio(double chainSizeRatio) {
-        this.chainSizeRatio = chainSizeRatio;
+    public void setIterationsRatio(double iterationsRatio) {
+        this.iterationsRatio = iterationsRatio;
+    }
+
+    public int getIterationsPrint() {
+        return iterationsPrint;
+    }
+
+    public void setIterationsPrint(int iterationsPrint) {
+        this.iterationsPrint = iterationsPrint;
+    }
+
+    public double getIterationsPrintRatio() {
+        return iterationsPrintRatio;
+    }
+
+    public void setIterationsPrintRatio(double iterationsPrintRatio) {
+        this.iterationsPrintRatio = iterationsPrintRatio;
+    }
+
+    public int getIterationsSave() {
+        return iterationsSave;
+    }
+
+    public void setIterationsSave(int iterationsSave) {
+        this.iterationsSave = iterationsSave;
+    }
+
+    public double getIterationsSaveRatio() {
+        return iterationsSaveRatio;
+    }
+
+    public void setIterationsSaveRatio(double iterationsSaveRatio) {
+        this.iterationsSaveRatio = iterationsSaveRatio;
+    }
+
+    public int getSeed() {
+        return seed;
+    }
+
+    public void setSeed(int seed) {
+        this.seed = seed;
+    }
+
+    public double getSeedRatio() {
+        return seedRatio;
+    }
+
+    public void setSeedRatio(double seedRatio) {
+        this.seedRatio = seedRatio;
+    }
+
+    public int getOutputSize() {
+        return outputSize;
+    }
+
+    public void setOutputSize(int outputSize) {
+        this.outputSize = outputSize;
+    }
+
+    public double getOutputSizeRatio() {
+        return outputSizeRatio;
+    }
+
+    public void setOutputSizeRatio(double outputSizeRatio) {
+        this.outputSizeRatio = outputSizeRatio;
+    }
+
+    public double getStyleSize() {
+        return styleSize;
+    }
+
+    public void setStyleSize(double styleSize) {
+        this.styleSize = styleSize;
+    }
+
+    public double getStyleSizeRatio() {
+        return styleSizeRatio;
+    }
+
+    public void setStyleSizeRatio(double styleSizeRatio) {
+        this.styleSizeRatio = styleSizeRatio;
+    }
+
+    public int getContentWeight() {
+        return contentWeight;
+    }
+
+    public void setContentWeight(int contentWeight) {
+        this.contentWeight = contentWeight;
+    }
+
+    public double getContentWeightRatio() {
+        return contentWeightRatio;
+    }
+
+    public void setContentWeightRatio(double contentWeightRatio) {
+        this.contentWeightRatio = contentWeightRatio;
+    }
+
+    public int getStyleWeight() {
+        return styleWeight;
+    }
+
+    public void setStyleWeight(int styleWeight) {
+        this.styleWeight = styleWeight;
+    }
+
+    public double getStyleWeightRatio() {
+        return styleWeightRatio;
+    }
+
+    public void setStyleWeightRatio(double styleWeightRatio) {
+        this.styleWeightRatio = styleWeightRatio;
+    }
+
+    public double getTvWeight() {
+        return tvWeight;
+    }
+
+    public void setTvWeight(double tvWeight) {
+        this.tvWeight = tvWeight;
+    }
+
+    public double getTvWeightRatio() {
+        return tvWeightRatio;
+    }
+
+    public void setTvWeightRatio(double tvWeightRatio) {
+        this.tvWeightRatio = tvWeightRatio;
+    }
+
+    public int getnCorrection() {
+        return nCorrection;
+    }
+
+    public void setnCorrection(int nCorrection) {
+        this.nCorrection = nCorrection;
+    }
+
+    public double getnCorrectionRatio() {
+        return nCorrectionRatio;
+    }
+
+    public void setnCorrectionRatio(double nCorrectionRatio) {
+        this.nCorrectionRatio = nCorrectionRatio;
+    }
+
+    public int getLearningRate() {
+        return learningRate;
+    }
+
+    public void setLearningRate(int learningRate) {
+        this.learningRate = learningRate;
+    }
+
+    public double getLearningRateRatio() {
+        return learningRateRatio;
+    }
+
+    public void setLearningRateRatio(double learningRateRatio) {
+        this.learningRateRatio = learningRateRatio;
     }
 
     public void generateUniqueName() {
@@ -370,69 +462,17 @@ public class NeuralStyleV3 implements Cloneable {
         return super.clone();
     }
 
-    public List<NeuralStyleV3> getQueueItems() {
-        List<NeuralStyleV3> queueItems = new ArrayList<>();
-
-        // Simple one-run case
-        if (getChainLength() == 1)
-            queueItems.add(this);
-
-        // Chaining case
-        else if (getChainLength() > 1) {
-            // Need some variables for the math
-            final int outputSize = getOutputSize();
-            final double chainSizeRatio = getChainSizeRatio();
-            final int iterations = getIterations();
-            final double chainIterationRatio = getChainIterationRatio();
-            File previousChainOutput = null;
-            NeuralStyleV3 queueItem;
-
-            for (int i = 1; i <= getChainLength(); i++) {
-                // This power increases further back in the chain
-                int ratioPower = getChainLength() - i;
-                try {
-                    queueItem = (NeuralStyleV3) this.clone();
-
-                    // ratioPower is an exponent for the ratio and is finally applied to the original 'final' value
-                    queueItem.setOutputSize((int) Math.round(Math.pow(chainSizeRatio, ratioPower) * outputSize));
-                    queueItem.setIterations((int) Math.round(Math.pow(chainIterationRatio, ratioPower) * iterations));
-
-                    // The first link in the chain uses the original initialization values
-                    // Each subsequent link is initialized with the output of the previous
-                    if (previousChainOutput != null) {
-                        queueItem.setInit("image");
-                        queueItem.setInitImage(previousChainOutput);
-                    }
-
-                    // Generate a new unique chain output and prepare to link it to the next
-                    queueItem.setOutputFile(FileUtils.getTempOutputImage(i));
-                    previousChainOutput = queueItem.getOutputFile();
-
-                    queueItems.add(queueItem);
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return queueItems;
-    }
-
     public boolean checkArguments() {
-        File[] styleImages = getStyleImages();
-        double[] styleWeights = getStyleWeights();
-        String[] styleLayers = getStyleLayers();
-        String[] contentLayers = getContentLayers();
         if (outputFile == null)
             generateUniqueName();
         return styleImages != null && styleImages.length > 0 &&
                 styleWeights != null && styleWeights.length == styleImages.length &&
                 styleLayers != null && styleLayers.length > 0 &&
                 contentLayers != null && contentLayers.length > 0 &&
-                (isCpu() || getGpu().length > 0) &&
+                (cpu || gpu.length > 0) &&
                 FileUtils.checkFilesExists(styleImages) &&
-                FileUtils.checkFileExists(getContentImage()) &&
-                FileUtils.checkFolderExists(getNeuralStylePath()) &&
+                FileUtils.checkFileExists(contentImage) &&
+                FileUtils.checkFolderExists(neuralStylePath) &&
                 FileUtils.checkFolderExists(FileUtils.getTempDir());
     }
 
@@ -442,15 +482,13 @@ public class NeuralStyleV3 implements Cloneable {
         df.setMaximumFractionDigits(340);
 
         StringBuilder styleImagesBuilder = new StringBuilder();
-        File[] styleFiles = getStyleImages();
-        for (int i = 0; i < styleFiles.length; i++) {
-            styleImagesBuilder.append(styleFiles[i].getAbsolutePath());
-            if (i != styleFiles.length - 1)
+        for (int i = 0; i < styleImages.length; i++) {
+            styleImagesBuilder.append(styleImages[i].getAbsolutePath());
+            if (i != styleImages.length - 1)
                 styleImagesBuilder.append(",");
         }
 
         StringBuilder styleWeightsBuilder = new StringBuilder();
-        double[] styleWeights = getStyleWeights();
         for (int i = 0; i < styleWeights.length; i++) {
             styleWeightsBuilder.append(df.format(styleWeights[i]));
             if (i != styleWeights.length - 1)
@@ -458,7 +496,6 @@ public class NeuralStyleV3 implements Cloneable {
         }
 
         StringBuilder styleLayersBuilder = new StringBuilder();
-        String[] styleLayers = getStyleLayers();
         for (int i = 0; i < styleLayers.length; i++) {
             styleLayersBuilder.append(styleLayers[i]);
             if (i != styleLayers.length - 1)
@@ -466,7 +503,6 @@ public class NeuralStyleV3 implements Cloneable {
         }
 
         StringBuilder contentLayersBuilder = new StringBuilder();
-        String[] contentLayers = getContentLayers();
         for (int i = 0; i < contentLayers.length; i++) {
             contentLayersBuilder.append(contentLayers[i]);
             if (i != contentLayers.length - 1)
@@ -474,16 +510,15 @@ public class NeuralStyleV3 implements Cloneable {
         }
 
         StringBuilder gpuIndicesBuilder = new StringBuilder();
-        String[] gpuIndices = getGpu();
-        for (int i = 0; i < gpuIndices.length; i++) {
-            gpuIndicesBuilder.append(gpuIndices[i]);
-            if (i != gpuIndices.length - 1)
+        for (int i = 0; i < gpu.length; i++) {
+            gpuIndicesBuilder.append(gpu[i]);
+            if (i != gpu.length - 1)
                 gpuIndicesBuilder.append(",");
         }
 
         String th = "th";
-        if (getThPath() != null)
-            th = getThPath().getAbsolutePath();
+        if (thPath != null)
+            th = thPath.getAbsolutePath();
 
         ArrayList<String> commandList = new ArrayList<>(
                 Arrays.asList(th,
@@ -493,84 +528,83 @@ public class NeuralStyleV3 implements Cloneable {
                         "-style_blend_weights",
                         styleWeightsBuilder.toString(),
                         "-content_image",
-                        getContentImage().getAbsolutePath(),
+                        contentImage.getAbsolutePath(),
                         "-output_image",
-                        getOutputFile().getAbsolutePath(),
+                        outputFile.getAbsolutePath(),
                         "-print_iter",
-                        String.valueOf(getIterationsPrint()),
+                        String.valueOf(iterationsPrint),
                         "-save_iter",
-                        String.valueOf(getIterationsSave()),
+                        String.valueOf(iterationsSave),
                         "-num_iterations",
-                        String.valueOf(getIterations()),
+                        String.valueOf(iterations),
                         "-seed",
-                        String.valueOf(getSeed()),
+                        String.valueOf(seed),
                         "-style_layers",
                         styleLayersBuilder.toString(),
                         "-content_layers",
                         contentLayersBuilder.toString(),
                         "-image_size",
-                        String.valueOf(getOutputSize()),
+                        String.valueOf(outputSize),
                         "-style_scale",
-                        df.format(getStyleSize()),
+                        df.format(styleSize),
                         "-content_weight",
-                        String.valueOf(getContentWeight()),
+                        String.valueOf(contentWeight),
                         "-style_weight",
-                        String.valueOf(getStyleWeight()),
+                        String.valueOf(styleWeight),
                         "-tv_weight",
-                        df.format(getTvWeight()),
+                        df.format(tvWeight),
                         "-init",
-                        getInit(),
+                        init,
                         "-pooling",
-                        getPooling(),
+                        pooling,
                         "-backend",
-                        getBackend(),
+                        backend,
                         "-optimizer",
-                        getOptimizer(),
+                        optimizer,
                         "-learning_rate",
-                        String.valueOf(getLearningRate())));
+                        String.valueOf(learningRate)));
 
         commandList.add("-original_colors");
-        if (isOriginalColors())
+        if (originalColors)
             commandList.add("1");
         else
             commandList.add("0");
 
-        if (isNormalizeGradients())
+        if (normalizeGradients)
             commandList.add("-normalize_gradients");
 
-        if (isAutotune())
+        if (autotune)
             commandList.add("-cudnn_autotune");
 
         commandList.add("-gpu");
-        if (isCpu())
+        if (cpu)
             commandList.add("-1");
         else {
             commandList.add(gpuIndicesBuilder.toString());
-            String multiGpuStrategy = getMultiGpuStrategy();
             if (multiGpuStrategy != null && !multiGpuStrategy.isEmpty()) {
                 commandList.add("-multigpu_strategy");
                 commandList.add(multiGpuStrategy);
             }
         }
 
-        if (getInit().equals("image") && FileUtils.checkFileExists(getInitImage())) {
+        if (init.equals("image") && FileUtils.checkFileExists(initImage)) {
             commandList.add("-init_image");
-            commandList.add(getInitImage().getAbsolutePath());
+            commandList.add(initImage.getAbsolutePath());
         }
 
-        if (getNCorrection() > 0) {
+        if (nCorrection > 0) {
             commandList.add("-lbfgs_num_correction");
-            commandList.add(String.valueOf(getNCorrection()));
+            commandList.add(String.valueOf(nCorrection));
         }
 
-        if (FileUtils.checkFileExists(getProtoFile())) {
+        if (FileUtils.checkFileExists(protoFile)) {
             commandList.add("-proto_file");
-            commandList.add(getProtoFile().getAbsolutePath());
+            commandList.add(protoFile.getAbsolutePath());
         }
 
-        if (FileUtils.checkFileExists(getModelFile())) {
+        if (FileUtils.checkFileExists(modelFile)) {
             commandList.add("-model_file");
-            commandList.add(getModelFile().getAbsolutePath());
+            commandList.add(modelFile.getAbsolutePath());
         }
 
         String[] command = new String[commandList.size()];

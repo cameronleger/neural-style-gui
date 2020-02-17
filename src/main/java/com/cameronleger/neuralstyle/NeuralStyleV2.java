@@ -358,6 +358,48 @@ public class NeuralStyleV2 implements Cloneable {
         this.chainSizeRatio = chainSizeRatio;
     }
 
+    public NeuralStyleV3 upgrade() {
+        NeuralStyleV3 newStyle = new NeuralStyleV3();
+        newStyle.setNeuralStylePath(this.neuralStylePath);
+        newStyle.setStyleImages(this.styleImages);
+        newStyle.setStyleWeights(this.styleWeights);
+        newStyle.setContentImage(this.contentImage);
+        newStyle.setOutputFolder(this.outputFolder);
+        newStyle.setIterations(this.iterations);
+        newStyle.setIterationsPrint(this.iterationsPrint);
+        newStyle.setIterationsSave(this.iterationsSave);
+        newStyle.setSeed(this.seed);
+        newStyle.setStyleLayers(this.styleLayers);
+        newStyle.setContentLayers(this.contentLayers);
+        newStyle.setOutputSize(this.outputSize);
+        newStyle.setStyleSize(this.styleSize);
+        newStyle.setContentWeight(this.contentWeight);
+        newStyle.setStyleWeight(this.styleWeight);
+        newStyle.setTvWeight(this.tvWeight);
+        newStyle.setOriginalColors(this.originalColors);
+        newStyle.setInit(this.init);
+        newStyle.setPooling(this.pooling);
+        newStyle.setNormalizeGradients(this.normalizeGradients);
+        newStyle.setBackend(this.backend);
+        newStyle.setOptimizer(this.optimizer);
+        newStyle.setLearningRate(this.learningRate);
+        newStyle.setAutotune(this.autotune);
+        newStyle.setProtoFile(this.protoFile);
+        newStyle.setModelFile(this.modelFile);
+
+        newStyle.setChainLength(this.chainLength);
+        newStyle.setIterationsRatio(this.chainIterationRatio);
+        newStyle.setOutputSizeRatio(this.chainSizeRatio);
+        newStyle.setCpu(this.cpu);
+        newStyle.setGpu(this.gpu);
+        newStyle.setnCorrection(this.nCorrection);
+        newStyle.setMultiGpuStrategy(this.multiGpuStrategy);
+        newStyle.setInitImage(this.initImage);
+        newStyle.setThPath(this.thPath);
+
+        return newStyle;
+    }
+
     public void generateUniqueName() {
         FileUtils.generateUniqueText();
         outputFile = FileUtils.getTempOutputImage();
