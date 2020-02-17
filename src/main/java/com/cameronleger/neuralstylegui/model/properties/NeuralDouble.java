@@ -1,6 +1,7 @@
 package com.cameronleger.neuralstylegui.model.properties;
 
 import javafx.beans.property.*;
+import javafx.util.StringConverter;
 
 public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio {
 
@@ -55,5 +56,21 @@ public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio 
     public void applyRatio() {
         this.value.multiply(this.ratio.getValue());
     }
+
+    public static StringConverter<Number> DOUBLE_CONVERTER = new StringConverter<Number>() {
+        @Override
+        public String toString(Number t) {
+            return String.valueOf(t.doubleValue());
+        }
+
+        @Override
+        public Number fromString(String string) {
+            try {
+                return Double.parseDouble(string);
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+    };
 
 }

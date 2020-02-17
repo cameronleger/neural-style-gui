@@ -7,13 +7,13 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="4.0" type="HBox" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.component.NumberViewController">
+<fx:root maxWidth="-Infinity" prefHeight="30.0" prefWidth="426.0" spacing="4.0" type="HBox" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.component.NumberViewController">
     <children>
-        <Label alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="120.0" text="Label" />
-        <Slider fx:id="slider" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="120.0" prefWidth="160.0" showTickMarks="true" />
-        <TextField fx:id="value" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="80.0" prefWidth="140.0" promptText="Value" />
-        <TextField fx:id="ratio" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="50.0" prefWidth="50.0" promptText="Ratio" />
-        <Button fx:id="resetButton" mnemonicParsing="false" text="r" />
+        <Label fx:id="label" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="120.0" text="Label" />
+        <Slider fx:id="slider" maxHeight="-Infinity" minHeight="-Infinity" minWidth="120.0" minorTickCount="1" prefWidth="160.0" showTickMarks="true" snapToTicks="true" HBox.hgrow="SOMETIMES" />
+        <TextField fx:id="value" maxHeight="-Infinity" minHeight="-Infinity" minWidth="80.0" prefWidth="140.0" promptText="Value" HBox.hgrow="SOMETIMES" />
+        <TextField fx:id="ratio" maxHeight="-Infinity" minHeight="-Infinity" minWidth="50.0" prefWidth="50.0" promptText="Ratio" />
+        <Button fx:id="resetButton" mnemonicParsing="false" onAction="#onResetButton" text="D" />
     </children>
     <padding>
         <Insets bottom="2.0" left="4.0" right="4.0" top="2.0" />
