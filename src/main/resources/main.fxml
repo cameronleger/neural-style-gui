@@ -16,6 +16,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -432,7 +433,7 @@
                                           <Tooltip maxWidth="300.0" text="%learningRateTooltip" wrapText="true" />
                                        </tooltip>
                                     </TextField>
-                                    <CheckBox fx:id="autotune" disable="true" mnemonicParsing="false" text="%autotuneLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12">
+                                    <CheckBox fx:id="autotuneOld" disable="true" mnemonicParsing="false" text="%autotuneLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12">
                                        <tooltip>
                                           <Tooltip maxWidth="300.0" text="%autotuneTooltip" wrapText="true" />
                                        </tooltip>
@@ -516,12 +517,11 @@
                                     <NumberView fx:id="tvWeight" layoutX="14.0" layoutY="98.0" max="0.1" maxWidth="1.7976931348623157E308" step="0.01" tooltip="%weightTvTooltip" />
                                     <ChoiceView fx:id="pooling" maxWidth="1.7976931348623157E308" tooltip="%poolingTooltip" />
                                     <CheckboxView fx:id="normalizeGradients" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%processorLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
-                                    <CheckboxView fx:id="cpu" layoutX="14.0" layoutY="212.0" maxWidth="1.7976931348623157E308" tooltip="%cpuTooltip" />
                                      <TableView fx:id="gpuTable" editable="true" maxHeight="100.0" minHeight="100.0">
                                          <columns>
                                              <TableColumn fx:id="gpuTableSelected" maxWidth="150.0" minWidth="70.0" prefWidth="-1.0" text="%gpuColumnSelected" />
@@ -535,12 +535,29 @@
                                          </columnResizePolicy>
                                      </TableView>
                                     <TextView fx:id="multiGpuStrategy" maxWidth="1.7976931348623157E308" tooltip="%multiGpuSplitTooltip" />
+                                    <CheckboxView fx:id="cpu" layoutX="14.0" layoutY="212.0" maxWidth="1.7976931348623157E308" tooltip="%cpuTooltip" />
+                                    <Label alignment="CENTER" layoutX="14.0" layoutY="242.0" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
                                     <ChoiceView fx:id="backend" layoutX="14.0" layoutY="182.0" maxWidth="1.7976931348623157E308" tooltip="%backendTooltip" />
+                                    <CheckboxView fx:id="autotune" maxWidth="1.7976931348623157E308" tooltip="%autotuneTooltip" />
+                                    <Separator maxWidth="1.7976931348623157E308" prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="4.0" top="4.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <ChoiceView fx:id="optimizer" layoutX="14.0" layoutY="426.0" maxWidth="1.7976931348623157E308" tooltip="%optimizerTooltip" />
+                                    <NumberView fx:id="nCorrection" layoutX="14.0" layoutY="152.0" maxWidth="1.7976931348623157E308" min="-1.0" step="10.0" tooltip="%nCorrectionTooltip" />
+                                    <NumberView fx:id="learningRate" layoutX="14.0" layoutY="540.0" max="15.0" maxWidth="1.7976931348623157E308" step="3.0" tooltip="%learningRateTooltip" />
                                     <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
+                                    <FileView fx:id="protoFile" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
+                                    <FileView fx:id="modelFile" layoutX="14.0" layoutY="600.0" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
                                     </children>
                                  <padding>
                                     <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />

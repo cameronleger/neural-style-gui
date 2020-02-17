@@ -23,6 +23,12 @@ public class NeuralStyleWrapper {
     private NeuralBoolean cpu = new NeuralBoolean("cpu", "CPU", false);
     private NeuralString multiGpuStrategy = new NeuralString("multiGpuStrategy", "Multi GPU Split");
     private NeuralChoice backend = new NeuralChoice("backend", "Backend", "nn", new String[]{"nn", "cudnn", "clnn"});
+    private NeuralBoolean autotune = new NeuralBoolean("autotune", "Autotune", false);
+    private NeuralChoice optimizer = new NeuralChoice("optimizer", "Optimizer", "lbfgs", new String[]{"lbfgs", "adam"});
+    private NeuralDouble nCorrection = new NeuralDouble("nCorrection", "nCorrection", -1);
+    private NeuralDouble learningRate = new NeuralDouble("learningRate", "Learning Rate", 10);
+    private NeuralString protoFile = new NeuralString("protoFile", "Proto File", "");
+    private NeuralString modelFile = new NeuralString("modelFile", "Model File", "");
 
     public NeuralStyleWrapper() {
 
@@ -104,5 +110,29 @@ public class NeuralStyleWrapper {
 
     public NeuralChoice getBackend() {
         return backend;
+    }
+
+    public NeuralBoolean getAutotune() {
+        return autotune;
+    }
+
+    public NeuralChoice getOptimizer() {
+        return optimizer;
+    }
+
+    public NeuralDouble getnCorrection() {
+        return nCorrection;
+    }
+
+    public NeuralDouble getLearningRate() {
+        return learningRate;
+    }
+
+    public NeuralString getProtoFile() {
+        return protoFile;
+    }
+
+    public NeuralString getModelFile() {
+        return modelFile;
     }
 }

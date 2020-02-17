@@ -188,6 +188,18 @@ public class MainController {
     private TextView multiGpuStrategy;
     @FXML
     private ChoiceView backend;
+    @FXML
+    private CheckboxView autotune;
+    @FXML
+    private ChoiceView optimizer;
+    @FXML
+    private NumberView nCorrection;
+    @FXML
+    private NumberView learningRate;
+    @FXML
+    private FileView protoFile;
+    @FXML
+    private FileView modelFile;
 
     @FXML
     private Slider printIterSlider;
@@ -262,7 +274,7 @@ public class MainController {
     @FXML
     private TextField learningRateField;
     @FXML
-    private CheckBox autotune;
+    private CheckBox autotuneOld;
 
     @FXML
     private Button protoFileButton;
@@ -908,7 +920,7 @@ public class MainController {
         optimizerChoice.setValue(neuralStyle.getOptimizer());
         nCorrectionSlider.setValue(neuralStyle.getNCorrection());
         learningRateSlider.setValue(neuralStyle.getLearningRate());
-        autotune.setSelected(neuralStyle.isAutotune());
+        autotuneOld.setSelected(neuralStyle.isAutotune());
         chainLengthSlider.setValue(neuralStyle.getChainLength());
         chainIterationRatioSlider.setValue(neuralStyle.getChainIterationRatio());
         chainSizeRatioSlider.setValue(neuralStyle.getChainSizeRatio());
@@ -1035,7 +1047,7 @@ public class MainController {
         assert nCorrectionField != null : "fx:id=\"nCorrectionField\" was not injected.";
         assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
         assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
-        assert autotune != null : "fx:id=\"autotune\" was not injected.";
+        assert autotuneOld != null : "fx:id=\"autotune\" was not injected.";
         assert chainLengthSlider != null : "fx:id=\"chainLengthSlider\" was not injected.";
         assert chainLengthField != null : "fx:id=\"chainLengthField\" was not injected.";
         assert chainIterationRatioSlider != null : "fx:id=\"chainIterationRatioSlider\" was not injected.";
@@ -1316,9 +1328,44 @@ public class MainController {
         normalizeGradients.link(neuralStyleV2.getNormalizeGradients());
         tvWeight.linkToDouble(neuralStyleV2.getTvWeight());
         pooling.link(neuralStyleV2.getPooling());
+
         cpu.link(neuralStyleV2.getCpu());
         multiGpuStrategy.link(neuralStyleV2.getMultiGpuStrategy());
+        EventStreams.valuesOf(neuralStyleV2.getCpu().valueProperty()).subscribe(useCpu -> {
+            gpuTable.setDisable(useCpu);
+            multiGpuStrategy.setDisable(useCpu);
+        });
+
         backend.link(neuralStyleV2.getBackend());
+
+        autotune.link(neuralStyleV2.getAutotune());
+        EventStreams.valuesOf(neuralStyleV2.getBackend().valueProperty()).subscribe(backend -> {
+            if ("cudnn".equalsIgnoreCase(backend)) {
+                autotune.setDisable(false);
+            } else {
+                autotune.setDisable(true);
+                neuralStyleV2.getAutotune().setValue(false);
+            }
+        });
+
+        optimizer.link(neuralStyleV2.getOptimizer());
+        nCorrection.linkToDouble(neuralStyleV2.getnCorrection());
+        learningRate.linkToDouble(neuralStyleV2.getLearningRate());
+
+        EventStreams.valuesOf(neuralStyleV2.getOptimizer().valueProperty()).subscribe(optimizer -> {
+            if ("adam".equalsIgnoreCase(optimizer)) {
+                nCorrection.setDisable(true);
+                learningRate.setDisable(false);
+                neuralStyleV2.getnCorrection().reset();
+            } else {
+                nCorrection.setDisable(false);
+                learningRate.setDisable(true);
+                neuralStyleV2.getLearningRate().reset();
+            }
+        });
+
+        protoFile.link(neuralStyleV2.getProtoFile());
+        modelFile.link(neuralStyleV2.getModelFile());
 
         // keep print slider and text field synced and the slider updates the style
         printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
@@ -1400,10 +1447,10 @@ public class MainController {
         EventStreams.valuesOf(backendChoice.valueProperty()).subscribe(backend -> {
             neuralStyle.setBackend(backend);
             if (backend.equalsIgnoreCase("cudnn")) {
-                autotune.setDisable(false);
+                autotuneOld.setDisable(false);
             } else {
-                autotune.setDisable(true);
-                autotune.setSelected(false);
+                autotuneOld.setDisable(true);
+                autotuneOld.setSelected(false);
             }
         });
 
@@ -1436,7 +1483,7 @@ public class MainController {
                 neuralStyle.setLearningRate(intConverter.fromString(numberChange).intValue()));
 
         // autotune checkbox updates the style
-        EventStreams.valuesOf(autotune.selectedProperty())
+        EventStreams.valuesOf(autotuneOld.selectedProperty())
                 .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange));
 
         // keep chain length slider and text field synced and the slider updates the style, some values toggle chain fields
