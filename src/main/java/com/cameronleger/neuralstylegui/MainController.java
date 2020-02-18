@@ -525,7 +525,6 @@ public class MainController {
 
     private void setOutputFolder(File outputFolder) {
         neuralStyleOLD.setOutputFolder(outputFolder);
-        neuralStyleNEW.getOutputFolder().setValue(outputFolder.getAbsolutePath());
         if (FileUtils.checkFolderExists(outputFolder)) {
             outputPath.setText(outputFolder.getAbsolutePath());
             DirectoryView.directoryChooser.setInitialDirectory(outputFolder);
@@ -1664,7 +1663,9 @@ public class MainController {
                 neuralFilesWeights[i] = neuralImage.getWeight();
             }
             neuralStyleOLD.setStyleImages(neuralFiles);
+            neuralStyleNEW.setStyleImages(neuralFiles);
             neuralStyleOLD.setStyleWeights(neuralFilesWeights);
+            neuralStyleNEW.setStyleWeights(neuralFilesWeights);
 
             toggleStyleButtons();
         });
@@ -1716,10 +1717,13 @@ public class MainController {
         EventStreams.valuesOf(contentImageList.getSelectionModel().selectedItemProperty())
                 .subscribe(newSelection -> {
                     log.log(Level.FINE, "Content image changed: " + newSelection);
-                    if (newSelection == null)
+                    if (newSelection == null) {
                         neuralStyleOLD.setContentImage(null);
-                    else
+                        neuralStyleNEW.setContentImage(null);
+                    } else {
                         neuralStyleOLD.setContentImage(newSelection.getImageFile());
+                        neuralStyleNEW.setContentImage(newSelection.getImageFile());
+                    }
                     toggleStyleButtons();
                 });
 
@@ -1767,6 +1771,7 @@ public class MainController {
             for (int i = 0; i < selectedGpuIndices.size(); i++)
                 newGpuIndices[i] = selectedGpuIndices.get(i).getName();
             neuralStyleOLD.setGpu(newGpuIndices);
+            neuralStyleNEW.setGpu(newGpuIndices);
 
             toggleStyleButtons();
         });
@@ -1803,6 +1808,7 @@ public class MainController {
             for (int i = 0; i < selectedStyleLayers.size(); i++)
                 newStyleLayers[i] = selectedStyleLayers.get(i).getName();
             neuralStyleOLD.setStyleLayers(newStyleLayers);
+            neuralStyleNEW.setStyleLayers(newStyleLayers);
 
             toggleStyleButtons();
         });
@@ -1840,6 +1846,7 @@ public class MainController {
             for (int i = 0; i < selectedContentLayers.size(); i++)
                 newContentLayers[i] = selectedContentLayers.get(i).getName();
             neuralStyleOLD.setContentLayers(newContentLayers);
+            neuralStyleNEW.setContentLayers(newContentLayers);
 
             toggleStyleButtons();
         });

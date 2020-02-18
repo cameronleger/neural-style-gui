@@ -55,6 +55,23 @@ public class NeuralStyleWrapper {
     private NeuralString protoFile = new NeuralString("protoFile", "Proto File", "");
     private NeuralString modelFile = new NeuralString("modelFile", "Model File", "");
 
+    private File[] styleImages;
+    private double[] styleWeights;
+    private File contentImage;
+    private String[] styleLayers = new String[] {
+            "relu1_1",
+            "relu2_1",
+            "relu3_1",
+            "relu4_1",
+            "relu5_1"
+    };
+    private String[] contentLayers = new String[] {
+            "relu4_2"
+    };
+    private String[] gpu = new String[] {
+            "0"
+    };
+
     public NeuralStyleWrapper() {
 
     }
@@ -63,19 +80,19 @@ public class NeuralStyleWrapper {
         NeuralStyleV3 s = new NeuralStyleV3();
         s.setThPath(new File(thPath.getValue()));
         s.setNeuralStylePath(new File(neuralStylePath.getValue()));
-//        s.setStyleImages();
-//        s.setStyleWeights();
-//        s.setContentImage();
+        s.setStyleImages(styleImages);
+        s.setStyleWeights(styleWeights);
+        s.setContentImage(contentImage);
         s.setOutputFolder(new File(outputFolder.getValue()));
         s.setInit(init.getValue());
         s.setInitImage(new File(initImage.getValue()));
         s.setPooling(pooling.getValue());
-//        s.setStyleLayers();
-//        s.setContentLayers();
+        s.setStyleLayers(styleLayers);
+        s.setContentLayers(contentLayers);
         s.setOriginalColors(originalColors.getValue());
         s.setNormalizeGradients(normalizeGradients.getValue());
         s.setCpu(cpu.getValue());
-//        s.setGpu();
+        s.setGpu(gpu);
         s.setMultiGpuStrategy(multiGpuStrategy.getValue());
         s.setBackend(backend.getValue());
         s.setOptimizer(optimizer.getValue());
@@ -215,4 +232,53 @@ public class NeuralStyleWrapper {
     public NeuralString getModelFile() {
         return modelFile;
     }
+
+    public File[] getStyleImages() {
+        return styleImages;
+    }
+
+    public void setStyleImages(File[] styleImages) {
+        this.styleImages = styleImages;
+    }
+
+    public double[] getStyleWeights() {
+        return styleWeights;
+    }
+
+    public void setStyleWeights(double[] styleWeights) {
+        this.styleWeights = styleWeights;
+    }
+
+    public File getContentImage() {
+        return contentImage;
+    }
+
+    public void setContentImage(File contentImage) {
+        this.contentImage = contentImage;
+    }
+
+    public String[] getStyleLayers() {
+        return styleLayers;
+    }
+
+    public void setStyleLayers(String[] styleLayers) {
+        this.styleLayers = styleLayers;
+    }
+
+    public String[] getContentLayers() {
+        return contentLayers;
+    }
+
+    public void setContentLayers(String[] contentLayers) {
+        this.contentLayers = contentLayers;
+    }
+
+    public String[] getGpu() {
+        return gpu;
+    }
+
+    public void setGpu(String[] gpu) {
+        this.gpu = gpu;
+    }
+
 }
