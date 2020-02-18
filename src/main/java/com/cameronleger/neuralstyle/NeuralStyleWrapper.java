@@ -3,10 +3,28 @@ package com.cameronleger.neuralstyle;
 import com.cameronleger.neuralstylegui.model.properties.*;
 
 import java.io.File;
+import java.io.IOException;
+
+import static javafx.application.Platform.exit;
 
 public class NeuralStyleWrapper {
 
-    public static NeuralString workingFolder = new NeuralString("workingFolder", "Working Dir.", ""); // TODO: Value
+    public static File tmpFolder;
+
+    static {
+        try {
+            tmpFolder = File.createTempFile("neuralStyle", null);
+        } catch (IOException e) {
+            e.printStackTrace();
+            exit();
+        }
+    }
+
+    public static NeuralString workingFolder = new NeuralString("workingFolder", "Working Dir.", tmpFolder.getAbsolutePath());
+
+    public static File getWorkingFolder() {
+        return new File(workingFolder.getValue());
+    }
 
     private NeuralString thPath = new NeuralString("thPath", "th", "");
     private NeuralString neuralStylePath = new NeuralString("neuralStylePath", "Neural Style", "");

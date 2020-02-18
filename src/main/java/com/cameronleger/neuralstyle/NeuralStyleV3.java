@@ -473,7 +473,7 @@ public class NeuralStyleV3 implements Cloneable {
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(contentImage) &&
                 FileUtils.checkFolderExists(neuralStylePath) &&
-                FileUtils.checkFolderExists(FileUtils.getTempDir());
+                FileUtils.checkFolderExists(NeuralStyleWrapper.getWorkingFolder());
     }
 
     public String[] buildCommand() {

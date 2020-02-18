@@ -27,7 +27,6 @@ public class FileUtils {
             "jpg", "jpeg", "png"
     };
     private static final String LAST_STYLE_JSON = "lastStyle.json";
-    private static File tempDir;
     private static String uniqueText;
     private static Gson gson = new GsonBuilder()
             .setPrettyPrinting()
@@ -71,30 +70,15 @@ public class FileUtils {
         return FilenameUtils.removeExtension(file.getName());
     }
 
-    public static File getTempDir() {
-        if (tempDir == null) {
-            try {
-                tempDir = File.createTempFile("neuralStyle", null);
-                if (!tempDir.delete())
-                    throw new IOException("Unable to delete temporary file.");
-                if (!tempDir.mkdir())
-                    throw new IOException("Unable to create temporary directory.");
-            } catch (Exception e) {
-                log.log(Level.SEVERE, e.toString(), e);
-            }
-        }
-        return tempDir;
-    }
-
     private static File getTempOutputFile(String extension) {
-        File tempOutputDir = FileUtils.getTempDir();
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null)
             return null;
         return new File(tempOutputDir, String.format("%s.%s", getUniqueText(), extension));
     }
 
     private static File getTempOutputFile(int chainIndex, String extension) {
-        File tempOutputDir = FileUtils.getTempDir();
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null)
             return null;
         return new File(tempOutputDir, String.format("%s.%s", getUniqueChainText(chainIndex), extension));
@@ -113,7 +97,7 @@ public class FileUtils {
     }
 
     public static File saveOutputStyle(NeuralStyleV2 neuralStyle) {
-        File tempOutputDir = FileUtils.getTempDir();
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null) {
             log.log(Level.FINE, "Unable to open file in temporary folder to save output style.");
             return null;
@@ -203,12 +187,9 @@ public class FileUtils {
     }
 
     public static File[] getTempOutputStyles() {
-        if (tempDir == null || !tempDir.isDirectory())
-            return null;
-
         // Unix-like searching for styles
         FileFilter styleFileFilter = new WildcardFileFilter("*.json");
-        File[] files = tempDir.listFiles(styleFileFilter);
+        File[] files = NeuralStyleWrapper.getWorkingFolder().listFiles(styleFileFilter);
 
         if (files != null && files.length > 1) {
             long[] fileIters = new long[files.length];
@@ -238,7 +219,7 @@ public class FileUtils {
 
             // Unix-like searching for images
             FileFilter imageFileFilter = new WildcardFileFilter(String.format("%s_*.png", getFileName(styleFile)));
-            File[] imageFiles = tempDir.listFiles(imageFileFilter);
+            File[] imageFiles = NeuralStyleWrapper.getWorkingFolder().listFiles(imageFileFilter);
 
             if (imageFiles != null && imageFiles.length > 1) {
                 int[] imageFileIters = new int[imageFiles.length];
@@ -262,13 +243,10 @@ public class FileUtils {
     }
 
     public static File[] getTempOutputImageIterations(File outputImage) {
-        if (tempDir == null || !tempDir.isDirectory() || outputImage == null)
-            return null;
-
         // Unix-like searching for image iterations
         String outputImageBase = getFileName(outputImage);
         FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
-        File[] files = tempDir.listFiles(fileFilter);
+        File[] files = NeuralStyleWrapper.getWorkingFolder().listFiles(fileFilter);
 
         // sort the files by the iteration progress
         if (files != null && files.length > 1) {

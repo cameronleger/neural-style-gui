@@ -472,7 +472,7 @@ public class NeuralStyleV2 implements Cloneable {
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(getContentImage()) &&
                 FileUtils.checkFolderExists(getNeuralStylePath()) &&
-                FileUtils.checkFolderExists(FileUtils.getTempDir());
+                FileUtils.checkFolderExists(NeuralStyleWrapper.getWorkingFolder());
     }
 
     public String[] buildCommand() {
