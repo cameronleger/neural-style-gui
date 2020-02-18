@@ -1,7 +1,7 @@
 package com.cameronleger.neuralstylegui.service;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyleV2;
+import com.cameronleger.neuralstyle.NeuralStyleV3;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
@@ -46,14 +46,14 @@ public class NeuralService extends Service<Integer> {
     }
 
     private static class Workload {
-        private NeuralStyleV2 neuralStyle;
+        private NeuralStyleV3 neuralStyle;
         private File file;
 
-        public NeuralStyleV2 getNeuralStyle() {
+        public NeuralStyleV3 getNeuralStyle() {
             return neuralStyle;
         }
 
-        public void setNeuralStyle(NeuralStyleV2 neuralStyle) {
+        public void setNeuralStyle(NeuralStyleV3 neuralStyle) {
             this.neuralStyle = neuralStyle;
         }
 
@@ -93,7 +93,7 @@ public class NeuralService extends Service<Integer> {
 
         log.log(Level.FINE, "Checking that style is valid.");
         for (File neuralStyleFile : neuralStyleFiles) {
-            NeuralStyleV2 possibleNeuralStyle = FileUtils.loadStyle(neuralStyleFile);
+            NeuralStyleV3 possibleNeuralStyle = FileUtils.loadStyle(neuralStyleFile);
 
             log.log(Level.FINE, "Checking that style is valid.");
             if (possibleNeuralStyle == null) {
@@ -101,7 +101,7 @@ public class NeuralService extends Service<Integer> {
                 continue;
             }
 
-            if (possibleNeuralStyle.getQueueStatus() != NeuralStyleV2.QUEUED) {
+            if (possibleNeuralStyle.getQueueStatus() != NeuralStyleV3.QUEUED) {
                 log.log(Level.FINE, "Style isn't queued.");
                 continue;
             }
@@ -112,7 +112,7 @@ public class NeuralService extends Service<Integer> {
 
             if (!possibleNeuralStyle.checkArguments()) {
                 log.log(Level.FINE, "Style has invalid arguments.");
-                setNeuralStyleQueueStatus(workload, NeuralStyleV2.INVALID_ARGUMENTS);
+                setNeuralStyleQueueStatus(workload, NeuralStyleV3.INVALID_ARGUMENTS);
                 return null;
             }
 
@@ -133,8 +133,8 @@ public class NeuralService extends Service<Integer> {
 
     @Override
     protected Task<Integer> createTask() {
-        return new Task<Integer>() {
-            private int runNeuralStyleCommand(NeuralStyleV2 neuralStyleForTask) {
+        return new Task<>() {
+            private int runNeuralStyleCommand(NeuralStyleV3 neuralStyleForTask) {
                 log.log(Level.FINE, "Generating run command.");
                 final String[] buildCommand = neuralStyleForTask.buildCommand();
                 for (String buildCommandPart : buildCommand)
@@ -186,22 +186,22 @@ public class NeuralService extends Service<Integer> {
                 return exitCode;
             }
 
-            @Override protected Integer call() throws InterruptedException {
+            @Override protected Integer call() {
                 log.log(Level.FINE, "Getting neural style for task.");
                 Workload workload = getNextNeuralStyle();
                 while (workload != null) {
                     updateMessage("Starting neural-style.");
                     log.log(Level.FINE, "Starting neural-style process.");
-                    setNeuralStyleQueueStatus(workload, NeuralStyleV2.IN_PROGRESS);
+                    setNeuralStyleQueueStatus(workload, NeuralStyleV3.IN_PROGRESS);
 
                     int exitCode = runNeuralStyleCommand(workload.getNeuralStyle());
 
                     if (isCancelled())
-                        setNeuralStyleQueueStatus(workload, NeuralStyleV2.CANCELLED);
+                        setNeuralStyleQueueStatus(workload, NeuralStyleV3.CANCELLED);
                     else if (exitCode != 0)
-                        setNeuralStyleQueueStatus(workload, NeuralStyleV2.FAILED);
+                        setNeuralStyleQueueStatus(workload, NeuralStyleV3.FAILED);
                     else
-                        setNeuralStyleQueueStatus(workload, NeuralStyleV2.FINISHED);
+                        setNeuralStyleQueueStatus(workload, NeuralStyleV3.FINISHED);
 
                     workload = getNextNeuralStyle();
                 }

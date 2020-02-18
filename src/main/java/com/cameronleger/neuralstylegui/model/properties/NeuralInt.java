@@ -3,10 +3,11 @@ package com.cameronleger.neuralstylegui.model.properties;
 import javafx.beans.property.*;
 import javafx.util.StringConverter;
 
-public class NeuralInt extends NeuralProperty<Number> implements NeuralRatio {
+public class NeuralInt extends NeuralProperty<Number> {
 
     private IntegerProperty value;
     private final static int GLOBAL_DEFAULT = 1;
+    private DoubleProperty ratio = new SimpleDoubleProperty(1.0);
 
     public NeuralInt(String name) {
         super(name);
@@ -52,9 +53,16 @@ public class NeuralInt extends NeuralProperty<Number> implements NeuralRatio {
         this.value.setValue(this.defaultValue);
     }
 
-    @Override
-    public void applyRatio() {
-        this.value.multiply(this.ratio.getValue());
+    public Double getRatio() {
+        return this.ratio.get();
+    }
+
+    public DoubleProperty ratioProperty() {
+        return this.ratio;
+    }
+
+    public void setRatio(Number ratio) {
+        this.ratio.setValue(ratio);
     }
 
     public static StringConverter<Number> INT_CONVERTER = new StringConverter<Number>() {

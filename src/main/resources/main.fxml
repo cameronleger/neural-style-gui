@@ -6,19 +6,15 @@
 <?import com.cameronleger.neuralstylegui.component.FileView?>
 <?import com.cameronleger.neuralstylegui.component.NumberView?>
 <?import com.cameronleger.neuralstylegui.component.TextView?>
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -42,41 +38,6 @@
    <items>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="420.0">
          <children>
-            <HBox>
-               <children>
-                  <Button fx:id="neuralPathButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%neuralPathButton" />
-                  <TextField fx:id="neuralPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%neuralPathHint" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin></TextField>
-               </children>
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-               <padding>
-                  <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-               </padding>
-            </HBox>
-            <HBox>
-               <children>
-                  <Button fx:id="thPathButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%thPathButton">
-                      <tooltip>
-                          <Tooltip maxWidth="300.0" text="%thPathTooltip" wrapText="true" />
-                      </tooltip>
-                  </Button>
-                  <TextField fx:id="thPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%thPathHint" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets left="4.0" />
-                     </HBox.margin>
-                      <tooltip>
-                          <Tooltip maxWidth="300.0" text="%thPathTooltip" wrapText="true" />
-                      </tooltip>
-                  </TextField>
-               </children>
-               <padding>
-                  <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-               </padding>
-            </HBox>
             <HBox alignment="CENTER">
                <children>
                   <Button fx:id="saveStyleButton" mnemonicParsing="false" text="%saveStyleButton" />
@@ -92,372 +53,7 @@
             </HBox>
             <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
-                <Tab text="%simpleTab">
-                  <content>
-                      <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true">
-                          <content>
-                              <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
-                                  <columnConstraints>
-                                      <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
-                                      <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
-                                      <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="20.0" />
-                                  </columnConstraints>
-                                  <rowConstraints>
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                      <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                  </rowConstraints>
-                                  <children>
-                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647">
-                                          <font>
-                                              <Font name="System Bold" size="13.0" />
-                                          </font>
-                                      </Label>
-                                      <Label text="%itersMaxLabel" GridPane.rowIndex="1" />
-                                      <Slider fx:id="maxIterSlider" majorTickUnit="500.0" max="2500.0" min="1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1000.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%itersMaxTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="maxIterField" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%itersMaxTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%sizeLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
-                                          <font>
-                                              <Font name="System Bold" size="13.0" />
-                                          </font>
-                                      </Label>
-                                      <Label text="%sizeOutputLabel" GridPane.rowIndex="3" />
-                                      <Slider fx:id="outputSizeSlider" majorTickUnit="200.0" max="1000.0" min="0.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="500.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%sizeOutputTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="outputSizeField" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%sizeOutputTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label text="%sizeStyleLabel" GridPane.rowIndex="4" />
-                                      <Slider fx:id="styleSizeSlider" blockIncrement="0.25" majorTickUnit="1.0" max="3.0" showTickMarks="true" snapToTicks="true" value="1.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%sizeStyleTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="styleSizeField" GridPane.columnIndex="2" GridPane.rowIndex="4">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%sizeStyleTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
-                                          <font>
-                                              <Font name="System Bold" size="13.0" />
-                                          </font>
-                                      </Label>
-                                      <Label text="%weightContentLabel" GridPane.rowIndex="6" />
-                                      <Slider fx:id="contentWeightSlider" blockIncrement="5.0" majorTickUnit="5.0" max="50.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="5.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%weightContentTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="contentWeightField" GridPane.columnIndex="2" GridPane.rowIndex="6">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%weightContentTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label text="%weightStyleLabel" GridPane.rowIndex="7" />
-                                      <Slider fx:id="styleWeightSlider" blockIncrement="25.0" majorTickUnit="100.0" max="1000.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="100.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%weightStyleTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="styleWeightField" GridPane.columnIndex="2" GridPane.rowIndex="7">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%weightStyleTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label text="%initLabel" GridPane.rowIndex="8" />
-                                      <ChoiceBox fx:id="initChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="image" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="8">
-                                          <items>
-                                              <FXCollections fx:factory="observableArrayList">
-                                                  <String fx:value="image" />
-                                                  <String fx:value="random" />
-                                              </FXCollections>
-                                          </items>
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%initTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </ChoiceBox>
-                                      <Button fx:id="initImageButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%initImageLabel" GridPane.rowIndex="9">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%initImageTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Button>
-                                      <TextField fx:id="initImagePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%initImageHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="9">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%initImageTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <CheckBox fx:id="originalColorsOld" mnemonicParsing="false" text="%originalColorsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%originalColorsTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </CheckBox>
-                                      <CheckBox fx:id="normalizeGradientsOld" mnemonicParsing="false" text="%normalizeGradientsLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="11">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%normalizeGradientsTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </CheckBox>
-                                    <Label alignment="CENTER" layoutX="14.0" layoutY="168.0" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%chainLabel" textAlignment="CENTER" GridPane.columnSpan="3" GridPane.rowIndex="12">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                    <Label text="%chainLengthLabel" GridPane.rowIndex="13" />
-                                    <Slider fx:id="chainLengthSlider" blockIncrement="1.0" layoutX="142.0" layoutY="218.0" majorTickUnit="1.0" max="4.0" min="1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" value="1.0" GridPane.columnIndex="1" GridPane.rowIndex="13">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%chainLengthTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="chainLengthField" layoutX="270.0" layoutY="218.0" GridPane.columnIndex="2" GridPane.rowIndex="13">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%chainLengthTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </TextField>
-                                      <Label text="%chainIterationRatioLabel" GridPane.rowIndex="14" />
-                                      <Slider fx:id="chainIterationRatioSlider" blockIncrement="0.5" disable="true" layoutX="142.0" layoutY="218.0" majorTickUnit="0.5" max="1.5" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="14">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%chainIterationRatioTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="chainIterationRatioField" disable="true" layoutX="270.0" layoutY="218.0" GridPane.columnIndex="2" GridPane.rowIndex="14">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%chainIterationRatioTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                      <Label text="%chainSizeRatioLabel" GridPane.rowIndex="15" />
-                                      <Slider fx:id="chainSizeRatioSlider" blockIncrement="1.0" disable="true" layoutX="142.0" layoutY="218.0" majorTickUnit="0.5" max="1.0" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="15">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%chainSizeRatioTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </Slider>
-                                      <TextField fx:id="chainSizeRatioField" disable="true" layoutX="270.0" layoutY="218.0" GridPane.columnIndex="2" GridPane.rowIndex="15">
-                                          <tooltip>
-                                              <Tooltip maxWidth="300.0" text="%chainSizeRatioTooltip" wrapText="true" />
-                                          </tooltip>
-                                      </TextField>
-                                  </children>
-                                  <padding>
-                                      <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                                  </padding>
-                              </GridPane>
-                          </content>
-                      </ScrollPane>
-                  </content>
-                </Tab>
-                <Tab text="%advancedTab">
-                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true">
-                           <content>
-                              <GridPane hgap="4.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vgap="4.0">
-                                <columnConstraints>
-                                  <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
-                                  <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="40.0" />
-                                    <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" percentWidth="20.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                    <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                  <RowConstraints valignment="CENTER" vgrow="NEVER" />
-                                </rowConstraints>
-                                 <children>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                    <Label text="%itersPrintLabel" GridPane.rowIndex="1" />
-                                    <Slider fx:id="printIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                        <tooltip>
-                                            <Tooltip maxWidth="300.0" text="%itersPrintTooltip" wrapText="true" />
-                                        </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="printIterField" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                                        <tooltip>
-                                            <Tooltip maxWidth="300.0" text="%itersPrintTooltip" wrapText="true" />
-                                        </tooltip>
-                                    </TextField>
-                                    <Label text="%itersSaveLabel" GridPane.rowIndex="2" />
-                                    <Slider fx:id="saveIterSlider" blockIncrement="5.0" majorTickUnit="20.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%itersSaveTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="saveIterField" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%itersSaveTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </TextField>
-                                    <Label text="%seedLabel" GridPane.rowIndex="3" />
-                                    <Slider fx:id="seedSlider" blockIncrement="1.0" majorTickUnit="1.0" max="10.0" min="-1.0" minorTickCount="0" showTickMarks="true" snapToTicks="true" value="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%seedTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="seedField" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%seedTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </TextField>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="4">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                    <Label text="%weightTvLabel" GridPane.rowIndex="5" />
-                                    <Slider fx:id="tvWeightSlider" blockIncrement="0.001" majorTickUnit="0.001" max="0.005" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="1.0E-4" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%weightTvTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="tvWeightField" GridPane.columnIndex="2" GridPane.rowIndex="5">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%weightTvTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </TextField>
-                                     <Label text="%poolingLabel" GridPane.rowIndex="6" />
-                                    <ChoiceBox fx:id="poolingChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="max" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
-                                       <items>
-                                          <FXCollections fx:factory="observableArrayList">
-                                             <String fx:value="max" />
-                                             <String fx:value="avg" />
-                                          </FXCollections>
-                                       </items>
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%poolingTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </ChoiceBox>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                     <CheckBox fx:id="cpuMode" mnemonicParsing="false" text="%cpuLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="8">
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%cpuTooltip" wrapText="true" />
-                                         </tooltip>
-                                     </CheckBox>
-                                     <Label text="%gpuLabel" GridPane.rowIndex="9" />
-                                     <Label text="%multiGpuSplitLabel" GridPane.rowIndex="10" />
-                                     <TextField fx:id="multiGpuSplit" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="10">
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%multiGpuSplitTooltip" wrapText="true" />
-                                         </tooltip>
-                                     </TextField>
-                                     <Label text="%backendLabel" GridPane.rowIndex="11" />
-                                     <ChoiceBox fx:id="backendChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="nn" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="11">
-                                         <items>
-                                             <FXCollections fx:factory="observableArrayList">
-                                                 <String fx:value="nn" />
-                                                 <String fx:value="cudnn" />
-                                                 <String fx:value="clnn" />
-                                             </FXCollections>
-                                         </items>
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%backendTooltip" wrapText="true" />
-                                         </tooltip>
-                                     </ChoiceBox>
-                                    <Label text="%optimizerLabel" GridPane.rowIndex="13" />
-                                    <ChoiceBox fx:id="optimizerChoice" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" value="lbfgs" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="13">
-                                       <items>
-                                          <FXCollections fx:factory="observableArrayList">
-                                             <String fx:value="lbfgs" />
-                                             <String fx:value="adam" />
-                                          </FXCollections>
-                                       </items>
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%optimizerTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </ChoiceBox>
-                                     <Label text="%nCorrectionLabel" GridPane.rowIndex="14" />
-                                     <Slider fx:id="nCorrectionSlider" blockIncrement="1.0" majorTickUnit="5.0" max="100.0" min="-1.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="14">
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%nCorrectionTooltip" wrapText="true" />
-                                         </tooltip>
-                                     </Slider>
-                                     <TextField fx:id="nCorrectionField" GridPane.columnIndex="2" GridPane.rowIndex="14">
-                                         <tooltip>
-                                             <Tooltip maxWidth="300.0" text="%nCorrectionTooltip" wrapText="true" />
-                                         </tooltip>
-                                     </TextField>
-                                    <Label text="%learningRateLabel" GridPane.rowIndex="15" />
-                                    <Slider fx:id="learningRateSlider" blockIncrement="1.0" disable="true" majorTickUnit="5.0" max="15.0" minorTickCount="1" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="15">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%learningRateTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </Slider>
-                                    <TextField fx:id="learningRateField" disable="true" GridPane.columnIndex="2" GridPane.rowIndex="15">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%learningRateTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </TextField>
-                                    <CheckBox fx:id="autotuneOld" disable="true" mnemonicParsing="false" text="%autotuneLabel" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12">
-                                       <tooltip>
-                                          <Tooltip maxWidth="300.0" text="%autotuneTooltip" wrapText="true" />
-                                       </tooltip>
-                                    </CheckBox>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%modelLabel" textAlignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="16">
-                                       <font>
-                                          <Font name="System Bold" size="13.0" />
-                                       </font>
-                                    </Label>
-                                    <Button fx:id="protoFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%protoFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="17" />
-                                    <TextField fx:id="protoFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%protoFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
-                                    <Button fx:id="modelFileButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%modelFileButton" GridPane.halignment="RIGHT" GridPane.rowIndex="18" />
-                                    <TextField fx:id="modelFilePath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" promptText="%modelFilePathHint" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
-                                 </children>
-                                 <padding>
-                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                                 </padding>
-                              </GridPane>
-                           </content>
-                        </ScrollPane>
-                     </content>
-                </Tab>
-                  <Tab text="SIMPLE V2">
+                  <Tab text="%simpleTab">
                       <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
@@ -496,7 +92,7 @@
                         </ScrollPane>
                       </content>
                   </Tab>
-                  <Tab text="ADVANCED V2">
+                  <Tab text="%advancedTab">
                       <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
@@ -515,7 +111,7 @@
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
-                                    <NumberView fx:id="tvWeight" layoutX="14.0" layoutY="98.0" max="0.1" maxWidth="1.7976931348623157E308" step="0.01" tooltip="%weightTvTooltip" />
+                                    <NumberView fx:id="tvWeight" layoutX="14.0" layoutY="98.0" max="0.01" maxWidth="1.7976931348623157E308" step="0.001" tooltip="%weightTvTooltip" />
                                     <ChoiceView fx:id="pooling" maxWidth="1.7976931348623157E308" tooltip="%poolingTooltip" />
                                     <CheckboxView fx:id="normalizeGradients" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
                                     <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%processorLabel" textAlignment="CENTER">
@@ -561,14 +157,14 @@
                         </ScrollPane>
                       </content>
                   </Tab>
-                  <Tab text="FILES v2">
+                  <Tab text="%fileTab">
                     <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
                               <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                  <children>
                                     <FileView fx:id="thFile" layoutX="14.0" layoutY="14.0" maxWidth="1.7976931348623157E308" title="%thPathHint" tooltip="%thPathHint" />
-                                    <FileView fx:id="neuralStyleFile" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
+                                    <DirectoryView fx:id="neuralStyleFolder" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
                                     <FileView fx:id="protoFile" maxWidth="1.7976931348623157E308" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
                                     <FileView fx:id="modelFile" maxWidth="1.7976931348623157E308" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
                                     <DirectoryView fx:id="outputFolder" maxWidth="1.7976931348623157E308" title="%outputFolderHint" tooltip="%outputFolderHint" />
@@ -750,16 +346,6 @@
                                           <Insets left="4.0" />
                                        </HBox.margin>
                                     </Button>
-                                    <Button fx:id="outputFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputFolderButton">
-                                       <HBox.margin>
-                                          <Insets left="12.0" />
-                                       </HBox.margin>
-                                    </Button>
-                                    <TextField fx:id="outputPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets left="4.0" />
-                                       </HBox.margin>
-                                    </TextField>
                                     <Button fx:id="outputImageButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputImageButton">
                                        <HBox.margin>
                                           <Insets left="8.0" />

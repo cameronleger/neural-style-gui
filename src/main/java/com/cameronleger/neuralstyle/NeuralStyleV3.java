@@ -5,9 +5,12 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public class NeuralStyleV3 implements Cloneable {
+    private int version = 3;
+
     public final static int INVALID_ARGUMENTS = -2;
     public final static int INVALID_FILE = -1;
     public final static int QUEUED = 0;
@@ -460,6 +463,60 @@ public class NeuralStyleV3 implements Cloneable {
 
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
+    }
+
+    private double applyRatio(int i, double value, double ratio) {
+        int ratioPower = chainLength - i;
+        return Math.pow(ratio, ratioPower) * value;
+    }
+
+    private int applyRatio(int i, int value, double ratio) {
+        return (int) Math.round(applyRatio(i, (double) value, ratio));
+    }
+
+    public NeuralStyleV3 chained(int i) throws CloneNotSupportedException {
+        NeuralStyleV3 chained = (NeuralStyleV3) this.clone();
+        if (i > 1) {
+            chained.setInit("image");
+            chained.setInitImage(FileUtils.getTempOutputImage(i - 1));
+        }
+        chained.setOutputFile(FileUtils.getTempOutputImage(i));
+
+        chained.setIterations(applyRatio(i, chained.getIterations(), getIterationsRatio()));
+        chained.setIterationsPrint(applyRatio(i, chained.getIterationsPrint(), getIterationsPrintRatio()));
+        chained.setIterationsSave(applyRatio(i, chained.getIterationsSave(), getIterationsSaveRatio()));
+        chained.setSeed(applyRatio(i, chained.getSeed(), getSeedRatio()));
+        chained.setOutputSize(applyRatio(i, chained.getOutputSize(), getOutputSizeRatio()));
+        chained.setStyleSize(applyRatio(i, chained.getStyleSize(), getStyleSizeRatio()));
+        chained.setContentWeight(applyRatio(i, chained.getContentWeight(), getContentWeightRatio()));
+        chained.setStyleWeight(applyRatio(i, chained.getStyleWeight(), getStyleWeightRatio()));
+        chained.setTvWeight(applyRatio(i, chained.getTvWeight(), getTvWeightRatio()));
+        chained.setnCorrection(applyRatio(i, chained.getnCorrection(), getnCorrectionRatio()));
+        chained.setLearningRate(applyRatio(i, chained.getLearningRate(), getLearningRateRatio()));
+
+        return chained;
+    }
+
+    public List<NeuralStyleV3> getQueueItems() {
+        List<NeuralStyleV3> queueItems = new ArrayList<>();
+
+        if (chainLength == 1) {
+            try {
+                queueItems.add((NeuralStyleV3) this.clone());
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        } else if (chainLength > 1) {
+            for (int i = 1; i <= chainLength; i++) {
+                try {
+                    queueItems.add(this.chained(i));
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return queueItems;
     }
 
     public boolean checkArguments() {

@@ -76,6 +76,7 @@ public class NumberView extends HBox {
 
         value.textProperty().bindBidirectional(slider.valueProperty(), NeuralInt.INT_CONVERTER);
         value.textProperty().bindBidirectional(property.valueProperty(), NeuralInt.INT_CONVERTER);
+        ratio.textProperty().bindBidirectional(property.ratioProperty(), NeuralDouble.DOUBLE_CONVERTER);
     }
 
     public void linkToDouble(NeuralDouble property) {
@@ -87,6 +88,7 @@ public class NumberView extends HBox {
 
         value.textProperty().bindBidirectional(slider.valueProperty(), NeuralDouble.DOUBLE_CONVERTER);
         value.textProperty().bindBidirectional(property.valueProperty(), NeuralDouble.DOUBLE_CONVERTER);
+        ratio.textProperty().bindBidirectional(property.ratioProperty(), NeuralDouble.DOUBLE_CONVERTER);
     }
 
     public boolean isRatioEnabled() {

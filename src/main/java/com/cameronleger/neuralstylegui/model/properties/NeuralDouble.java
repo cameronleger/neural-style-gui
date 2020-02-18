@@ -5,10 +5,11 @@ import javafx.util.StringConverter;
 
 import java.text.DecimalFormat;
 
-public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio {
+public class NeuralDouble extends NeuralProperty<Number> {
 
     private DoubleProperty value;
     private final static double GLOBAL_DEFAULT = 1.0;
+    private DoubleProperty ratio = new SimpleDoubleProperty(1.0);
 
     public NeuralDouble(String name) {
         super(name);
@@ -54,9 +55,16 @@ public class NeuralDouble extends NeuralProperty<Number> implements NeuralRatio 
         this.value.setValue(this.defaultValue);
     }
 
-    @Override
-    public void applyRatio() {
-        this.value.multiply(this.ratio.getValue());
+    public Double getRatio() {
+        return this.ratio.get();
+    }
+
+    public DoubleProperty ratioProperty() {
+        return this.ratio;
+    }
+
+    public void setRatio(Number ratio) {
+        this.ratio.setValue(ratio);
     }
 
     public static StringConverter<Number> DOUBLE_CONVERTER = new StringConverter<Number>() {

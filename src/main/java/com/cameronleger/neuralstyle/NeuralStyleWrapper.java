@@ -14,6 +14,10 @@ public class NeuralStyleWrapper {
     static {
         try {
             tmpFolder = File.createTempFile("neuralStyle", null);
+            if (!tmpFolder.delete())
+                throw new IOException("Unable to delete temporary file.");
+            if (!tmpFolder.mkdir())
+                throw new IOException("Unable to create temporary directory.");
         } catch (IOException e) {
             e.printStackTrace();
             exit();
@@ -76,16 +80,28 @@ public class NeuralStyleWrapper {
 
     }
 
+    private File file(String fileName) {
+        if (fileName == null || fileName.isEmpty())
+            return null;
+        return new File(fileName);
+    }
+
+    private String file(File file) {
+        if (file == null)
+            return "";
+        return file.getAbsolutePath();
+    }
+
     public NeuralStyleV3 getNeuralStyle() {
         NeuralStyleV3 s = new NeuralStyleV3();
-        s.setThPath(new File(thPath.getValue()));
-        s.setNeuralStylePath(new File(neuralStylePath.getValue()));
+        s.setThPath(file(thPath.getValue()));
+        s.setNeuralStylePath(file(neuralStylePath.getValue()));
         s.setStyleImages(styleImages);
         s.setStyleWeights(styleWeights);
         s.setContentImage(contentImage);
-        s.setOutputFolder(new File(outputFolder.getValue()));
+        s.setOutputFolder(file(outputFolder.getValue()));
         s.setInit(init.getValue());
-        s.setInitImage(new File(initImage.getValue()));
+        s.setInitImage(file(initImage.getValue()));
         s.setPooling(pooling.getValue());
         s.setStyleLayers(styleLayers);
         s.setContentLayers(contentLayers);
@@ -97,8 +113,8 @@ public class NeuralStyleWrapper {
         s.setBackend(backend.getValue());
         s.setOptimizer(optimizer.getValue());
         s.setAutotune(autotune.getValue());
-        s.setProtoFile(new File(protoFile.getValue()));
-        s.setModelFile(new File(modelFile.getValue()));
+        s.setProtoFile(file(protoFile.getValue()));
+        s.setModelFile(file(modelFile.getValue()));
         s.setChainLength(chainLength.getValue().intValue());
         s.setIterations(iterations.getValue().intValue());
         s.setIterationsRatio(iterations.getRatio());
@@ -123,6 +139,65 @@ public class NeuralStyleWrapper {
         s.setLearningRate(learningRate.getValue().intValue());
         s.setLearningRateRatio(learningRate.getRatio());
         return s;
+    }
+
+    public void loadNeuralStyle(NeuralStyleV3 s) {
+        thPath.setValue(file(s.getThPath()));
+        neuralStylePath.setValue(file(s.getNeuralStylePath()));
+        styleImages = s.getStyleImages();
+        styleWeights = s.getStyleWeights();
+        contentImage = s.getContentImage();
+        outputFolder.setValue(file(s.getOutputFolder()));
+        init.setValue(s.getInit());
+        initImage.setValue(file(s.getInitImage()));
+        pooling.setValue(s.getPooling());
+        styleLayers = s.getStyleLayers();
+        contentLayers = s.getContentLayers();
+        originalColors.setValue(s.isOriginalColors());
+        normalizeGradients.setValue(s.isNormalizeGradients());
+        cpu.setValue(s.isCpu());
+        gpu = s.getGpu();
+        multiGpuStrategy.setValue(s.getMultiGpuStrategy());
+        backend.setValue(s.getBackend());
+        optimizer.setValue(s.getOptimizer());
+        autotune.setValue(s.isAutotune());
+        protoFile.setValue(file(s.getProtoFile()));
+        modelFile.setValue(file(s.getModelFile()));
+        chainLength.setValue(s.getChainLength());
+        iterations.setValue(s.getIterations());
+        iterations.setRatio(s.getIterationsRatio());
+        iterationsPrint.setValue(s.getIterationsPrint());
+        iterationsPrint.setRatio(s.getIterationsPrintRatio());
+        iterationsSave.setValue(s.getIterationsSave());
+        iterationsSave.setRatio(s.getIterationsSaveRatio());
+        seed.setValue(s.getSeed());
+        seed.setRatio(s.getSeedRatio());
+        outputSize.setValue(s.getOutputSize());
+        outputSize.setRatio(s.getOutputSizeRatio());
+        styleSize.setValue(s.getStyleSize());
+        styleSize.setRatio(s.getStyleSizeRatio());
+        contentWeight.setValue(s.getContentWeight());
+        contentWeight.setRatio(s.getContentWeightRatio());
+        styleWeight.setValue(s.getStyleWeight());
+        styleWeight.setRatio(s.getStyleWeightRatio());
+        tvWeight.setValue(s.getTvWeight());
+        tvWeight.setRatio(s.getTvWeightRatio());
+        nCorrection.setValue(s.getnCorrection());
+        nCorrection.setRatio(s.getnCorrectionRatio());
+        learningRate.setValue(s.getLearningRate());
+        learningRate.setRatio(s.getLearningRateRatio());
+    }
+
+    public boolean checkArguments() {
+        return styleImages != null && styleImages.length > 0 &&
+                styleWeights != null && styleWeights.length == styleImages.length &&
+                styleLayers != null && styleLayers.length > 0 &&
+                contentLayers != null && contentLayers.length > 0 &&
+                (cpu.getValue() || gpu.length > 0) &&
+                FileUtils.checkFilesExists(styleImages) &&
+                FileUtils.checkFileExists(contentImage) &&
+                FileUtils.checkFolderExists(file(neuralStylePath.getValue())) &&
+                FileUtils.checkFolderExists(NeuralStyleWrapper.getWorkingFolder());
     }
 
     public NeuralString getThPath() {

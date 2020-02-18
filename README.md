@@ -66,7 +66,12 @@ The Neural Style Log Tab will show the output from the most recent running proce
 
 # Changelog
 ### 1.3.0
-* JDK 13
+* JDK 11
+* Overhauled Parameters
+  * All number-based Parameters can be adjusted while Chaining
+  * All Parameters can be reset to their default
+* Support for changing the working directory (was unique-temporary for each launch)
+* Layout Tweaks
 ### 1.2.1
 * Fixed an issue where 'nvidia-smi' was not available
 * New optional path to set 'th' in case it cannot be found
