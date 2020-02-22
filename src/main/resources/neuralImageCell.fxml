@@ -1,33 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 
-<GridPane fx:id="gridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" xmlns="http://javafx.com/javafx/8.0.76-ea" xmlns:fx="http://javafx.com/fxml/1">
-  <columnConstraints>
-    <ColumnConstraints hgrow="NEVER" />
-    <ColumnConstraints fillWidth="false" halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints minHeight="125.0" valignment="BOTTOM" vgrow="ALWAYS" />
-    <RowConstraints minHeight="125.0" valignment="TOP" vgrow="ALWAYS" />
-  </rowConstraints>
+<fx:root maxHeight="258.0" maxWidth="258.0" minHeight="258.0" minWidth="258.0" prefHeight="258.0" prefWidth="258.0" type="AnchorPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <ImageView fx:id="image" fitHeight="250.0" fitWidth="250.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER" />
-      <CheckBox fx:id="selected" focusTraversable="false" mnemonicParsing="false" GridPane.columnIndex="1">
-         <GridPane.margin>
-            <Insets bottom="4.0" />
-         </GridPane.margin>
-      </CheckBox>
-      <TextField fx:id="weight" focusTraversable="false" minWidth="60.0" prefWidth="60.0" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
-         <GridPane.margin>
-            <Insets top="4.0" />
-         </GridPane.margin>
-      </TextField>
+      <StackPane layoutX="4.0" layoutY="4.0" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0">
+         <children>
+            <ImageView fx:id="image" fitHeight="250.0" fitWidth="250.0" pickOnBounds="true" preserveRatio="true" smooth="false" StackPane.alignment="CENTER" />
+         </children>
+      </StackPane>
+      <CheckBox fx:id="selected" focusTraversable="false" layoutX="107.0" layoutY="4.0" mnemonicParsing="false" AnchorPane.bottomAnchor="8.0" AnchorPane.rightAnchor="150.0" />
+      <TextField fx:id="weight" focusTraversable="false" layoutX="133.0" minWidth="60.0" prefWidth="60.0" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="120.0" />
    </children>
-</GridPane>
+</fx:root>

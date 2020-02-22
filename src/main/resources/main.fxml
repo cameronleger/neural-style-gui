@@ -6,12 +6,12 @@
 <?import com.cameronleger.neuralstylegui.component.FileView?>
 <?import com.cameronleger.neuralstylegui.component.NumberView?>
 <?import com.cameronleger.neuralstylegui.component.TextView?>
+<?import com.cameronleger.neuralstylegui.listwrapview.ListWrapView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -31,12 +31,13 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
+<SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" stylesheets="@main.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="420.0">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="-Infinity" prefWidth="420.0" SplitPane.resizableWithParent="false">
          <children>
             <HBox alignment="CENTER">
                <children>
@@ -53,36 +54,41 @@
             </HBox>
             <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
-                  <Tab text="%simpleTab">
+                  <Tab closable="false" text="%simpleTab">
                       <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                     <children>
                                     <NumberView fx:id="chainLength" layoutX="14.0" layoutY="38.0" max="5.0" maxWidth="1.7976931348623157E308" min="1.0" ratioEnabled="false" step="2.0" tooltip="%chainLengthTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%itersLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
                                         <NumberView fx:id="maxIter" max="1000" maxWidth="1.7976931348623157E308" min="100" step="100" tooltip="%itersMaxTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%sizeLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%sizeLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
                                     <NumberView fx:id="sizeOutput" max="1500.0" maxWidth="1.7976931348623157E308" min="0" step="250.0" tooltip="%sizeOutputTooltip" />
                                     <NumberView fx:id="sizeStyle" max="3.0" maxWidth="1.7976931348623157E308" min="0" step="0.5" tooltip="%sizeStyleTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%styleLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                     </Label>
                                     <NumberView fx:id="weightContent" layoutX="14.0" layoutY="122.0" max="50.0" maxWidth="1.7976931348623157E308" min="0" step="5.0" tooltip="%weightContentTooltip" />
                                     <NumberView fx:id="weightStyle" layoutX="14.0" layoutY="176.0" max="1000.0" maxWidth="1.7976931348623157E308" min="0" step="100.0" tooltip="%weightStyleTooltip" />
+                                    <CheckboxView fx:id="originalColors" maxWidth="1.7976931348623157E308" tooltip="%originalColorsTooltip" />
                                     <ChoiceView fx:id="init" maxWidth="1.7976931348623157E308" tooltip="%initTooltip" />
                                     <FileView fx:id="initImage" maxWidth="1.7976931348623157E308" title="%initImageHint" tooltip="%initImageTooltip" />
-                                    <CheckboxView fx:id="originalColors" maxWidth="1.7976931348623157E308" tooltip="%originalColorsTooltip" />
+                                    <StackPane>
+                                       <children>
+                                          <ImageView fx:id="initImageView" fitHeight="350.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
+                                       </children>
+                                    </StackPane>
                                     </children>
                                  <padding>
                                     <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
@@ -92,13 +98,13 @@
                         </ScrollPane>
                       </content>
                   </Tab>
-                  <Tab text="%advancedTab">
+                  <Tab closable="false" text="%advancedTab">
                       <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                     <children>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%itersLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%itersLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
@@ -106,7 +112,7 @@
                                         <NumberView fx:id="printIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersPrintTooltip" />
                                         <NumberView fx:id="saveIter" max="100" maxWidth="1.7976931348623157E308" min="0" step="20" tooltip="%itersSaveTooltip" />
                                     <NumberView fx:id="seed" max="10.0" maxWidth="1.7976931348623157E308" min="-1.0" step="2.0" tooltip="%seedTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%styleLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%styleLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
@@ -114,7 +120,7 @@
                                     <NumberView fx:id="tvWeight" layoutX="14.0" layoutY="98.0" max="0.01" maxWidth="1.7976931348623157E308" step="0.001" tooltip="%weightTvTooltip" />
                                     <ChoiceView fx:id="pooling" maxWidth="1.7976931348623157E308" tooltip="%poolingTooltip" />
                                     <CheckboxView fx:id="normalizeGradients" maxWidth="1.7976931348623157E308" tooltip="%normalizeGradientsTooltip" />
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%processorLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%processorLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
@@ -133,7 +139,7 @@
                                      </TableView>
                                     <TextView fx:id="multiGpuStrategy" maxWidth="1.7976931348623157E308" tooltip="%multiGpuSplitTooltip" />
                                     <CheckboxView fx:id="cpu" layoutX="14.0" layoutY="212.0" maxWidth="1.7976931348623157E308" tooltip="%cpuTooltip" />
-                                    <Label alignment="CENTER" layoutX="14.0" layoutY="242.0" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" stylesheets="@main.css" text="%backendLabel" textAlignment="CENTER">
+                                    <Label alignment="CENTER" layoutX="14.0" layoutY="242.0" maxWidth="1.7976931348623157E308" prefHeight="24.0" styleClass="settings-header" text="%backendLabel" textAlignment="CENTER">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
@@ -157,7 +163,7 @@
                         </ScrollPane>
                       </content>
                   </Tab>
-                  <Tab text="%fileTab">
+                  <Tab closable="false" text="%fileTab">
                     <content>
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" pannable="true" vbarPolicy="ALWAYS">
                            <content>
@@ -186,7 +192,7 @@
          <children>
             <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
-                  <Button fx:id="queueButton" defaultButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%queueButton">
+                  <Button fx:id="queueButton" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%queueButton">
                      <HBox.margin>
                         <Insets />
                      </HBox.margin>
@@ -200,7 +206,7 @@
                         <Insets left="4.0" />
                      </HBox.margin>
                   </Button>
-                  <Button fx:id="commandButton" cancelButton="true" disable="true" layoutX="119.0" layoutY="10.0" mnemonicParsing="false" text="%commandButton">
+                  <Button fx:id="commandButton" disable="true" layoutX="119.0" layoutY="10.0" mnemonicParsing="false" text="%commandButton">
                      <HBox.margin>
                         <Insets left="8.0" />
                      </HBox.margin>
@@ -229,48 +235,66 @@
                   <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
                </VBox.margin>
             </HBox>
-            <TabPane fx:id="tabs" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <TabPane fx:id="tabs" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="ALL_TABS" VBox.vgrow="ALWAYS">
               <tabs>
-                  <Tab fx:id="inputTab" text="%inputTab">
-                      <content>
-                      </content>
+                  <Tab fx:id="inputTab" closable="false" text="%inputTab">
                      <content>
-                        <GridPane hgap="4.0" vgap="4.0">
-                          <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" />
-                              <ColumnConstraints hgrow="ALWAYS" />
-                              <ColumnConstraints hgrow="NEVER" />
-                            <ColumnConstraints hgrow="SOMETIMES" />
-                            <ColumnConstraints hgrow="ALWAYS" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="-Infinity" vgrow="NEVER" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                          </rowConstraints>
+                        <GridPane>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="50.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                              <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
+                           </rowConstraints>
                            <children>
-                              <Button fx:id="styleFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%styleFolderButton" />
-                              <TextField fx:id="styleFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" />
-                              <Button fx:id="contentFolderButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%contentFolderButton" GridPane.columnIndex="3" />
-                              <TextField fx:id="contentFolderPath" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="4" />
-                              <ListView fx:id="styleImageList" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="1">
-                                  <tooltip>
-                                      <Tooltip maxWidth="300.0" text="%styleImageListTooltip" wrapText="true" />
-                                  </tooltip>
-                              </ListView>
-                              <ListView fx:id="contentImageList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="1">
-                                  <tooltip>
-                                      <Tooltip maxWidth="300.0" text="%contentImageListTooltip" wrapText="true" />
-                                  </tooltip>
-                              </ListView>
-                              <CheckBox fx:id="styleMultipleSelect" mnemonicParsing="false" text="%styleMultipleSelect" GridPane.columnIndex="2" />
+                              <HBox spacing="4.0">
+                                 <children>
+                                    <Button fx:id="styleFolderButton" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%styleFolderButton" />
+                                    <TextField fx:id="styleFolderPath" editable="false" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS" />
+                                    <CheckBox fx:id="styleMultipleSelect" maxHeight="1.7976931348623157E308" mnemonicParsing="false" text="%styleMultipleSelect" />
+                                 </children>
+                                 <GridPane.margin>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </GridPane.margin></HBox>
+                              <HBox layoutX="10.0" layoutY="10.0" spacing="4.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Button fx:id="contentFolderButton" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%contentFolderButton" />
+                                    <TextField fx:id="contentFolderPath" editable="false" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS" />
+                                 </children>
+                                 <GridPane.margin>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </GridPane.margin></HBox>
+                              <ScrollPane fitToWidth="true" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="100.0" vbarPolicy="ALWAYS" GridPane.rowIndex="1">
+                                 <content>
+                                    <ListWrapView fx:id="styleImageGrid" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                    </ListWrapView>
+                                 </content>
+                                 <tooltip>
+                                    <Tooltip maxWidth="400.0" text="%styleImageListTooltip" wrapText="true" />
+                                 </tooltip>
+                              </ScrollPane>
+                              <ScrollPane fitToWidth="true" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="100.0" vbarPolicy="ALWAYS" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <content>
+                                    <ListWrapView fx:id="contentImageGrid" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                    </ListWrapView>
+                                 </content>
+                                 <tooltip>
+                                    <Tooltip maxWidth="400.0" text="%contentImageListTooltip" />
+                                 </tooltip>
+                              </ScrollPane>
                            </children>
-                           <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </padding>
                         </GridPane>
                      </content>
                   </Tab>
-                  <Tab fx:id="layersTab" text="%layersTab">
+                  <Tab fx:id="layersTab" closable="false" text="%layersTab">
                      <content>
                         <GridPane hgap="4.0" vgap="4.0">
                           <columnConstraints>
@@ -330,7 +354,7 @@
                         </GridPane>
                      </content>
                   </Tab>
-                <Tab fx:id="outputTab" text="%outputTab">
+                <Tab fx:id="outputTab" closable="false" text="%outputTab">
                      <content>
                         <VBox prefHeight="200.0" prefWidth="100.0">
                            <children>
@@ -372,7 +396,7 @@
                                           </ImageView>
                                        </children>
                                     </HBox>
-                                    <TreeTableView fx:id="outputTreeTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="320.0" showRoot="false" sortMode="ONLY_FIRST_LEVEL">
+                                    <TreeTableView fx:id="outputTreeTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="380.0" showRoot="false" sortMode="ONLY_FIRST_LEVEL" SplitPane.resizableWithParent="false">
                                       <columns>
                                           <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="100.0" sortable="false" text="%outputTreeTableButton" />
                                           <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="165.0" prefWidth="180.0" sortable="false" text="%outputTreeTableName" />
@@ -391,7 +415,7 @@
                         </VBox>
                      </content>
                 </Tab>
-                  <Tab text="%neuralLogTab">
+                  <Tab fx:id="logTab" closable="false" text="%neuralLogTab">
                     <content>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>

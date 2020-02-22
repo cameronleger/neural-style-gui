@@ -4,8 +4,12 @@ import com.cameronleger.neuralstyle.FileUtils;
 import com.cameronleger.neuralstyle.NeuralStyleV2;
 import com.cameronleger.neuralstyle.NeuralStyleV3;
 import com.cameronleger.neuralstylegui.component.*;
+import com.cameronleger.neuralstylegui.helper.AsyncImageProperty;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
+import com.cameronleger.neuralstylegui.listwrapview.CellNode;
+import com.cameronleger.neuralstylegui.listwrapview.Cellable;
+import com.cameronleger.neuralstylegui.listwrapview.ListWrapView;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
 import com.cameronleger.neuralstyle.NeuralStyleWrapper;
@@ -106,9 +110,9 @@ public class MainController {
     private CheckBox styleMultipleSelect;
 
     @FXML
-    private ListView<NeuralImage> styleImageList;
+    private ListWrapView<NeuralImage> styleImageGrid;
     @FXML
-    private ListView<NeuralImage> contentImageList;
+    private ListWrapView<NeuralImage> contentImageGrid;
 
     @FXML
     private Button styleLayerAdd;
@@ -157,6 +161,9 @@ public class MainController {
     private ChoiceView init;
     @FXML
     private FileView initImage;
+    @FXML
+    private ImageView initImageView;
+    private AsyncImageProperty initImageViewLoader;
     @FXML
     private CheckboxView originalColors;
     @FXML
@@ -255,8 +262,8 @@ public class MainController {
         log.log(Level.FINER, "Setting nvidia listener.");
         setupNvidiaListener();
 
-        setupStyleImageList();
-        setupContentImageList();
+        setupStyleImageGrid();
+        setupContentImageGrid();
         setupGpuIndexTable();
         setupStyleLayersTable();
         setupContentLayersTable();
@@ -278,6 +285,7 @@ public class MainController {
         this.stage = stage;
 
         log.log(Level.FINER, "Setting keyboard shortcuts.");
+        final KeyCombination enter = new KeyCodeCombination(KeyCode.ENTER);
         final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlC = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlL = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
@@ -285,18 +293,21 @@ public class MainController {
         final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlShiftEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
         stage.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (ctrlS.match(event)) {
+            if (enter.match(event)) {
+                // TODO: Suppress
+            } else if (ctrlS.match(event)) {
                 tabs.getSelectionModel().select(inputTab);
-                styleImageList.requestFocus();
+                styleImageGrid.requestFocus();
             } else if (ctrlC.match(event)) {
                 tabs.getSelectionModel().select(inputTab);
-                contentImageList.requestFocus();
+                contentImageGrid.requestFocus();
             } else if (ctrlL.match(event)) {
                 tabs.getSelectionModel().select(layersTab);
                 styleLayersTable.requestFocus();
             } else if (ctrlO.match(event)) {
                 tabs.getSelectionModel().select(outputTab);
             } else if (ctrlEnter.match(event)) {
+                showTooltipNextTo(queueButton, resources.getString("queueButtonHit"));
                 queueStyle();
             } else if (ctrlShiftEnter.match(event)) {
                 startService();
@@ -343,17 +354,23 @@ public class MainController {
     }
 
     private void setStyleFolder(File styleFolder) {
-        styleFolderPath.setText(styleFolder.getAbsolutePath());
-        if (FileUtils.checkFolderExists(styleFolder))
-            DirectoryView.directoryChooser.setInitialDirectory(styleFolder);
-        styleImages.setAll(FileUtils.getImages(styleFolder));
+        if (!styleFolder.getAbsolutePath().equals(styleFolderPath.getText())) {
+            log.log(Level.FINE, "New styleFolder: " + styleFolder);
+            styleFolderPath.setText(styleFolder.getAbsolutePath());
+            if (FileUtils.checkFolderExists(styleFolder))
+                DirectoryView.directoryChooser.setInitialDirectory(styleFolder);
+            styleImages.setAll(FileUtils.getImages(styleFolder));
+        }
     }
 
     private void setContentFolder(File contentFolder) {
-        contentFolderPath.setText(contentFolder.getAbsolutePath());
-        if (FileUtils.checkFolderExists(contentFolder))
-            DirectoryView.directoryChooser.setInitialDirectory(contentFolder);
-        contentImages.setAll(FileUtils.getImages(contentFolder));
+        if (!contentFolder.getAbsolutePath().equals(contentFolderPath.getText())) {
+            log.log(Level.FINE, "New contentFolder: " + contentFolder);
+            contentFolderPath.setText(contentFolder.getAbsolutePath());
+            if (FileUtils.checkFolderExists(contentFolder))
+                DirectoryView.directoryChooser.setInitialDirectory(contentFolder);
+            contentImages.setAll(FileUtils.getImages(contentFolder));
+        }
     }
 
     private void setDefaultNeuralBooleans() {
@@ -423,43 +440,47 @@ public class MainController {
     }
 
     private void updateNeuralBooleans(String[] selectedNames, ObservableList<NeuralBoolean> existingNames) {
-        // ensure all NeuralBooleans are deselected
-        List<NeuralBoolean> newSelectedNamed = existingNames.stream()
-                .map(namedSelection -> new NeuralBoolean(namedSelection.getName(), false))
-                .collect(Collectors.toList());
+        Set<String> names = new HashSet<>(Arrays.asList(selectedNames));
 
-        if (selectedNames != null && selectedNames.length > 0) {
-            // select NeuralBooleans
-            for (String selectedName : selectedNames) {
+        // ensure deselected
+        for (NeuralBoolean namedSelection : existingNames) {
+            if (!names.contains(namedSelection.getName()) && namedSelection.getValue())
+                namedSelection.setValue(false);
+        }
+
+        if (names.size() > 0) {
+            // select
+            for (String selectedName : names) {
                 boolean existed = false;
-                for (NeuralBoolean namedSelection : newSelectedNamed) {
+                for (NeuralBoolean namedSelection : existingNames) {
                     if (namedSelection.getName().equalsIgnoreCase(selectedName)) {
-                        namedSelection.setValue(true);
+                        if (!namedSelection.getValue())
+                            namedSelection.setValue(true);
                         existed = true;
                         break;
                     }
                 }
 
-                // create new name for selection if necessary
-                if (!existed) {
-                    newSelectedNamed.add(new NeuralBoolean(selectedName, true));
-                }
+                // create new for selection if necessary
+                if (!existed)
+                    existingNames.add(new NeuralBoolean(selectedName, true));
             }
-
-            existingNames.setAll(newSelectedNamed);
         }
     }
 
     private List<NeuralImage> updateStyleImageSelections(File[] selectedImages, double[] weights,
                                                          ObservableList<NeuralImage> existingImages) {
-        // ensure all NeuralImages are deselected and non-weighted
-        List<NeuralImage> newNeuralImages = existingImages.stream()
-                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
-                .collect(Collectors.toList());
+        Set<String> names = Arrays.stream(selectedImages).map(File::getName).collect(Collectors.toSet());
         List<NeuralImage> selectedNeuralImages = new ArrayList<>();
 
-        if (selectedImages != null && selectedImages.length > 0) {
-            // select NeuralImages
+        // ensure deselected
+        for (NeuralImage image : existingImages) {
+            if (!names.contains(image.getName()) && image.isSelected())
+                image.setSelected(false);
+        }
+
+        if (names.size() > 0) {
+            // select
             for (int i = 0; i < selectedImages.length; i++) {
                 File selectedImage = selectedImages[i];
                 double weight;
@@ -469,44 +490,45 @@ public class MainController {
                     weight = 1.0;
                 }
                 boolean existed = false;
-                for (NeuralImage neuralImage : newNeuralImages) {
+                for (NeuralImage neuralImage : existingImages) {
                     if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
-                        neuralImage.setSelected(true);
-                        neuralImage.setWeight(weight);
+                        if (!neuralImage.isSelected())
+                            neuralImage.setSelected(true);
+                        if (neuralImage.getWeight() != weight)
+                            neuralImage.setWeight(weight);
                         selectedNeuralImages.add(neuralImage);
                         existed = true;
                         break;
                     }
                 }
 
-                // create new image for selection if necessary
+                // create new for selection if necessary
                 if (!existed) {
                     NeuralImage neuralImage = new NeuralImage(selectedImage);
                     neuralImage.setSelected(true);
                     neuralImage.setWeight(weight);
-                    newNeuralImages.add(neuralImage);
+                    existingImages.add(neuralImage);
                     selectedNeuralImages.add(neuralImage);
                 }
             }
 
-            existingImages.setAll(newNeuralImages);
-
             if (selectedNeuralImages.size() == 1)
-                styleImageList.getSelectionModel().select(selectedNeuralImages.get(0));
+                styleImageGrid.selectedItemProperty().set(selectedNeuralImages.get(0));
         }
         return selectedNeuralImages;
     }
 
     private void updateContentImageSelections(File selectedImage, ObservableList<NeuralImage> existingImages) {
-        // ensure all NeuralImages are deselected and non-weighted
-        List<NeuralImage> newNeuralImages = existingImages.stream()
-                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
-                .collect(Collectors.toList());
+        // ensure deselected
+        for (NeuralImage image : existingImages) {
+            if (!selectedImage.getName().equals(image.getName()) && image.isSelected())
+                image.setSelected(false);
+        }
 
         if (selectedImage != null) {
             NeuralImage selectedNeuralImage = null;
             boolean existed = false;
-            for (NeuralImage neuralImage : newNeuralImages) {
+            for (NeuralImage neuralImage : existingImages) {
                 if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
                     selectedNeuralImage = neuralImage;
                     existed = true;
@@ -514,16 +536,15 @@ public class MainController {
                 }
             }
 
-            // create new image for selection if necessary
+            // create new for selection if necessary
             if (!existed) {
                 NeuralImage neuralImage = new NeuralImage(selectedImage);
                 selectedNeuralImage = neuralImage;
-                newNeuralImages.add(neuralImage);
+                existingImages.add(neuralImage);
             }
 
             // select the new image in the table
-            existingImages.setAll(newNeuralImages);
-            contentImageList.getSelectionModel().select(selectedNeuralImage);
+            contentImageGrid.selectedItemProperty().set(selectedNeuralImage);
         }
     }
 
@@ -763,6 +784,20 @@ public class MainController {
                 p.getY() + region.getScene().getY() + region.getScene().getWindow().getY());
     }
 
+    private void openImageInTab(File imageFile) {
+        Tab imageTab = new Tab(imageFile.getName());
+        FullImageView imagePreview = new FullImageView(
+                imageFile,
+                e -> updateStyleImageSelections(new File[]{imageFile}, new double[]{1.0}, styleImages),
+                e -> updateContentImageSelections(imageFile, contentImages),
+                e -> neuralStyle.getInitImage().setValue(imageFile.getAbsolutePath()),
+                resources
+        );
+        imageTab.setContent(imagePreview);
+        tabs.getTabs().add(imageTab);
+        tabs.getSelectionModel().selectLast();
+    }
+
     private void checkInjections() {
         assert maxIter != null : "fx:id=\"maxIter\" was not injected.";
         assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
@@ -778,8 +813,8 @@ public class MainController {
         assert contentFolderButton != null : "fx:id=\"contentFolderButton\" was not injected.";
         assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
         assert styleMultipleSelect != null : "fx:id=\"styleMultipleSelect\" was not injected.";
-        assert styleImageList != null : "fx:id=\"styleImageList\" was not injected.";
-        assert contentImageList != null : "fx:id=\"contentImageList\" was not injected.";
+        assert styleImageGrid != null : "fx:id=\"styleImageGrid\" was not injected.";
+        assert contentImageGrid != null : "fx:id=\"contentImageGrid\" was not injected.";
         assert styleLayerAdd != null : "fx:id=\"styleLayerAdd\" was not injected.";
         assert styleLayerRemove != null : "fx:id=\"styleLayerRemove\" was not injected.";
         assert styleLayersTable != null : "fx:id=\"styleLayersTable\" was not injected.";
@@ -1002,6 +1037,18 @@ public class MainController {
         EventStreams.valuesOf(neuralStyle.getInit().valueProperty()).subscribe(init -> {
             boolean notInitImage = !"image".equalsIgnoreCase(init);
             initImage.setDisable(notInitImage);
+            if (notInitImage) neuralStyle.getInitImage().setValue("");
+        });
+
+        initImageViewLoader = new AsyncImageProperty(350, 350);
+        initImageView.imageProperty().bind(initImageViewLoader);
+        EventStreams.valuesOf(neuralStyle.getInitImage().valueProperty()).subscribe(newInitImagePath -> {
+            if (newInitImagePath == null || newInitImagePath.isEmpty()) {
+                initImageView.setVisible(false);
+            } else {
+                initImageView.setVisible(true);
+                initImageViewLoader.imageFileProperty().set(new File(newInitImagePath));
+            }
         });
 
         originalColors.link(neuralStyle.getOriginalColors());
@@ -1179,36 +1226,32 @@ public class MainController {
         nvidiaTimer.restart();
     }
 
-    private void setupStyleImageList() {
-        log.log(Level.FINER, "Setting style image list.");
-        styleImageList.setItems(styleImages);
-        styleImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupStyleImageGrid() {
+        log.log(Level.FINER, "Setting style image grid.");
+        styleImageGrid.setItems(styleImages);
 
-        log.log(Level.FINER, "Setting style image list selection mode listener.");
-        EventStreams.valuesOf(styleMultipleSelect.selectedProperty()).subscribe(booleanChange -> {
-            if (booleanChange)
-                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-            else {
+        log.log(Level.FINER, "Setting style image grid multi-selection listener.");
+        EventStreams.changesOf(styleMultipleSelect.selectedProperty()).subscribe(selectedChange -> {
+            if (!selectedChange.getNewValue()) {
                 for (NeuralImage neuralImage : styleImages)
-                    neuralImage.setSelected(false);
-                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                    if (neuralImage.isSelected()) neuralImage.setSelected(false);
             }
         });
 
-        log.log(Level.FINER, "Setting style image list selection listener.");
-        EventStreams.changesOf(styleImageList.getSelectionModel().selectedItemProperty())
+        log.log(Level.FINER, "Setting style image grid selection listener.");
+        EventStreams.changesOf(styleImageGrid.selectedItemProperty())
                 .subscribe(neuralImageChange -> {
                     if (!styleMultipleSelect.isSelected()) {
                         NeuralImage oldNeuralImage = neuralImageChange.getOldValue();
                         if (oldNeuralImage != null)
                             oldNeuralImage.setSelected(false);
-                        NeuralImage newNeuralImage = neuralImageChange.getNewValue();
-                        if (newNeuralImage != null)
-                            newNeuralImage.setSelected(true);
                     }
+                    NeuralImage newNeuralImage = neuralImageChange.getNewValue();
+                    if (newNeuralImage != null)
+                        newNeuralImage.setSelected(true);
                 });
 
-        log.log(Level.FINER, "Setting style image list selection listener.");
+        log.log(Level.FINER, "Setting style image grid selection listener.");
         EventStreams.changesOf(styleImages).subscribe(change -> {
             log.log(Level.FINE, "styleImages changed");
 
@@ -1228,85 +1271,83 @@ public class MainController {
             toggleStyleButtons();
         });
 
-        log.log(Level.FINER, "Setting style image list shortcut listener");
-        EventStreams.eventsOf(styleImageList, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            if (styleMultipleSelect.isSelected()) {
-                ObservableList<NeuralImage> selectedStyleImages =
-                        styleImageList.getSelectionModel().getSelectedItems();
-                for (NeuralImage neuralImage : selectedStyleImages)
-                    neuralImage.setSelected(!neuralImage.isSelected());
-            }
-        });
+        log.log(Level.FINER, "Setting style image grid column factory.");
+        styleImageGrid.setCellFactory(v -> {
+            final NeuralImageCell neuralImageCell = new NeuralImageCell(styleMultipleSelect.selectedProperty());
+            Cellable<NeuralImage> cell = new Cellable<NeuralImage>() {
+                @Override
+                public void updateItem(NeuralImage item, boolean empty) {
+                    neuralImageCell.setNeuralImage(item);
+                }
 
-        log.log(Level.FINER, "Setting style image list column factory.");
-        styleImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
-            @Override
-            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
-                return new ListCell<NeuralImage>() {
-                    NeuralImageCellController neuralImageCell = new NeuralImageCellController(true);
-
-                    @Override
-                    public void updateItem(NeuralImage neuralImage, boolean empty) {
-                        super.updateItem(neuralImage, empty);
-                        neuralImageCell.setEditable(styleMultipleSelect.isSelected());
-
-                        neuralImageCell.setNeuralImage(neuralImage);
-
-                        if (empty || neuralImage == null) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            neuralImageCell.setNeuralImage(neuralImage);
-                            setText(null);
-                            setGraphic(neuralImageCell.getCellLayout());
-                        }
+                @Override
+                public void actionItem(NeuralImage item, MouseButton mouseButton) {
+                    switch (mouseButton) {
+                        case PRIMARY:
+                            styleImageGrid.selectedItemProperty().set(item);
+                            break;
+                        case MIDDLE:
+                            openImageInTab(item.getImageFile());
+                            break;
+                        case SECONDARY:
+                            neuralStyle.getInitImage().setValue(item.getImageFile().getAbsolutePath());
+                            break;
                     }
-                };
-            }
+                }
+            };
+            return new CellNode<>(neuralImageCell, cell);
         });
     }
 
-    private void setupContentImageList() {
-        log.log(Level.FINER, "Setting content image list.");
-        contentImageList.setItems(contentImages);
-        contentImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupContentImageGrid() {
+        log.log(Level.FINER, "Setting content image grid.");
+        contentImageGrid.setItems(contentImages);
 
-        log.log(Level.FINER, "Setting content image list selection listener.");
-        EventStreams.valuesOf(contentImageList.getSelectionModel().selectedItemProperty())
-                .subscribe(newSelection -> {
-                    log.log(Level.FINE, "Content image changed: " + newSelection);
-                    if (newSelection == null) {
-                        neuralStyle.setContentImage(null);
+        log.log(Level.FINER, "Setting content image grid selection listener.");
+        EventStreams.changesOf(contentImageGrid.selectedItemProperty())
+                .subscribe(neuralImageChange -> {
+                    log.log(Level.FINE, "contentImage changed");
+
+                    NeuralImage oldNeuralImage = neuralImageChange.getOldValue();
+                    if (oldNeuralImage != null)
+                        oldNeuralImage.setSelected(false);
+
+                    NeuralImage newNeuralImage = neuralImageChange.getNewValue();
+                    if (newNeuralImage != null) {
+                        newNeuralImage.setSelected(true);
+                        neuralStyle.setContentImage(newNeuralImage.getImageFile());
                     } else {
-                        neuralStyle.setContentImage(newSelection.getImageFile());
+                        neuralStyle.setContentImage(null);
                     }
+
                     toggleStyleButtons();
                 });
 
-        log.log(Level.FINER, "Setting content image list column factory.");
-        contentImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
-            @Override
-            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
-                return new ListCell<NeuralImage>() {
-                    NeuralImageCellController neuralImageCell = new NeuralImageCellController(false);
+        log.log(Level.FINER, "Setting content image grid column factory.");
+        contentImageGrid.setCellFactory(v -> {
+            final NeuralImageCell neuralImageCell = new NeuralImageCell(null);
+            Cellable<NeuralImage> cell = new Cellable<NeuralImage>() {
+                @Override
+                public void updateItem(NeuralImage item, boolean empty) {
+                    neuralImageCell.setNeuralImage(item);
+                }
 
-                    @Override
-                    public void updateItem(NeuralImage neuralImage, boolean empty) {
-                        super.updateItem(neuralImage, empty);
-
-                        neuralImageCell.setNeuralImage(neuralImage);
-
-                        if (empty || neuralImage == null) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            neuralImageCell.setNeuralImage(neuralImage);
-                            setText(null);
-                            setGraphic(neuralImageCell.getCellLayout());
-                        }
+                @Override
+                public void actionItem(NeuralImage item, MouseButton mouseButton) {
+                    switch (mouseButton) {
+                        case PRIMARY:
+                            contentImageGrid.selectedItemProperty().set(item);
+                            break;
+                        case MIDDLE:
+                            openImageInTab(item.getImageFile());
+                            break;
+                        case SECONDARY:
+                            neuralStyle.getInitImage().setValue(item.getImageFile().getAbsolutePath());
+                            break;
                     }
-                };
-            }
+                }
+            };
+            return new CellNode<>(neuralImageCell, cell);
         });
     }
 
@@ -1432,30 +1473,30 @@ public class MainController {
         outputTreeTableButton.setCellValueFactory(param ->
                 new ReadOnlyObjectWrapper<>(param.getValue().getValue()));
         outputTreeTableButton.setCellFactory(
-                new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>,
-                        TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>>() {
+                new Callback<>() {
                     @Override
                     public TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>
                     call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
-                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
+                        return new TreeTableCell<>() {
                             Button button;
                             Subscription subscribe;
+
                             {
                                 button = new Button();
                                 setText(null);
-                                setGraphic(button);
+                                setGraphic(null);
                             }
 
                             @Override
                             public void updateItem(NeuralQueue.NeuralQueueItem queueItem, boolean empty) {
                                 super.updateItem(queueItem, empty);
+                                if (subscribe != null) {
+                                    subscribe.unsubscribe();
+                                    subscribe = null;
+                                }
                                 if (empty || queueItem == null) {
                                     setText(null);
                                     setGraphic(null);
-                                    if (subscribe != null) {
-                                        subscribe.unsubscribe();
-                                        subscribe = null;
-                                    }
                                 } else {
                                     button.setText(queueItem.getActionText());
                                     subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
@@ -1472,12 +1513,11 @@ public class MainController {
 
         outputTreeTableStatus.setCellValueFactory(param -> param.getValue().getValue().getStatus());
         outputTreeTableStatus.setCellFactory(
-                new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, String>,
-                        TreeTableCell<NeuralQueue.NeuralQueueItem, String>>() {
+                new Callback<>() {
                     @Override
                     public TreeTableCell<NeuralQueue.NeuralQueueItem, String>
                     call(TreeTableColumn<NeuralQueue.NeuralQueueItem, String> param) {
-                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, String>() {
+                        return new TreeTableCell<>() {
                             @Override
                             public void updateItem(String queueStatus, boolean empty) {
                                 super.updateItem(queueStatus, empty);

@@ -10,9 +10,9 @@
 <fx:root maxWidth="-Infinity" prefHeight="30.0" prefWidth="400.0" spacing="4.0" type="HBox" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <Label fx:id="label" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="110.0" text="Label" />
-        <Slider fx:id="slider" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="120.0" minorTickCount="1" prefWidth="160.0" showTickMarks="true" snapToTicks="true" HBox.hgrow="SOMETIMES" />
-        <TextField fx:id="value" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="60.0" prefWidth="120.0" promptText="Value" HBox.hgrow="SOMETIMES" />
-        <TextField fx:id="ratio" maxHeight="-Infinity" minHeight="-Infinity" minWidth="40.0" prefWidth="50.0" promptText="Ratio" />
+        <Slider fx:id="slider" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="120.0" minorTickCount="1" prefWidth="160.0" showTickMarks="true" snapToTicks="true" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="value" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="60.0" prefWidth="120.0" promptText="Value" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="ratio" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="40.0" prefWidth="60.0" promptText="Ratio" HBox.hgrow="ALWAYS" />
         <Button fx:id="resetButton" mnemonicParsing="false" text="D" />
     </children>
     <padding>
