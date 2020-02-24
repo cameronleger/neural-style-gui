@@ -76,6 +76,7 @@ The Neural Style Log Tab will show the output from the most recent running proce
 * Middle-Clicking a Style/Content Image will open it in a Tab
 * Right-Clicking a Style/Content Image will set it as the Initialization Image
 * Large performance improvements when loading Styles
+* Large performance improvements for Output monitoring
 * Fixed a bug with Output-related Buttons loading Styles improperly
 * Layout Tweaks
 ### 1.2.1

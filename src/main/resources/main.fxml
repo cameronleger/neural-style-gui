@@ -396,11 +396,11 @@
                                           </ImageView>
                                        </children>
                                     </HBox>
-                                    <TreeTableView fx:id="outputTreeTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="380.0" showRoot="false" sortMode="ONLY_FIRST_LEVEL" SplitPane.resizableWithParent="false">
+                                    <TreeTableView fx:id="outputTreeTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" showRoot="false" sortMode="ONLY_FIRST_LEVEL" SplitPane.resizableWithParent="false">
                                       <columns>
-                                          <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="100.0" sortable="false" text="%outputTreeTableButton" />
-                                          <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="1.7976931348623157E308" minWidth="165.0" prefWidth="180.0" sortable="false" text="%outputTreeTableName" />
-                                          <TreeTableColumn fx:id="outputTreeTableStatus" editable="false" maxWidth="1.7976931348623157E308" minWidth="90.0" prefWidth="90.0" sortable="false" text="%outputTreeTableIteration" />
+                                          <TreeTableColumn fx:id="outputTreeTableButton" editable="false" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" sortable="false" text="%outputTreeTableButton" />
+                                          <TreeTableColumn fx:id="outputTreeTableName" editable="false" maxWidth="170.0" minWidth="170.0" prefWidth="170.0" resizable="false" sortable="false" text="%outputTreeTableName" />
+                                          <TreeTableColumn fx:id="outputTreeTableStatus" editable="false" maxWidth="90.0" minWidth="90.0" prefWidth="90.0" resizable="false" sortable="false" text="%outputTreeTableIteration" />
                                       </columns>
                                     </TreeTableView>
                                  </items>

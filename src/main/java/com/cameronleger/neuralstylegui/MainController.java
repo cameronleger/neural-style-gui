@@ -13,6 +13,7 @@ import com.cameronleger.neuralstylegui.listwrapview.ListWrapView;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
 import com.cameronleger.neuralstyle.NeuralStyleWrapper;
+import com.cameronleger.neuralstylegui.model.NeuralQueueFile;
 import com.cameronleger.neuralstylegui.model.properties.NeuralBoolean;
 import com.cameronleger.neuralstylegui.model.properties.NeuralDouble;
 import com.cameronleger.neuralstylegui.model.properties.NeuralInt;
@@ -26,6 +27,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -63,7 +65,6 @@ public class MainController {
 
     private NeuralStyleWrapper neuralStyle = new NeuralStyleWrapper();
 
-    private Timer imageOutputTimer;
     private Timer nvidiaTimer;
 
     private ObservableList<NeuralImage> styleImages;
@@ -257,8 +258,6 @@ public class MainController {
         setupFieldListeners();
         log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
-        log.log(Level.FINER, "Setting image listeners.");
-        setupOutputImageListeners();
         log.log(Level.FINER, "Setting nvidia listener.");
         setupNvidiaListener();
 
@@ -269,6 +268,9 @@ public class MainController {
         setupContentLayersTable();
         setupOutputTreeTable();
 
+        imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
+        imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
+
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
 
@@ -276,9 +278,6 @@ public class MainController {
         NeuralStyleV3 loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
         if (loadedNeuralStyle != null)
             loadStyle(loadedNeuralStyle);
-
-        log.log(Level.FINER, "Starting output timer.");
-        imageOutputTimer.restart();
     }
 
     void setStage(Stage stage) {
@@ -338,6 +337,13 @@ public class MainController {
         if (neuralService.isRunning()) {
             log.log(Level.FINE, "Cancelling neural service.");
             neuralService.cancel();
+        }
+    }
+
+    private void startOutputService() {
+        if (imageOutputService != null && !imageOutputService.isRunning()) {
+            imageOutputService.reset();
+            imageOutputService.start();
         }
     }
 
@@ -548,91 +554,190 @@ public class MainController {
         }
     }
 
-    private void updateNeuralOutputs(Map<String, Set<String>> updatedOutputs) {
-        if (updatedOutputs == null || updatedOutputs.isEmpty()) {
-            outputRoot.getChildren().clear();
-            return;
-        }
+    private void updateNeuralOutputs(List<NeuralQueueFile> updatedOutputs) {
+        ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentTreeItems = outputRoot.getChildren();
+        Map<NeuralQueueFile.ChangeType, List<NeuralQueueFile>> changes = updatedOutputs.stream()
+                .collect(Collectors.groupingBy(NeuralQueueFile::getChangeType));
 
         // remove any outputs that are no longer there
-        outputRoot.getChildren().removeAll(outputRoot.getChildren().stream()
-                        .filter(existingOutput -> !updatedOutputs.containsKey(
-                                existingOutput.getValue().getFile().getAbsolutePath()))
-                        .collect(Collectors.toList()));
+        if (changes.containsKey(NeuralQueueFile.ChangeType.DELETED)) {
+            log.log(Level.INFO, "Updating Deleted Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.DELETED).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
 
-        // remove any output images that are no longer there
-        for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-            Set<String> updatedOutputImages = updatedOutputs.get(existingOutput.getValue().getFile().getAbsolutePath());
-            existingOutput.getChildren().removeAll(
-                    existingOutput.getChildren().stream()
-                    .filter(existingOutputImage -> !updatedOutputImages.contains(
-                            existingOutputImage.getValue().getFile().getAbsolutePath()))
-                    .collect(Collectors.toList()));
+            if (types.containsKey(NeuralQueue.QUEUED_IMAGE)) {
+                List<NeuralQueue.NeuralQueueItem> images = types.get(NeuralQueue.QUEUED_IMAGE);
+                for (NeuralQueue.NeuralQueueItem image : images) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(image.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.FINER, String.format("A Queued Image (for deletion) did not find a matching Parent with name: %s", image.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> style = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == image.getChainIteration())
+                                .findFirst();
+                        if (style.isEmpty()) {
+                            log.log(Level.FINER, String.format("A Queued Image (for deletion) did not find a matching Style with name/chain: %s / %d", image.getBaseName(), image.getChainIteration()));
+                        } else {
+                            style.get().getChildren().remove(new TreeItem<>(image));
+                        }
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.FINER, String.format("A Queued Style (for deletion) did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        parent.get().getChildren().remove(new TreeItem<>(style));
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_PARENT)) {
+                List<NeuralQueue.NeuralQueueItem> parents = types.get(NeuralQueue.QUEUED_PARENT);
+                for (NeuralQueue.NeuralQueueItem parent : parents) {
+                    parentTreeItems.remove(new TreeItem<>(parent));
+                }
+            }
         }
 
         // update any outputs that are still there
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                NeuralQueue.NeuralQueueItem queueItem = existingOutput.getValue();
-                if (queueItem.getFile().getAbsolutePath().equals(updatedOutput)) {
-                    queueItem.setFile(new File(updatedOutput));
-                    break;
+        if (changes.containsKey(NeuralQueueFile.ChangeType.MODIFIED)) {
+            log.log(Level.INFO, "Updating Modified Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.MODIFIED).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
+
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Style did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> matchedStyle = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == style.getChainIteration())
+                                .findFirst();
+                        if (matchedStyle.isEmpty()) {
+                            log.log(Level.WARNING, String.format("A Queued Style did not find a matching Style with name/chain: %s / %d", style.getBaseName(), style.getChainIteration()));
+                        } else {
+                            matchedStyle.get().getValue().setFile(style.getFile());
+                        }
+                    }
                 }
             }
         }
 
         // add any new outputs
-        List<TreeItem<NeuralQueue.NeuralQueueItem>> newOutputs = new ArrayList<>();
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            boolean exists = false;
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
-                    exists = true;
-                    break;
+        if (changes.containsKey(NeuralQueueFile.ChangeType.NEW)) {
+            log.log(Level.INFO, "Updating New Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.NEW).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
+
+            if (types.containsKey(NeuralQueue.QUEUED_PARENT)) {
+                List<NeuralQueue.NeuralQueueItem> parents = types.get(NeuralQueue.QUEUED_PARENT);
+                for (NeuralQueue.NeuralQueueItem parent : parents) {
+                    TreeItem<NeuralQueue.NeuralQueueItem> parentTree = new TreeItem<>(parent);
+                    if (!parentTreeItems.contains(parentTree)) {
+                        parentTreeItems.add(parentTree);
+                    }
                 }
             }
-            if (!exists)
-                newOutputs.add(new TreeItem<>(createQueueItem(new File(updatedOutput))));
-        }
-        outputRoot.getChildren().addAll(newOutputs);
 
-        // add any new output images
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
-                    // found matching style to add this to
-                    List<TreeItem<NeuralQueue.NeuralQueueItem>> newOutputImages = new ArrayList<>();
-                    for (String updatedOutputImage : updatedOutputs.get(updatedOutput)) {
-                        boolean exists = false;
-                        for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutputImage : existingOutput.getChildren()) {
-                            if (existingOutputImage.getValue().getFile().getAbsolutePath().equals(updatedOutputImage)) {
-                                exists = true;
-                                break;
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Style did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyles = parent.get().getChildren();
+                        TreeItem<NeuralQueue.NeuralQueueItem> styleTree = new TreeItem<>(style);
+                        if (!parentStyles.contains(styleTree)) {
+                            parentStyles.add(styleTree);
+                        }
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_IMAGE)) {
+                List<NeuralQueue.NeuralQueueItem> images = types.get(NeuralQueue.QUEUED_IMAGE);
+                for (NeuralQueue.NeuralQueueItem image : images) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(image.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Image did not find a matching Parent with name: %s", image.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> style = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == image.getChainIteration())
+                                .findFirst();
+                        if (style.isEmpty()) {
+                            log.log(Level.WARNING, String.format("A Queued Image did not find a matching Style with name/chain: %s / %d", image.getBaseName(), image.getChainIteration()));
+                        } else {
+                            ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyleImages = style.get().getChildren();
+                            TreeItem<NeuralQueue.NeuralQueueItem> imageTree = new TreeItem<>(image);
+                            if (!parentStyleImages.contains(imageTree)) {
+                                parentStyleImages.add(imageTree);
                             }
                         }
-                        if (!exists)
-                            newOutputImages.add(new TreeItem<>(createQueueItem(new File(updatedOutputImage))));
                     }
-                    existingOutput.getChildren().addAll(newOutputImages);
-                    break;
                 }
             }
+        }
+
+        // update Parent status
+        for (TreeItem<NeuralQueue.NeuralQueueItem> parentTree : parentTreeItems) {
+            Set<Integer> styleStatuses = parentTree.getChildren().stream()
+                    .map(t -> t.getValue().getStatusCode())
+                    .collect(Collectors.toSet());
+            if (styleStatuses.size() == 1)
+                parentTree.getValue().changeStatus(styleStatuses.stream().findFirst().get());
+            else if (styleStatuses.contains(NeuralStyleV3.IN_PROGRESS))
+                parentTree.getValue().changeStatus(NeuralStyleV3.IN_PROGRESS);
+            else if (styleStatuses.contains(NeuralStyleV3.QUEUED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.QUEUED);
+            else if (styleStatuses.contains(NeuralStyleV3.FAILED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.FAILED);
+            else if (styleStatuses.contains(NeuralStyleV3.CANCELLED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.CANCELLED);
+            else if (styleStatuses.contains(NeuralStyleV3.INVALID_ARGUMENTS))
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_ARGUMENTS);
+            else if (styleStatuses.contains(NeuralStyleV3.INVALID_FILE))
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
+            else if (styleStatuses.contains(NeuralStyleV3.FINISHED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.FINISHED);
+            else
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
         }
     }
 
     private TreeItem<NeuralQueue.NeuralQueueItem> getMostRecentOutput() {
         List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
                 outputTreeTable.getRoot().getChildren().stream()
-                        .filter(queueItem -> queueItem.getValue().getStatus().getValue()
-                                .equalsIgnoreCase(resources.getString("neuralQueueItemInProgress")))
+                        .flatMap(p -> p.getChildren().stream())
+                        .filter(s -> s.getValue().getStatusCode() == NeuralStyleV3.IN_PROGRESS)
                         .collect(Collectors.toList());
         if (!inProgressItems.isEmpty())
             return inProgressItems.get(0);
 
         List<TreeItem<NeuralQueue.NeuralQueueItem>> allItems =
                 outputTreeTable.getRoot().getChildren().stream()
-                        .filter(queueItem -> !queueItem.getValue().getStatus().getValue()
-                                .equalsIgnoreCase(resources.getString("neuralQueueItemFailed")))
+                        .flatMap(p -> p.getChildren().stream())
+                        .filter(s -> s.getValue().getStatusCode() != NeuralStyleV3.FAILED)
                         .collect(Collectors.toList());
         if (!allItems.isEmpty())
             return allItems.get(allItems.size() - 1);
@@ -667,22 +772,31 @@ public class MainController {
             }
         } else {
             NeuralQueue.NeuralQueueItem output = outputSelection.getValue();
-            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
-                log.log(Level.FINER, "Output Image: output selection is style, using latest child");
-                ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> outputChildren = outputSelection.getChildren();
-                if (outputChildren != null && !outputChildren.isEmpty())
-                    return outputChildren.get(outputChildren.size() - 1).getValue().getFile();
+            if (output.getType() == NeuralQueue.QUEUED_IMAGE) {
+                log.log(Level.FINER, "Output Image: output selection is image");
+                return output.getFile();
+            } else {
+                List<File> outputFiles;
+                if (output.getType() == NeuralQueue.QUEUED_PARENT) {
+                    log.log(Level.FINER, "Output Image: output selection is parent, using latest grand-child");
+                    outputFiles = outputSelection.getChildren().stream()
+                            .flatMap(s -> s.getChildren().stream())
+                            .map(i -> i.getValue().getFile())
+                            .collect(Collectors.toList());
+                } else {
+                    log.log(Level.FINER, "Output Image: output selection is style, using latest child");
+                    outputFiles = outputSelection.getChildren().stream()
+                            .map(i -> i.getValue().getFile())
+                            .collect(Collectors.toList());
+                }
+                if (!outputFiles.isEmpty())
+                    return outputFiles.get(outputFiles.size() - 1);
                 else {
                     log.log(Level.FINER, "Output Image: output selection but no latest image");
-                    if (tooltipRegion != null && outputChildren == null)
-                        showTooltipNextTo(tooltipRegion, resources.getString("outputImageNullIterations"));
-                    else if (tooltipRegion != null && outputChildren.isEmpty())
+                    if (tooltipRegion != null)
                         showTooltipNextTo(tooltipRegion, resources.getString("outputImageNoIterations"));
                     return null;
                 }
-            } else {
-                log.log(Level.FINER, "Output Image: output selection is image");
-                return output.getFile();
             }
         }
     }
@@ -703,7 +817,10 @@ public class MainController {
             }
         } else {
             NeuralQueue.NeuralQueueItem output = outputSelection.getValue();
-            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
+            if (output.getType() == NeuralQueue.QUEUED_PARENT) {
+                log.log(Level.FINER, "Output Style: output selection is parent, using selection");
+                return output.getFile();
+            } else if (output.getType() == NeuralQueue.QUEUED_STYLE) {
                 log.log(Level.FINER, "Output Style: output selection is style, using selection");
                 return output.getFile();
             } else {
@@ -794,8 +911,8 @@ public class MainController {
                 resources
         );
         imageTab.setContent(imagePreview);
-        tabs.getTabs().add(imageTab);
-        tabs.getSelectionModel().selectLast();
+        tabs.getTabs().add(0, imageTab);
+        tabs.getSelectionModel().selectFirst();
     }
 
     private void checkInjections() {
@@ -1170,12 +1287,18 @@ public class MainController {
         });
 
         log.log(Level.FINER, "Setting Image Output Service listener.");
-        EventStreams.nonNullValuesOf(imageOutputService.valueProperty()).subscribe(valueProperty -> {
+        EventStreams.nonNullValuesOf(imageOutputService.valueProperty()).subscribe(newResults -> {
             log.log(Level.FINER, "Received updated Image Outputs from Service.");
-            Map<String, Set<String>> results = imageOutputService.getValue();
-            updateNeuralOutputs(results);
+            updateNeuralOutputs(newResults);
             updateImageView();
         });
+        EventStreams.valuesOf(NeuralStyleWrapper.workingFolder.valueProperty()).subscribe(newFolder -> {
+            log.log(Level.FINE, "New Working Folder, restarting output Service.");
+            imageOutputService.cancel();
+            outputRoot.getChildren().clear();
+            startOutputService();
+        });
+        startOutputService();
 
         log.log(Level.FINER, "Setting progress listener.");
         EventStreams.nonNullValuesOf(neuralService.progressProperty())
@@ -1190,21 +1313,6 @@ public class MainController {
                    else
                        statusLabel.setEffect(null);
                 });
-    }
-
-    private void setupOutputImageListeners() {
-        imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
-        imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
-
-        log.log(Level.FINER, "Setting image timer.");
-        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
-            log.log(Level.FINER, "Timer: checking service");
-
-            if (imageOutputService != null && !imageOutputService.isRunning()) {
-                imageOutputService.reset();
-                imageOutputService.start();
-            }
-        });
     }
 
     private void setupNvidiaListener() {
@@ -1485,6 +1593,7 @@ public class MainController {
                                 button = new Button();
                                 setText(null);
                                 setGraphic(null);
+                                setAlignment(Pos.CENTER_RIGHT);
                             }
 
                             @Override
@@ -1528,22 +1637,27 @@ public class MainController {
                                 } else {
                                     NeuralQueue.NeuralQueueItem queueItem = this.getTreeTableRow().getItem();
                                     String status = queueItem.getStatus().getValue();
-                                    setText(status);
                                     setGraphic(null);
 
-                                    if (queueItem.getType() == NeuralQueue.QUEUED_STYLE &&
-                                            status.equalsIgnoreCase(resources.getString("neuralQueueItemQueued"))) {
-                                        final ContextMenu cellMenu = new ContextMenu();
+                                    switch (queueItem.getType()) {
+                                        case NeuralQueue.QUEUED_STYLE:
+                                            setText(status);
+                                            if (status.equalsIgnoreCase(resources.getString("neuralQueueItemQueued"))) {
+                                                final ContextMenu cellMenu = new ContextMenu();
 
-                                        final MenuItem cancelMenuItem =
-                                                new MenuItem(resources.getString("neuralQueueItemCancel"));
-                                        cancelMenuItem.setOnAction(event ->
-                                                queueItem.changeStatus(NeuralStyleV2.CANCELLED));
+                                                final MenuItem cancelMenuItem =
+                                                        new MenuItem(resources.getString("neuralQueueItemCancel"));
+                                                cancelMenuItem.setOnAction(event ->
+                                                        queueItem.changeStatus(NeuralStyleV3.CANCELLED));
 
-                                        cellMenu.getItems().addAll(cancelMenuItem);
-                                        setContextMenu(cellMenu);
-                                    } else {
-                                        setContextMenu(null);
+                                                cellMenu.getItems().addAll(cancelMenuItem);
+                                                setContextMenu(cellMenu);
+                                            }
+                                            break;
+                                        default:
+                                            setText(status);
+                                            setContextMenu(null);
+                                            break;
                                     }
                                 }
                             }

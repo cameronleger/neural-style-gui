@@ -18,6 +18,7 @@ public class NeuralStyleV3 implements Cloneable {
     public final static int CANCELLED = 2;
     public final static int FAILED = 3;
     public final static int FINISHED = 4;
+    public final static int PARENT = 5;
     private int queueStatus = QUEUED;
 
     private File thPath;
@@ -476,6 +477,8 @@ public class NeuralStyleV3 implements Cloneable {
 
     public NeuralStyleV3 chained(int i) throws CloneNotSupportedException {
         NeuralStyleV3 chained = (NeuralStyleV3) this.clone();
+        chained.setQueueStatus(QUEUED);
+
         if (i > 1) {
             chained.setInit("image");
             chained.setInitImage(FileUtils.getTempOutputImage(i - 1));
@@ -500,19 +503,19 @@ public class NeuralStyleV3 implements Cloneable {
     public List<NeuralStyleV3> getQueueItems() {
         List<NeuralStyleV3> queueItems = new ArrayList<>();
 
-        if (chainLength == 1) {
+        try {
+            NeuralStyleV3 parent = (NeuralStyleV3) this.clone();
+            parent.setQueueStatus(PARENT);
+            queueItems.add(parent);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+
+        for (int i = 1; i <= chainLength; i++) {
             try {
-                queueItems.add((NeuralStyleV3) this.clone());
+                queueItems.add(this.chained(i));
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
-            }
-        } else if (chainLength > 1) {
-            for (int i = 1; i <= chainLength; i++) {
-                try {
-                    queueItems.add(this.chained(i));
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
-                }
             }
         }
 

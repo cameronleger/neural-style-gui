@@ -4,7 +4,6 @@ import caffe.Loadcaffe;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.google.protobuf.TextFormat;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -22,10 +21,12 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class FileUtils {
     private static final Logger log = Logger.getLogger(FileUtils.class.getName());
-    private static final Pattern ITERATION_PATTERN = Pattern.compile(".*_(\\d+)\\.png");
+    private static final Pattern ALL_PATTERN = Pattern.compile("^(\\d+)(_\\d+)?(_\\d+)?");
     private static final String[] EXTENSIONS = new String[] {
             "jpg", "jpeg", "png"
     };
+    private static final FileFilter styleFileFilter = new WildcardFileFilter("*.json");
+    private static final FileFilter importantFileFilter = new WildcardFileFilter(new String[]{"*.json", "*.jpg", "*.jpeg", "*.png"});
     private static final String LAST_STYLE_JSON = "lastStyle.json";
     private static String uniqueText;
     private static Gson gson = new GsonBuilder()
@@ -216,8 +217,8 @@ public class FileUtils {
             return images;
 
         FilenameFilter imageFilter = (dir1, name) -> {
+            final String nameExt = FilenameUtils.getExtension(name);
             for (final String ext : EXTENSIONS) {
-                final String nameExt = FilenameUtils.getExtension(name);
                 if (nameExt.equalsIgnoreCase(ext))
                     return true;
             }
@@ -235,7 +236,6 @@ public class FileUtils {
 
     public static File[] getTempOutputStyles() {
         // Unix-like searching for styles
-        FileFilter styleFileFilter = new WildcardFileFilter("*.json");
         File[] files = NeuralStyleWrapper.getWorkingFolder().listFiles(styleFileFilter);
 
         if (files != null && files.length > 1) {
@@ -253,40 +253,23 @@ public class FileUtils {
         return files;
     }
 
-    public static Map<String, Set<String>> getTempOutputs() {
-        Map<String, Set<String>> outputs = new LinkedHashMap<>();
+    public static File[] getTempOutputFiles(String path) {
+        // Unix-like searching for styles
+        File[] files = new File(path).listFiles(importantFileFilter);
 
-        File[] styleFiles = getTempOutputStyles();
-
-        if (styleFiles == null)
-            return outputs;
-
-        for (File styleFile : styleFiles) {
-            Set<String> imageFilesList = new LinkedHashSet<>();
-
-            // Unix-like searching for images
-            FileFilter imageFileFilter = new WildcardFileFilter(String.format("%s_*.png", getFileName(styleFile)));
-            File[] imageFiles = NeuralStyleWrapper.getWorkingFolder().listFiles(imageFileFilter);
-
-            if (imageFiles != null && imageFiles.length > 1) {
-                int[] imageFileIters = new int[imageFiles.length];
-                for (int i = 0; i < imageFiles.length; i++)
-                    imageFileIters[i] = FileUtils.parseImageIteration(imageFiles[i]);
-                FileUtils.quickSort(imageFileIters, imageFiles, 0, imageFiles.length - 1);
-
-                // if the latest file was still being written to during the check
-                // then replace it with the previous file (set will remove it)
-                if (isFileBeingWritten(imageFiles[imageFiles.length - 1]))
-                    imageFiles[imageFiles.length - 1] = imageFiles[imageFiles.length - 2];
-
-                for (File imageFile : imageFiles)
-                    imageFilesList.add(imageFile.getAbsolutePath());
+        if (files != null && files.length > 1) {
+            long[] fileIters = new long[files.length];
+            for (int i = 0; i < files.length; i++) {
+                try {
+                    fileIters[i] = Long.valueOf(FileUtils.getFileName(files[i]).replace("_", ""));
+                } catch (Exception e) {
+                    fileIters[i] = 0;
+                }
             }
-
-            outputs.put(styleFile.getAbsolutePath(), imageFilesList);
+            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
         }
 
-        return outputs;
+        return files;
     }
 
     public static File[] getTempOutputImageIterations(File outputImage) {
@@ -342,10 +325,25 @@ public class FileUtils {
         int iteration = -1;
         if (image == null)
             return iteration;
-        Matcher matcher = ITERATION_PATTERN.matcher(image.getAbsolutePath());
-        if (matcher.matches())
-            iteration = Integer.parseInt(matcher.group(1));
-        return iteration;
+        NeuralFilePortions portions = new NeuralFilePortions(image);
+        return portions.imageIteration;
+    }
+
+    public static class NeuralFilePortions {
+        public String baseName = "";
+        public int chainIteration = 0;
+        public int imageIteration = 0;
+
+        public NeuralFilePortions(File neuralFile) {
+            Matcher matcher = ALL_PATTERN.matcher(getFileName(neuralFile));
+            if (matcher.matches()) {
+                this.baseName = matcher.group(1);
+                if (matcher.group(2) != null)
+                    this.chainIteration = Integer.parseInt(matcher.group(2).replace("_", ""));
+                if (matcher.group(3) != null)
+                    this.imageIteration = Integer.parseInt(matcher.group(3).replace("_", ""));
+            }
+        }
     }
 
     public static boolean isFileBeingWritten(File fileToCheck) {
