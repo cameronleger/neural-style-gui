@@ -4,7 +4,6 @@ import caffe.Loadcaffe;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.google.protobuf.TextFormat;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -22,12 +21,13 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class FileUtils {
     private static final Logger log = Logger.getLogger(FileUtils.class.getName());
-    private static final Pattern ITERATION_PATTERN = Pattern.compile(".*_(\\d+)\\.png");
+    private static final Pattern ALL_PATTERN = Pattern.compile("^(\\d+)(_\\d+)?(_\\d+)?");
     private static final String[] EXTENSIONS = new String[] {
             "jpg", "jpeg", "png"
     };
+    private static final FileFilter styleFileFilter = new WildcardFileFilter("*.json");
+    private static final FileFilter importantFileFilter = new WildcardFileFilter(new String[]{"*.json", "*.jpg", "*.jpeg", "*.png"});
     private static final String LAST_STYLE_JSON = "lastStyle.json";
-    private static File tempDir;
     private static String uniqueText;
     private static Gson gson = new GsonBuilder()
             .setPrettyPrinting()
@@ -71,30 +71,15 @@ public class FileUtils {
         return FilenameUtils.removeExtension(file.getName());
     }
 
-    public static File getTempDir() {
-        if (tempDir == null) {
-            try {
-                tempDir = File.createTempFile("neuralStyle", null);
-                if (!tempDir.delete())
-                    throw new IOException("Unable to delete temporary file.");
-                if (!tempDir.mkdir())
-                    throw new IOException("Unable to create temporary directory.");
-            } catch (Exception e) {
-                log.log(Level.SEVERE, e.toString(), e);
-            }
-        }
-        return tempDir;
-    }
-
     private static File getTempOutputFile(String extension) {
-        File tempOutputDir = FileUtils.getTempDir();
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null)
             return null;
         return new File(tempOutputDir, String.format("%s.%s", getUniqueText(), extension));
     }
 
     private static File getTempOutputFile(int chainIndex, String extension) {
-        File tempOutputDir = FileUtils.getTempDir();
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null)
             return null;
         return new File(tempOutputDir, String.format("%s.%s", getUniqueChainText(chainIndex), extension));
@@ -112,8 +97,8 @@ public class FileUtils {
         return new File(".", LAST_STYLE_JSON);
     }
 
-    public static File saveOutputStyle(NeuralStyle neuralStyle) {
-        File tempOutputDir = FileUtils.getTempDir();
+    public static File saveOutputStyle(NeuralStyleV3 neuralStyle) {
+        File tempOutputDir = NeuralStyleWrapper.getWorkingFolder();
         if (tempOutputDir == null) {
             log.log(Level.FINE, "Unable to open file in temporary folder to save output style.");
             return null;
@@ -123,7 +108,7 @@ public class FileUtils {
         return saveOutputStyle(neuralStyle, tempOutputStyle);
     }
 
-    public static File saveLastUsedOutputStyle(NeuralStyle neuralStyle) {
+    public static File saveLastUsedOutputStyle(NeuralStyleV3 neuralStyle) {
         File lastUsedOutputStyle = new File(".", LAST_STYLE_JSON);
         if (lastUsedOutputStyle.exists() && !lastUsedOutputStyle.canWrite()) {
             log.log(Level.FINE, "Unable to open file to save output style.");
@@ -132,7 +117,7 @@ public class FileUtils {
         return saveOutputStyle(neuralStyle, lastUsedOutputStyle);
     }
 
-    public static File saveOutputStyle(NeuralStyle neuralStyle, File outputFile) {
+    public static File saveOutputStyle(NeuralStyleV3 neuralStyle, File outputFile) {
         try (FileWriter file = new FileWriter(outputFile)) {
             file.write(gson.toJson(neuralStyle));
             log.log(Level.FINE, "Output style saved: " + outputFile.getAbsolutePath());
@@ -144,13 +129,27 @@ public class FileUtils {
         }
     }
 
-    private static NeuralStyle loadStyleV1(File styleFile) {
+    private static NeuralStyleVersion loadStyleVersion(File styleFile) {
         final FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(styleFile);
             final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
-            NeuralStyleV1 oldNeuralStyle = gson.fromJson(reader, NeuralStyleV1.class);
-            return oldNeuralStyle.upgrade();
+            NeuralStyleVersion neuralStyle = gson.fromJson(reader, NeuralStyleVersion.class);
+            return neuralStyle;
+        } catch (Exception e) {
+            log.log(Level.FINE, "Exception loading input style version.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
+    }
+
+    private static NeuralStyleV3 loadStyleV1(File styleFile) {
+        final FileInputStream fileStream;
+        try {
+            fileStream = new FileInputStream(styleFile);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
+            NeuralStyleV1 neuralStyle = gson.fromJson(reader, NeuralStyleV1.class);
+            return neuralStyle.upgrade().upgrade();
         } catch (Exception e) {
             log.log(Level.FINE, "Exception loading input style.");
             log.log(Level.SEVERE, e.toString(), e);
@@ -158,20 +157,53 @@ public class FileUtils {
         }
     }
 
-    public static NeuralStyle loadStyle(File styleFile) {
-        if (!FileUtils.checkFileExists(styleFile)) {
-            log.log(Level.FINE, "Cannot load a missing file.");
-            return null;
-        }
+    private static NeuralStyleV3 loadStyleV2(File styleFile) {
         final FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(styleFile);
             final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
-            return gson.fromJson(reader, NeuralStyle.class);
-        } catch(JsonSyntaxException e) {
-            log.log(Level.FINE, "Exception loading input style, trying another version.");
+            NeuralStyleV2 neuralStyle = gson.fromJson(reader, NeuralStyleV2.class);
+            return neuralStyle.upgrade();
+        } catch (Exception e) {
+            log.log(Level.FINE, "Exception loading input style.");
             log.log(Level.SEVERE, e.toString(), e);
-            return loadStyleV1(styleFile);
+            return null;
+        }
+    }
+
+    private static NeuralStyleV3 loadStyleV3(File styleFile) {
+        final FileInputStream fileStream;
+        try {
+            fileStream = new FileInputStream(styleFile);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream));
+            NeuralStyleV3 neuralStyle = gson.fromJson(reader, NeuralStyleV3.class);
+            return neuralStyle;
+        } catch (Exception e) {
+            log.log(Level.FINE, "Exception loading input style.");
+            log.log(Level.SEVERE, e.toString(), e);
+            return null;
+        }
+    }
+
+    public static NeuralStyleV3 loadStyle(File styleFile) {
+        if (!FileUtils.checkFileExists(styleFile)) {
+            log.log(Level.FINE, "Cannot load a missing file.");
+            return null;
+        }
+        NeuralStyleVersion v = loadStyleVersion(styleFile);
+        int version = v == null ? 0 : v.getVersion();
+        try {
+            NeuralStyleV3 neuralStyle = null;
+            if (version < 3) {
+                if ((neuralStyle = loadStyleV2(styleFile)) == null) {
+                    if ((neuralStyle = loadStyleV1(styleFile)) == null) {
+                        log.log(Level.SEVERE, "Unable to load input style as any known version.");
+                    }
+                }
+            } else {
+                if (v.getVersion() == 3) neuralStyle = loadStyleV3(styleFile);
+            }
+            return neuralStyle;
         } catch (Exception e) {
             log.log(Level.FINE, "Exception loading input style.");
             log.log(Level.SEVERE, e.toString(), e);
@@ -185,8 +217,8 @@ public class FileUtils {
             return images;
 
         FilenameFilter imageFilter = (dir1, name) -> {
+            final String nameExt = FilenameUtils.getExtension(name);
             for (final String ext : EXTENSIONS) {
-                final String nameExt = FilenameUtils.getExtension(name);
                 if (nameExt.equalsIgnoreCase(ext))
                     return true;
             }
@@ -203,12 +235,8 @@ public class FileUtils {
     }
 
     public static File[] getTempOutputStyles() {
-        if (tempDir == null || !tempDir.isDirectory())
-            return null;
-
         // Unix-like searching for styles
-        FileFilter styleFileFilter = new WildcardFileFilter("*.json");
-        File[] files = tempDir.listFiles(styleFileFilter);
+        File[] files = NeuralStyleWrapper.getWorkingFolder().listFiles(styleFileFilter);
 
         if (files != null && files.length > 1) {
             long[] fileIters = new long[files.length];
@@ -225,50 +253,30 @@ public class FileUtils {
         return files;
     }
 
-    public static Map<String, Set<String>> getTempOutputs() {
-        Map<String, Set<String>> outputs = new LinkedHashMap<>();
+    public static File[] getTempOutputFiles(String path) {
+        // Unix-like searching for styles
+        File[] files = new File(path).listFiles(importantFileFilter);
 
-        File[] styleFiles = getTempOutputStyles();
-
-        if (styleFiles == null)
-            return outputs;
-
-        for (File styleFile : styleFiles) {
-            Set<String> imageFilesList = new LinkedHashSet<>();
-
-            // Unix-like searching for images
-            FileFilter imageFileFilter = new WildcardFileFilter(String.format("%s_*.png", getFileName(styleFile)));
-            File[] imageFiles = tempDir.listFiles(imageFileFilter);
-
-            if (imageFiles != null && imageFiles.length > 1) {
-                int[] imageFileIters = new int[imageFiles.length];
-                for (int i = 0; i < imageFiles.length; i++)
-                    imageFileIters[i] = FileUtils.parseImageIteration(imageFiles[i]);
-                FileUtils.quickSort(imageFileIters, imageFiles, 0, imageFiles.length - 1);
-
-                // if the latest file was still being written to during the check
-                // then replace it with the previous file (set will remove it)
-                if (isFileBeingWritten(imageFiles[imageFiles.length - 1]))
-                    imageFiles[imageFiles.length - 1] = imageFiles[imageFiles.length - 2];
-
-                for (File imageFile : imageFiles)
-                    imageFilesList.add(imageFile.getAbsolutePath());
+        if (files != null && files.length > 1) {
+            long[] fileIters = new long[files.length];
+            for (int i = 0; i < files.length; i++) {
+                try {
+                    fileIters[i] = Long.valueOf(FileUtils.getFileName(files[i]).replace("_", ""));
+                } catch (Exception e) {
+                    fileIters[i] = 0;
+                }
             }
-
-            outputs.put(styleFile.getAbsolutePath(), imageFilesList);
+            FileUtils.quickSort(fileIters, files, 0, files.length - 1);
         }
 
-        return outputs;
+        return files;
     }
 
     public static File[] getTempOutputImageIterations(File outputImage) {
-        if (tempDir == null || !tempDir.isDirectory() || outputImage == null)
-            return null;
-
         // Unix-like searching for image iterations
         String outputImageBase = getFileName(outputImage);
         FileFilter fileFilter = new WildcardFileFilter(String.format("%s_*.png", outputImageBase));
-        File[] files = tempDir.listFiles(fileFilter);
+        File[] files = NeuralStyleWrapper.getWorkingFolder().listFiles(fileFilter);
 
         // sort the files by the iteration progress
         if (files != null && files.length > 1) {
@@ -317,16 +325,36 @@ public class FileUtils {
         int iteration = -1;
         if (image == null)
             return iteration;
-        Matcher matcher = ITERATION_PATTERN.matcher(image.getAbsolutePath());
-        if (matcher.matches())
-            iteration = Integer.parseInt(matcher.group(1));
-        return iteration;
+        NeuralFilePortions portions = new NeuralFilePortions(image);
+        return portions.imageIteration;
+    }
+
+    public static class NeuralFilePortions {
+        public String baseName = "";
+        public int chainIteration = 0;
+        public int imageIteration = 0;
+
+        public NeuralFilePortions(File neuralFile) {
+            Matcher matcher = ALL_PATTERN.matcher(getFileName(neuralFile));
+            if (matcher.matches()) {
+                this.baseName = matcher.group(1);
+                if (matcher.group(2) != null)
+                    this.chainIteration = Integer.parseInt(matcher.group(2).replace("_", ""));
+                if (matcher.group(3) != null)
+                    this.imageIteration = Integer.parseInt(matcher.group(3).replace("_", ""));
+            }
+        }
     }
 
     public static boolean isFileBeingWritten(File fileToCheck) {
-        // try 4 times over 400ms to see if the file size stagnates
-        int retries = 4;
-        int sleep = 100;
+        long modified = fileToCheck.lastModified();
+        long now = System.currentTimeMillis();
+        if (now - modified >= 1000)
+            return false;
+
+        // try 5 times over 200ms to see if the file size stagnates
+        int retries = 5;
+        int sleep = 40;
         long previousFileSize = fileToCheck.length();
         while (retries > 0) {
             try {

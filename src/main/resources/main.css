@@ -1,3 +1,7 @@
 .settings-header {
     -fx-background-color: #ddd;
 }
+
+.selected-image-cell {
+    -fx-background-color: #7786ff;
+}

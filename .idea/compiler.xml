@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="neural-style-gui" target="1.8" />
+      <module name="neural-style-gui" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

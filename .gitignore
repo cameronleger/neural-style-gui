@@ -1,3 +1,9 @@
 workspace.xml
 tasks.xml
 target/*
+shade/*
+lib/*
+.attach_pid*
+/lastStyle.json
+neural-style-gui-*.zip
+/ns.log

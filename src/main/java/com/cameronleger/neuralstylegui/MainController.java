@@ -1,13 +1,22 @@
 package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstyle.NeuralStyleV2;
+import com.cameronleger.neuralstyle.NeuralStyleV3;
+import com.cameronleger.neuralstylegui.component.*;
+import com.cameronleger.neuralstylegui.helper.AsyncImageProperty;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
-import com.cameronleger.neuralstylegui.helper.NeuralImageCell;
 import com.cameronleger.neuralstylegui.helper.TextAreaLogHandler;
+import com.cameronleger.neuralstylegui.listwrapview.CellNode;
+import com.cameronleger.neuralstylegui.listwrapview.Cellable;
+import com.cameronleger.neuralstylegui.listwrapview.ListWrapView;
 import com.cameronleger.neuralstylegui.model.NeuralImage;
-import com.cameronleger.neuralstylegui.model.NamedSelection;
 import com.cameronleger.neuralstylegui.model.NeuralQueue;
+import com.cameronleger.neuralstyle.NeuralStyleWrapper;
+import com.cameronleger.neuralstylegui.model.NeuralQueueFile;
+import com.cameronleger.neuralstylegui.model.properties.NeuralBoolean;
+import com.cameronleger.neuralstylegui.model.properties.NeuralDouble;
+import com.cameronleger.neuralstylegui.model.properties.NeuralInt;
 import com.cameronleger.neuralstylegui.service.NeuralService;
 import com.cameronleger.neuralstylegui.service.NvidiaService;
 import com.cameronleger.neuralstylegui.service.OutputService;
@@ -17,8 +26,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -28,8 +37,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
@@ -47,39 +54,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class MainController implements Initializable {
+public class MainController {
     private static final Logger log = Logger.getLogger(MainController.class.getName());
 
     private Stage stage;
-    private ResourceBundle bundle;
 
     private OutputService imageOutputService = new OutputService();
     private NvidiaService nvidiaService = new NvidiaService();
     private NeuralService neuralService = new NeuralService();
 
-    private NeuralStyle neuralStyle = new NeuralStyle();
+    private NeuralStyleWrapper neuralStyle = new NeuralStyleWrapper();
 
-    private Timer imageOutputTimer;
     private Timer nvidiaTimer;
 
     private ObservableList<NeuralImage> styleImages;
     private ObservableList<NeuralImage> contentImages;
-    private ObservableList<NamedSelection> gpuIndices;
-    private ObservableList<NamedSelection> styleLayers;
-    private ObservableList<NamedSelection> contentLayers;
-    private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(createQueueItem(null));
+    private ObservableList<NeuralBoolean> gpuIndices;
+    private ObservableList<NeuralBoolean> styleLayers;
+    private ObservableList<NeuralBoolean> contentLayers;
+    private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(NeuralQueue.createQueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
 
     @FXML
-    private Button thPathButton;
+    private URL location;
     @FXML
-    private TextField thPath;
-
-    @FXML
-    private Button neuralPathButton;
-    @FXML
-    private TextField neuralPath;
+    private ResourceBundle resources;
 
     @FXML
     private Button saveStyleButton;
@@ -100,146 +100,112 @@ public class MainController implements Initializable {
     @FXML
     private TextField contentFolderPath;
     @FXML
-    private TextField outputPath;
-    @FXML
     private TextField outputName;
     @FXML
     private Button styleFolderButton;
     @FXML
     private Button contentFolderButton;
     @FXML
-    private Button outputFolderButton;
-    @FXML
     private Button outputImageButton;
     @FXML
     private CheckBox styleMultipleSelect;
 
     @FXML
-    private ListView<NeuralImage> styleImageList;
+    private ListWrapView<NeuralImage> styleImageGrid;
     @FXML
-    private ListView<NeuralImage> contentImageList;
+    private ListWrapView<NeuralImage> contentImageGrid;
 
     @FXML
     private Button styleLayerAdd;
     @FXML
     private Button styleLayerRemove;
     @FXML
-    private TableView<NamedSelection> styleLayersTable;
+    private TableView<NeuralBoolean> styleLayersTable;
     @FXML
-    private TableColumn<NamedSelection, Boolean> styleLayersTableSelected;
+    private TableColumn<NeuralBoolean, Boolean> styleLayersTableSelected;
     @FXML
-    private TableColumn<NamedSelection, String> styleLayersTableName;
+    private TableColumn<NeuralBoolean, String> styleLayersTableName;
 
     @FXML
     private Button contentLayerAdd;
     @FXML
     private Button contentLayerRemove;
     @FXML
-    private TableView<NamedSelection> contentLayersTable;
+    private TableView<NeuralBoolean> contentLayersTable;
     @FXML
-    private TableColumn<NamedSelection, Boolean> contentLayersTableSelected;
+    private TableColumn<NeuralBoolean, Boolean> contentLayersTableSelected;
     @FXML
-    private TableColumn<NamedSelection, String> contentLayersTableName;
+    private TableColumn<NeuralBoolean, String> contentLayersTableName;
 
     @FXML
     private ProgressBar vramBar;
 
     @FXML
-    private Slider printIterSlider;
+    private NumberView chainLength;
     @FXML
-    private TextField printIterField;
+    private NumberView maxIter;
     @FXML
-    private Slider saveIterSlider;
+    private NumberView printIter;
     @FXML
-    private TextField saveIterField;
+    private NumberView saveIter;
     @FXML
-    private Slider maxIterSlider;
+    private NumberView sizeOutput;
     @FXML
-    private TextField maxIterField;
+    private NumberView sizeStyle;
     @FXML
-    private Slider seedSlider;
+    private NumberView seed;
     @FXML
-    private TextField seedField;
+    private NumberView weightContent;
+    @FXML
+    private NumberView weightStyle;
+    @FXML
+    private ChoiceView init;
+    @FXML
+    private FileView initImage;
+    @FXML
+    private ImageView initImageView;
+    private AsyncImageProperty initImageViewLoader;
+    @FXML
+    private CheckboxView originalColors;
+    @FXML
+    private CheckboxView normalizeGradients;
+    @FXML
+    private NumberView tvWeight;
+    @FXML
+    private ChoiceView pooling;
+    @FXML
+    private CheckboxView cpu;
+    @FXML
+    private TextView multiGpuStrategy;
+    @FXML
+    private ChoiceView backend;
+    @FXML
+    private CheckboxView autotune;
+    @FXML
+    private ChoiceView optimizer;
+    @FXML
+    private NumberView nCorrection;
+    @FXML
+    private NumberView learningRate;
+    @FXML
+    private FileView thFile;
+    @FXML
+    private DirectoryView neuralStyleFolder;
+    @FXML
+    private FileView protoFile;
+    @FXML
+    private FileView modelFile;
+    @FXML
+    private DirectoryView outputFolder;
+    @FXML
+    private DirectoryView workingFolder;
 
     @FXML
-    private Slider styleSizeSlider;
+    private TableView<NeuralBoolean> gpuTable;
     @FXML
-    private TextField styleSizeField;
+    private TableColumn<NeuralBoolean, Boolean> gpuTableSelected;
     @FXML
-    private Slider outputSizeSlider;
-    @FXML
-    private TextField outputSizeField;
-    @FXML
-    private Slider styleWeightSlider;
-    @FXML
-    private TextField styleWeightField;
-    @FXML
-    private Slider contentWeightSlider;
-    @FXML
-    private TextField contentWeightField;
-    @FXML
-    private Slider tvWeightSlider;
-    @FXML
-    private TextField tvWeightField;
-    @FXML
-    private ChoiceBox<String> initChoice;
-    @FXML
-    private Button initImageButton;
-    @FXML
-    private TextField initImagePath;
-    @FXML
-    private ChoiceBox<String> poolingChoice;
-    @FXML
-    private CheckBox originalColors;
-    @FXML
-    private CheckBox normalizeGradients;
-
-    @FXML
-    private CheckBox cpuMode;
-    @FXML
-    private TableView<NamedSelection> gpuTable;
-    @FXML
-    private TableColumn<NamedSelection, Boolean> gpuTableSelected;
-    @FXML
-    private TableColumn<NamedSelection, String> gpuTableIndex;
-    @FXML
-    private TextField multiGpuSplit;
-    @FXML
-    private ChoiceBox<String> optimizerChoice;
-    @FXML
-    private ChoiceBox<String> backendChoice;
-    @FXML
-    private Slider nCorrectionSlider;
-    @FXML
-    private TextField nCorrectionField;
-    @FXML
-    private Slider learningRateSlider;
-    @FXML
-    private TextField learningRateField;
-    @FXML
-    private CheckBox autotune;
-
-    @FXML
-    private Button protoFileButton;
-    @FXML
-    private TextField protoFilePath;
-    @FXML
-    private Button modelFileButton;
-    @FXML
-    private TextField modelFilePath;
-
-    @FXML
-    private Slider chainLengthSlider;
-    @FXML
-    private TextField chainLengthField;
-    @FXML
-    private Slider chainIterationRatioSlider;
-    @FXML
-    private TextField chainIterationRatioField;
-    @FXML
-    private Slider chainSizeRatioSlider;
-    @FXML
-    private TextField chainSizeRatioField;
+    private TableColumn<NeuralBoolean, String> gpuTableIndex;
 
     @FXML
     private Button queueButton;
@@ -276,14 +242,11 @@ public class MainController implements Initializable {
     @FXML
     private TextArea logTextArea;
 
-    private static FileChooser fileChooser = new FileChooser();
-    private static DirectoryChooser directoryChooser = new DirectoryChooser();
-
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    public void initialize() {
         log.log(Level.FINER, "Checking that all FXML items were injected.");
         checkInjections();
 
-        bundle = resources;
         NeuralQueue.setBundle(resources);
         outputImageView = new MovingImageView(imageView);
 
@@ -295,34 +258,33 @@ public class MainController implements Initializable {
         setupFieldListeners();
         log.log(Level.FINER, "Setting service listeners.");
         setupServiceListeners();
-        log.log(Level.FINER, "Setting image listeners.");
-        setupOutputImageListeners();
         log.log(Level.FINER, "Setting nvidia listener.");
         setupNvidiaListener();
 
-        setupStyleImageList();
-        setupContentImageList();
+        setupStyleImageGrid();
+        setupContentImageGrid();
         setupGpuIndexTable();
         setupStyleLayersTable();
         setupContentLayersTable();
         setupOutputTreeTable();
 
+        imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
+        imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
+
         log.log(Level.FINER, "Setting neural service log handler.");
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
 
         log.log(Level.FINER, "Loading last used style.");
-        NeuralStyle loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
+        NeuralStyleV3 loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
         if (loadedNeuralStyle != null)
             loadStyle(loadedNeuralStyle);
-
-        log.log(Level.FINER, "Starting output timer.");
-        imageOutputTimer.restart();
     }
 
     void setStage(Stage stage) {
         this.stage = stage;
 
         log.log(Level.FINER, "Setting keyboard shortcuts.");
+        final KeyCombination enter = new KeyCodeCombination(KeyCode.ENTER);
         final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlC = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlL = new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN);
@@ -330,18 +292,21 @@ public class MainController implements Initializable {
         final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN);
         final KeyCombination ctrlShiftEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
         stage.addEventHandler(KeyEvent.KEY_RELEASED, event -> {
-            if (ctrlS.match(event)) {
+            if (enter.match(event)) {
+                // TODO: Suppress
+            } else if (ctrlS.match(event)) {
                 tabs.getSelectionModel().select(inputTab);
-                styleImageList.requestFocus();
+                styleImageGrid.requestFocus();
             } else if (ctrlC.match(event)) {
                 tabs.getSelectionModel().select(inputTab);
-                contentImageList.requestFocus();
+                contentImageGrid.requestFocus();
             } else if (ctrlL.match(event)) {
                 tabs.getSelectionModel().select(layersTab);
                 styleLayersTable.requestFocus();
             } else if (ctrlO.match(event)) {
                 tabs.getSelectionModel().select(outputTab);
             } else if (ctrlEnter.match(event)) {
+                showTooltipNextTo(queueButton, resources.getString("queueButtonHit"));
                 queueStyle();
             } else if (ctrlShiftEnter.match(event)) {
                 startService();
@@ -351,14 +316,15 @@ public class MainController implements Initializable {
 
     private void queueStyle() {
         log.log(Level.FINE, "Queueing neural style.");
-        neuralStyle.generateUniqueName();
-        for (NeuralStyle ns : neuralStyle.getQueueItems())
+        NeuralStyleV3 style = neuralStyle.getNeuralStyle();
+        style.generateUniqueName();
+        for (NeuralStyleV3 ns : style.getQueueItems())
             FileUtils.saveOutputStyle(ns);
-        FileUtils.saveLastUsedOutputStyle(neuralStyle);
+        FileUtils.saveLastUsedOutputStyle(style);
     }
 
     private void startService() {
-        if (!neuralService.isRunning() && neuralStyle != null) {
+        if (!neuralService.isRunning()) {
             log.log(Level.FINE, "Starting neural service.");
             logTextArea.clear();
             neuralService.reset();
@@ -374,6 +340,13 @@ public class MainController implements Initializable {
         }
     }
 
+    private void startOutputService() {
+        if (imageOutputService != null && !imageOutputService.isRunning()) {
+            imageOutputService.reset();
+            imageOutputService.start();
+        }
+    }
+
     private void toggleStyleButtons() {
         queueButton.setDisable(!neuralStyle.checkArguments());
         startButton.setDisable(neuralService.isRunning());
@@ -386,200 +359,134 @@ public class MainController implements Initializable {
             outputImageView.setImage(imageFile);
     }
 
-    private void setThPath(File newThPath) {
-        if (newThPath == null)
-            thPath.setText("");
-        else
-            thPath.setText(newThPath.getAbsolutePath());
-        neuralStyle.setThPath(newThPath);
-    }
-
-    private void setNeuralPath(File neuralStylePath) {
-        if (neuralStylePath == null)
-            neuralPath.setText("");
-        else
-            neuralPath.setText(neuralStylePath.getAbsolutePath());
-        neuralStyle.setNeuralStylePath(neuralStylePath);
-    }
-
-    private void setInitImageFile(File initImageFile) {
-        neuralStyle.setInitImage(initImageFile);
-        if (initImageFile != null) {
-            initImagePath.setText(initImageFile.getAbsolutePath());
-            File parentFile = initImageFile.getParentFile();
-            if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
-        } else {
-            initImagePath.setText("");
-        }
-    }
-
-    private void setModelFile(File modelFile) {
-        neuralStyle.setModelFile(modelFile);
-        if (modelFile != null) {
-            modelFilePath.setText(modelFile.getAbsolutePath());
-            File parentFile = modelFile.getParentFile();
-            if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
-        } else {
-            modelFilePath.setText("");
-        }
-    }
-
-    private void setProtoFile(File protoFile) {
-        neuralStyle.setProtoFile(protoFile);
-        if (protoFile != null) {
-            protoFilePath.setText(protoFile.getAbsolutePath());
-            File parentFile = protoFile.getParentFile();
-            if (FileUtils.checkFolderExists(parentFile))
-                fileChooser.setInitialDirectory(parentFile);
-
-            String[] newLayers = FileUtils.parseLoadcaffeProto(protoFile);
-
-            if (newLayers == null) {
-                showTooltipNextTo(protoFileButton, bundle.getString("protoFileInvalid"));
-                updateLayers(new String[]{});
-            } else if (newLayers.length <= 0) {
-                showTooltipNextTo(protoFileButton, bundle.getString("protoFileNoLayers"));
-                updateLayers(new String[]{});
-            } else {
-                showTooltipNextTo(protoFileButton, bundle.getString("protoFileNewLayers"));
-                updateLayers(newLayers);
-            }
-        } else {
-            protoFilePath.setText("");
-            setDefaultNamedSelections();
-        }
-    }
-
     private void setStyleFolder(File styleFolder) {
-        styleFolderPath.setText(styleFolder.getAbsolutePath());
-        if (FileUtils.checkFolderExists(styleFolder))
-            directoryChooser.setInitialDirectory(styleFolder);
-        styleImages.setAll(FileUtils.getImages(styleFolder));
+        if (!styleFolder.getAbsolutePath().equals(styleFolderPath.getText())) {
+            log.log(Level.FINE, "New styleFolder: " + styleFolder);
+            styleFolderPath.setText(styleFolder.getAbsolutePath());
+            if (FileUtils.checkFolderExists(styleFolder))
+                DirectoryView.directoryChooser.setInitialDirectory(styleFolder);
+            styleImages.setAll(FileUtils.getImages(styleFolder));
+        }
     }
 
     private void setContentFolder(File contentFolder) {
-        contentFolderPath.setText(contentFolder.getAbsolutePath());
-        if (FileUtils.checkFolderExists(contentFolder))
-            directoryChooser.setInitialDirectory(contentFolder);
-        contentImages.setAll(FileUtils.getImages(contentFolder));
-    }
-
-    private void setOutputFolder(File outputFolder) {
-        neuralStyle.setOutputFolder(outputFolder);
-        if (FileUtils.checkFolderExists(outputFolder)) {
-            outputPath.setText(outputFolder.getAbsolutePath());
-            directoryChooser.setInitialDirectory(outputFolder);
-        } else {
-            outputPath.setText("");
+        if (!contentFolder.getAbsolutePath().equals(contentFolderPath.getText())) {
+            log.log(Level.FINE, "New contentFolder: " + contentFolder);
+            contentFolderPath.setText(contentFolder.getAbsolutePath());
+            if (FileUtils.checkFolderExists(contentFolder))
+                DirectoryView.directoryChooser.setInitialDirectory(contentFolder);
+            contentImages.setAll(FileUtils.getImages(contentFolder));
         }
     }
 
-    private void setDefaultNamedSelections() {
+    private void setDefaultNeuralBooleans() {
         gpuIndices.setAll(
-                new NamedSelection("0", true),
-                new NamedSelection("1", false),
-                new NamedSelection("2", false),
-                new NamedSelection("3", false),
-                new NamedSelection("4", false),
-                new NamedSelection("5", false),
-                new NamedSelection("6", false),
-                new NamedSelection("7", false),
-                new NamedSelection("8", false),
-                new NamedSelection("9", false)
+                new NeuralBoolean("0", true),
+                new NeuralBoolean("1", false),
+                new NeuralBoolean("2", false),
+                new NeuralBoolean("3", false),
+                new NeuralBoolean("4", false),
+                new NeuralBoolean("5", false),
+                new NeuralBoolean("6", false),
+                new NeuralBoolean("7", false),
+                new NeuralBoolean("8", false),
+                new NeuralBoolean("9", false)
         );
         styleLayers.setAll(
-                new NamedSelection("relu1_1", true),
-                new NamedSelection("relu1_2", false),
-                new NamedSelection("relu2_1", true),
-                new NamedSelection("relu2_2", false),
-                new NamedSelection("relu3_1", true),
-                new NamedSelection("relu3_2", false),
-                new NamedSelection("relu3_3", false),
-                new NamedSelection("relu3_4", false),
-                new NamedSelection("relu4_1", true),
-                new NamedSelection("relu4_2", false),
-                new NamedSelection("relu4_3", false),
-                new NamedSelection("relu4_4", false),
-                new NamedSelection("relu5_1", true),
-                new NamedSelection("relu5_2", false),
-                new NamedSelection("relu5_3", false),
-                new NamedSelection("relu5_4", false),
-                new NamedSelection("relu6", false),
-                new NamedSelection("relu7", false)
+                new NeuralBoolean("relu1_1", true),
+                new NeuralBoolean("relu1_2", false),
+                new NeuralBoolean("relu2_1", true),
+                new NeuralBoolean("relu2_2", false),
+                new NeuralBoolean("relu3_1", true),
+                new NeuralBoolean("relu3_2", false),
+                new NeuralBoolean("relu3_3", false),
+                new NeuralBoolean("relu3_4", false),
+                new NeuralBoolean("relu4_1", true),
+                new NeuralBoolean("relu4_2", false),
+                new NeuralBoolean("relu4_3", false),
+                new NeuralBoolean("relu4_4", false),
+                new NeuralBoolean("relu5_1", true),
+                new NeuralBoolean("relu5_2", false),
+                new NeuralBoolean("relu5_3", false),
+                new NeuralBoolean("relu5_4", false),
+                new NeuralBoolean("relu6", false),
+                new NeuralBoolean("relu7", false)
         );
         contentLayers.setAll(
-                new NamedSelection("relu1_1", false),
-                new NamedSelection("relu1_2", false),
-                new NamedSelection("relu2_1", false),
-                new NamedSelection("relu2_2", false),
-                new NamedSelection("relu3_1", false),
-                new NamedSelection("relu3_2", false),
-                new NamedSelection("relu3_3", false),
-                new NamedSelection("relu3_4", false),
-                new NamedSelection("relu4_1", false),
-                new NamedSelection("relu4_2", true),
-                new NamedSelection("relu4_3", false),
-                new NamedSelection("relu4_4", false),
-                new NamedSelection("relu5_1", false),
-                new NamedSelection("relu5_2", false),
-                new NamedSelection("relu5_3", false),
-                new NamedSelection("relu5_4", false),
-                new NamedSelection("relu6", false),
-                new NamedSelection("relu7", false)
+                new NeuralBoolean("relu1_1", false),
+                new NeuralBoolean("relu1_2", false),
+                new NeuralBoolean("relu2_1", false),
+                new NeuralBoolean("relu2_2", false),
+                new NeuralBoolean("relu3_1", false),
+                new NeuralBoolean("relu3_2", false),
+                new NeuralBoolean("relu3_3", false),
+                new NeuralBoolean("relu3_4", false),
+                new NeuralBoolean("relu4_1", false),
+                new NeuralBoolean("relu4_2", true),
+                new NeuralBoolean("relu4_3", false),
+                new NeuralBoolean("relu4_4", false),
+                new NeuralBoolean("relu5_1", false),
+                new NeuralBoolean("relu5_2", false),
+                new NeuralBoolean("relu5_3", false),
+                new NeuralBoolean("relu5_4", false),
+                new NeuralBoolean("relu6", false),
+                new NeuralBoolean("relu7", false)
         );
     }
 
     private void updateLayers(String[] layers) {
-        List<NamedSelection> newStyleLayers = new ArrayList<>();
-        List<NamedSelection> newContentLayers = new ArrayList<>();
+        List<NeuralBoolean> newStyleLayers = new ArrayList<>();
+        List<NeuralBoolean> newContentLayers = new ArrayList<>();
         for (String layer : layers) {
-            newStyleLayers.add(new NamedSelection(layer, false));
-            newContentLayers.add(new NamedSelection(layer, false));
+            newStyleLayers.add(new NeuralBoolean(layer, false));
+            newContentLayers.add(new NeuralBoolean(layer, false));
         }
         styleLayers.setAll(newStyleLayers);
         contentLayers.setAll(newContentLayers);
     }
 
-    private void updateNamedSelections(String[] selectedNames, ObservableList<NamedSelection> existingNames) {
-        // ensure all NamedSelections are deselected
-        List<NamedSelection> newSelectedNamed = existingNames.stream()
-                .map(namedSelection -> new NamedSelection(namedSelection.getName(), false))
-                .collect(Collectors.toList());
+    private void updateNeuralBooleans(String[] selectedNames, ObservableList<NeuralBoolean> existingNames) {
+        Set<String> names = new HashSet<>(Arrays.asList(selectedNames));
 
-        if (selectedNames != null && selectedNames.length > 0) {
-            // select NamedSelections
-            for (String selectedName : selectedNames) {
+        // ensure deselected
+        for (NeuralBoolean namedSelection : existingNames) {
+            if (!names.contains(namedSelection.getName()) && namedSelection.getValue())
+                namedSelection.setValue(false);
+        }
+
+        if (names.size() > 0) {
+            // select
+            for (String selectedName : names) {
                 boolean existed = false;
-                for (NamedSelection namedSelection : newSelectedNamed) {
+                for (NeuralBoolean namedSelection : existingNames) {
                     if (namedSelection.getName().equalsIgnoreCase(selectedName)) {
-                        namedSelection.setSelected(true);
+                        if (!namedSelection.getValue())
+                            namedSelection.setValue(true);
                         existed = true;
                         break;
                     }
                 }
 
-                // create new name for selection if necessary
-                if (!existed) {
-                    newSelectedNamed.add(new NamedSelection(selectedName, true));
-                }
+                // create new for selection if necessary
+                if (!existed)
+                    existingNames.add(new NeuralBoolean(selectedName, true));
             }
-
-            existingNames.setAll(newSelectedNamed);
         }
     }
 
     private List<NeuralImage> updateStyleImageSelections(File[] selectedImages, double[] weights,
                                                          ObservableList<NeuralImage> existingImages) {
-        // ensure all NeuralImages are deselected and non-weighted
-        List<NeuralImage> newNeuralImages = existingImages.stream()
-                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
-                .collect(Collectors.toList());
+        Set<String> names = Arrays.stream(selectedImages).map(File::getName).collect(Collectors.toSet());
         List<NeuralImage> selectedNeuralImages = new ArrayList<>();
 
-        if (selectedImages != null && selectedImages.length > 0) {
-            // select NeuralImages
+        // ensure deselected
+        for (NeuralImage image : existingImages) {
+            if (!names.contains(image.getName()) && image.isSelected())
+                image.setSelected(false);
+        }
+
+        if (names.size() > 0) {
+            // select
             for (int i = 0; i < selectedImages.length; i++) {
                 File selectedImage = selectedImages[i];
                 double weight;
@@ -589,44 +496,45 @@ public class MainController implements Initializable {
                     weight = 1.0;
                 }
                 boolean existed = false;
-                for (NeuralImage neuralImage : newNeuralImages) {
+                for (NeuralImage neuralImage : existingImages) {
                     if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
-                        neuralImage.setSelected(true);
-                        neuralImage.setWeight(weight);
+                        if (!neuralImage.isSelected())
+                            neuralImage.setSelected(true);
+                        if (neuralImage.getWeight() != weight)
+                            neuralImage.setWeight(weight);
                         selectedNeuralImages.add(neuralImage);
                         existed = true;
                         break;
                     }
                 }
 
-                // create new image for selection if necessary
+                // create new for selection if necessary
                 if (!existed) {
                     NeuralImage neuralImage = new NeuralImage(selectedImage);
                     neuralImage.setSelected(true);
                     neuralImage.setWeight(weight);
-                    newNeuralImages.add(neuralImage);
+                    existingImages.add(neuralImage);
                     selectedNeuralImages.add(neuralImage);
                 }
             }
 
-            existingImages.setAll(newNeuralImages);
-
             if (selectedNeuralImages.size() == 1)
-                styleImageList.getSelectionModel().select(selectedNeuralImages.get(0));
+                styleImageGrid.selectedItemProperty().set(selectedNeuralImages.get(0));
         }
         return selectedNeuralImages;
     }
 
     private void updateContentImageSelections(File selectedImage, ObservableList<NeuralImage> existingImages) {
-        // ensure all NeuralImages are deselected and non-weighted
-        List<NeuralImage> newNeuralImages = existingImages.stream()
-                .map(neuralLayer -> new NeuralImage(neuralLayer.getImageFile()))
-                .collect(Collectors.toList());
+        // ensure deselected
+        for (NeuralImage image : existingImages) {
+            if (!selectedImage.getName().equals(image.getName()) && image.isSelected())
+                image.setSelected(false);
+        }
 
         if (selectedImage != null) {
             NeuralImage selectedNeuralImage = null;
             boolean existed = false;
-            for (NeuralImage neuralImage : newNeuralImages) {
+            for (NeuralImage neuralImage : existingImages) {
                 if (neuralImage.getName().equalsIgnoreCase(selectedImage.getName())) {
                     selectedNeuralImage = neuralImage;
                     existed = true;
@@ -634,104 +542,205 @@ public class MainController implements Initializable {
                 }
             }
 
-            // create new image for selection if necessary
+            // create new for selection if necessary
             if (!existed) {
                 NeuralImage neuralImage = new NeuralImage(selectedImage);
                 selectedNeuralImage = neuralImage;
-                newNeuralImages.add(neuralImage);
+                existingImages.add(neuralImage);
             }
 
             // select the new image in the table
-            existingImages.setAll(newNeuralImages);
-            contentImageList.getSelectionModel().select(selectedNeuralImage);
+            contentImageGrid.selectedItemProperty().set(selectedNeuralImage);
         }
     }
 
-    private void updateNeuralOutputs(Map<String, Set<String>> updatedOutputs) {
-        if (updatedOutputs == null || updatedOutputs.isEmpty()) {
-            outputRoot.getChildren().clear();
-            return;
-        }
+    private void updateNeuralOutputs(List<NeuralQueueFile> updatedOutputs) {
+        ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentTreeItems = outputRoot.getChildren();
+        Map<NeuralQueueFile.ChangeType, List<NeuralQueueFile>> changes = updatedOutputs.stream()
+                .collect(Collectors.groupingBy(NeuralQueueFile::getChangeType));
 
         // remove any outputs that are no longer there
-        outputRoot.getChildren().removeAll(outputRoot.getChildren().stream()
-                        .filter(existingOutput -> !updatedOutputs.containsKey(
-                                existingOutput.getValue().getFile().getAbsolutePath()))
-                        .collect(Collectors.toList()));
+        if (changes.containsKey(NeuralQueueFile.ChangeType.DELETED)) {
+            log.log(Level.INFO, "Updating Deleted Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.DELETED).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
 
-        // remove any output images that are no longer there
-        for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-            Set<String> updatedOutputImages = updatedOutputs.get(existingOutput.getValue().getFile().getAbsolutePath());
-            existingOutput.getChildren().removeAll(
-                    existingOutput.getChildren().stream()
-                    .filter(existingOutputImage -> !updatedOutputImages.contains(
-                            existingOutputImage.getValue().getFile().getAbsolutePath()))
-                    .collect(Collectors.toList()));
+            if (types.containsKey(NeuralQueue.QUEUED_IMAGE)) {
+                List<NeuralQueue.NeuralQueueItem> images = types.get(NeuralQueue.QUEUED_IMAGE);
+                for (NeuralQueue.NeuralQueueItem image : images) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(image.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.FINER, String.format("A Queued Image (for deletion) did not find a matching Parent with name: %s", image.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> style = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == image.getChainIteration())
+                                .findFirst();
+                        if (style.isEmpty()) {
+                            log.log(Level.FINER, String.format("A Queued Image (for deletion) did not find a matching Style with name/chain: %s / %d", image.getBaseName(), image.getChainIteration()));
+                        } else {
+                            style.get().getChildren().remove(new TreeItem<>(image));
+                        }
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.FINER, String.format("A Queued Style (for deletion) did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        parent.get().getChildren().remove(new TreeItem<>(style));
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_PARENT)) {
+                List<NeuralQueue.NeuralQueueItem> parents = types.get(NeuralQueue.QUEUED_PARENT);
+                for (NeuralQueue.NeuralQueueItem parent : parents) {
+                    parentTreeItems.remove(new TreeItem<>(parent));
+                }
+            }
         }
 
         // update any outputs that are still there
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                NeuralQueue.NeuralQueueItem queueItem = existingOutput.getValue();
-                if (queueItem.getFile().getAbsolutePath().equals(updatedOutput)) {
-                    queueItem.setFile(new File(updatedOutput));
-                    break;
+        if (changes.containsKey(NeuralQueueFile.ChangeType.MODIFIED)) {
+            log.log(Level.INFO, "Updating Modified Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.MODIFIED).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
+
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Style did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> matchedStyle = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == style.getChainIteration())
+                                .findFirst();
+                        if (matchedStyle.isEmpty()) {
+                            log.log(Level.WARNING, String.format("A Queued Style did not find a matching Style with name/chain: %s / %d", style.getBaseName(), style.getChainIteration()));
+                        } else {
+                            matchedStyle.get().getValue().setFile(style.getFile());
+                        }
+                    }
                 }
             }
         }
 
         // add any new outputs
-        List<TreeItem<NeuralQueue.NeuralQueueItem>> newOutputs = new ArrayList<>();
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            boolean exists = false;
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
-                    exists = true;
-                    break;
+        if (changes.containsKey(NeuralQueueFile.ChangeType.NEW)) {
+            log.log(Level.INFO, "Updating New Outputs");
+            Map<Integer, List<NeuralQueue.NeuralQueueItem>> types = changes.get(NeuralQueueFile.ChangeType.NEW).stream()
+                    .map(NeuralQueueFile::getQueueItem)
+                    .collect(Collectors.groupingBy(NeuralQueue.NeuralQueueItem::getType));
+
+            if (types.containsKey(NeuralQueue.QUEUED_PARENT)) {
+                List<NeuralQueue.NeuralQueueItem> parents = types.get(NeuralQueue.QUEUED_PARENT);
+                for (NeuralQueue.NeuralQueueItem parent : parents) {
+                    TreeItem<NeuralQueue.NeuralQueueItem> parentTree = new TreeItem<>(parent);
+                    if (!parentTreeItems.contains(parentTree)) {
+                        setActionCallback(parent);
+                        parentTreeItems.add(parentTree);
+                    }
                 }
             }
-            if (!exists)
-                newOutputs.add(new TreeItem<>(createQueueItem(new File(updatedOutput))));
-        }
-        outputRoot.getChildren().addAll(newOutputs);
 
-        // add any new output images
-        for (String updatedOutput : updatedOutputs.keySet()) {
-            for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutput : outputRoot.getChildren()) {
-                if (existingOutput.getValue().getFile().getAbsolutePath().equals(updatedOutput)) {
-                    // found matching style to add this to
-                    List<TreeItem<NeuralQueue.NeuralQueueItem>> newOutputImages = new ArrayList<>();
-                    for (String updatedOutputImage : updatedOutputs.get(updatedOutput)) {
-                        boolean exists = false;
-                        for (TreeItem<NeuralQueue.NeuralQueueItem> existingOutputImage : existingOutput.getChildren()) {
-                            if (existingOutputImage.getValue().getFile().getAbsolutePath().equals(updatedOutputImage)) {
-                                exists = true;
-                                break;
+            if (types.containsKey(NeuralQueue.QUEUED_STYLE)) {
+                List<NeuralQueue.NeuralQueueItem> styles = types.get(NeuralQueue.QUEUED_STYLE);
+                for (NeuralQueue.NeuralQueueItem style : styles) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(style.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Style did not find a matching Parent with name: %s", style.getBaseName()));
+                    } else {
+                        ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyles = parent.get().getChildren();
+                        TreeItem<NeuralQueue.NeuralQueueItem> styleTree = new TreeItem<>(style);
+                        if (!parentStyles.contains(styleTree)) {
+                            setActionCallback(style);
+                            parentStyles.add(styleTree);
+                        }
+                    }
+                }
+            }
+
+            if (types.containsKey(NeuralQueue.QUEUED_IMAGE)) {
+                List<NeuralQueue.NeuralQueueItem> images = types.get(NeuralQueue.QUEUED_IMAGE);
+                for (NeuralQueue.NeuralQueueItem image : images) {
+                    Optional<TreeItem<NeuralQueue.NeuralQueueItem>> parent = parentTreeItems.stream()
+                            .filter(p -> p.getValue().getBaseName().equals(image.getBaseName()))
+                            .findFirst();
+                    if (parent.isEmpty()) {
+                        log.log(Level.WARNING, String.format("A Queued Image did not find a matching Parent with name: %s", image.getBaseName()));
+                    } else {
+                        Optional<TreeItem<NeuralQueue.NeuralQueueItem>> style = parent.get().getChildren().stream()
+                                .filter(s -> s.getValue().getChainIteration() == image.getChainIteration())
+                                .findFirst();
+                        if (style.isEmpty()) {
+                            log.log(Level.WARNING, String.format("A Queued Image did not find a matching Style with name/chain: %s / %d", image.getBaseName(), image.getChainIteration()));
+                        } else {
+                            ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyleImages = style.get().getChildren();
+                            TreeItem<NeuralQueue.NeuralQueueItem> imageTree = new TreeItem<>(image);
+                            if (!parentStyleImages.contains(imageTree)) {
+                                setActionCallback(image);
+                                parentStyleImages.add(imageTree);
                             }
                         }
-                        if (!exists)
-                            newOutputImages.add(new TreeItem<>(createQueueItem(new File(updatedOutputImage))));
                     }
-                    existingOutput.getChildren().addAll(newOutputImages);
-                    break;
                 }
             }
+        }
+
+        // update Parent status
+        for (TreeItem<NeuralQueue.NeuralQueueItem> parentTree : parentTreeItems) {
+            Set<Integer> styleStatuses = parentTree.getChildren().stream()
+                    .map(t -> t.getValue().getStatusCode())
+                    .collect(Collectors.toSet());
+            if (styleStatuses.size() == 1)
+                parentTree.getValue().changeStatus(styleStatuses.stream().findFirst().get());
+            else if (styleStatuses.contains(NeuralStyleV3.IN_PROGRESS))
+                parentTree.getValue().changeStatus(NeuralStyleV3.IN_PROGRESS);
+            else if (styleStatuses.contains(NeuralStyleV3.QUEUED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.QUEUED);
+            else if (styleStatuses.contains(NeuralStyleV3.FAILED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.FAILED);
+            else if (styleStatuses.contains(NeuralStyleV3.CANCELLED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.CANCELLED);
+            else if (styleStatuses.contains(NeuralStyleV3.INVALID_ARGUMENTS))
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_ARGUMENTS);
+            else if (styleStatuses.contains(NeuralStyleV3.INVALID_FILE))
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
+            else if (styleStatuses.contains(NeuralStyleV3.FINISHED))
+                parentTree.getValue().changeStatus(NeuralStyleV3.FINISHED);
+            else
+                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
         }
     }
 
     private TreeItem<NeuralQueue.NeuralQueueItem> getMostRecentOutput() {
         List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
                 outputTreeTable.getRoot().getChildren().stream()
-                        .filter(queueItem -> queueItem.getValue().getStatus().getValue()
-                                .equalsIgnoreCase(bundle.getString("neuralQueueItemInProgress")))
+                        .flatMap(p -> p.getChildren().stream())
+                        .filter(s -> s.getValue().getStatusCode() == NeuralStyleV3.IN_PROGRESS)
                         .collect(Collectors.toList());
         if (!inProgressItems.isEmpty())
             return inProgressItems.get(0);
 
         List<TreeItem<NeuralQueue.NeuralQueueItem>> allItems =
                 outputTreeTable.getRoot().getChildren().stream()
-                        .filter(queueItem -> !queueItem.getValue().getStatus().getValue()
-                                .equalsIgnoreCase(bundle.getString("neuralQueueItemFailed")))
+                        .flatMap(p -> p.getChildren().stream())
+                        .filter(s -> s.getValue().getStatusCode() != NeuralStyleV3.FAILED)
                         .collect(Collectors.toList());
         if (!allItems.isEmpty())
             return allItems.get(allItems.size() - 1);
@@ -753,35 +762,44 @@ public class MainController implements Initializable {
                 else {
                     log.log(Level.FINER, "Output Image: no output selection nor latest image");
                     if (tooltipRegion != null && inProgressImages == null)
-                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                        showTooltipNextTo(tooltipRegion, resources.getString("outputImageNullIterations"));
                     else if (tooltipRegion != null && inProgressImages.length <= 0)
-                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
+                        showTooltipNextTo(tooltipRegion, resources.getString("outputImageNoIterations"));
                     return null;
                 }
             } else {
                 log.log(Level.FINER, "Output Image: no output selection nor latest image");
                 if (tooltipRegion != null)
-                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                    showTooltipNextTo(tooltipRegion, resources.getString("outputImageNullIterations"));
                 return null;
             }
         } else {
             NeuralQueue.NeuralQueueItem output = outputSelection.getValue();
-            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
-                log.log(Level.FINER, "Output Image: output selection is style, using latest child");
-                ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> outputChildren = outputSelection.getChildren();
-                if (outputChildren != null && !outputChildren.isEmpty())
-                    return outputChildren.get(outputChildren.size() - 1).getValue().getFile();
-                else {
-                    log.log(Level.FINER, "Output Image: output selection but no latest image");
-                    if (tooltipRegion != null && outputChildren == null)
-                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
-                    else if (tooltipRegion != null && outputChildren.isEmpty())
-                        showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNoIterations"));
-                    return null;
-                }
-            } else {
+            if (output.getType() == NeuralQueue.QUEUED_IMAGE) {
                 log.log(Level.FINER, "Output Image: output selection is image");
                 return output.getFile();
+            } else {
+                List<File> outputFiles;
+                if (output.getType() == NeuralQueue.QUEUED_PARENT) {
+                    log.log(Level.FINER, "Output Image: output selection is parent, using latest grand-child");
+                    outputFiles = outputSelection.getChildren().stream()
+                            .flatMap(s -> s.getChildren().stream())
+                            .map(i -> i.getValue().getFile())
+                            .collect(Collectors.toList());
+                } else {
+                    log.log(Level.FINER, "Output Image: output selection is style, using latest child");
+                    outputFiles = outputSelection.getChildren().stream()
+                            .map(i -> i.getValue().getFile())
+                            .collect(Collectors.toList());
+                }
+                if (!outputFiles.isEmpty())
+                    return outputFiles.get(outputFiles.size() - 1);
+                else {
+                    log.log(Level.FINER, "Output Image: output selection but no latest image");
+                    if (tooltipRegion != null)
+                        showTooltipNextTo(tooltipRegion, resources.getString("outputImageNoIterations"));
+                    return null;
+                }
             }
         }
     }
@@ -797,12 +815,15 @@ public class MainController implements Initializable {
             else {
                 log.log(Level.FINER, "Output Style: no output selection nor latest image");
                 if (tooltipRegion != null)
-                    showTooltipNextTo(tooltipRegion, bundle.getString("outputImageNullIterations"));
+                    showTooltipNextTo(tooltipRegion, resources.getString("outputImageNullIterations"));
                 return null;
             }
         } else {
             NeuralQueue.NeuralQueueItem output = outputSelection.getValue();
-            if (FilenameUtils.isExtension(output.getFile().getAbsolutePath(), "json")) {
+            if (output.getType() == NeuralQueue.QUEUED_PARENT) {
+                log.log(Level.FINER, "Output Style: output selection is parent, using selection");
+                return output.getFile();
+            } else if (output.getType() == NeuralQueue.QUEUED_STYLE) {
                 log.log(Level.FINER, "Output Style: output selection is style, using selection");
                 return output.getFile();
             } else {
@@ -812,11 +833,8 @@ public class MainController implements Initializable {
         }
     }
 
-    private void loadStyle(NeuralStyle loadedNeuralStyle) {
-        neuralStyle = loadedNeuralStyle;
-
-        // Reset the Queued status
-        neuralStyle.setQueueStatus(NeuralStyle.QUEUED);
+    private void loadStyle(NeuralStyleV3 loadedNeuralStyle) {
+        neuralStyle.loadNeuralStyle(loadedNeuralStyle);
 
         // Retrieve these before paths because that will change them
         File[] selectedStyleImages = neuralStyle.getStyleImages();
@@ -829,43 +847,10 @@ public class MainController implements Initializable {
         if (selectedStyleImages != null)
             styleMultipleSelect.setSelected(selectedStyleImages.length != 1);
 
-        // Set paths
-        setThPath(neuralStyle.getThPath());
-        setNeuralPath(neuralStyle.getNeuralStylePath());
-        setProtoFile(neuralStyle.getProtoFile());
-        setModelFile(neuralStyle.getModelFile());
-        setOutputFolder(neuralStyle.getOutputFolder());
-        setInitImageFile(neuralStyle.getInitImage());
-
         // Set selected layers after updating layers from paths
-        updateNamedSelections(selectedGpuIndices, this.gpuIndices);
-        updateNamedSelections(selectedStyleLayers, this.styleLayers);
-        updateNamedSelections(selectedContentLayers, this.contentLayers);
-
-        // Set simple inputs
-        maxIterSlider.setValue(neuralStyle.getIterations());
-        printIterSlider.setValue(neuralStyle.getIterationsPrint());
-        saveIterSlider.setValue(neuralStyle.getIterationsSave());
-        seedSlider.setValue(neuralStyle.getSeed());
-        outputSizeSlider.setValue(neuralStyle.getOutputSize());
-        styleSizeSlider.setValue(neuralStyle.getStyleSize());
-        contentWeightSlider.setValue(neuralStyle.getContentWeight());
-        styleWeightSlider.setValue(neuralStyle.getStyleWeight());
-        tvWeightSlider.setValue(neuralStyle.getTvWeight());
-        originalColors.setSelected(neuralStyle.isOriginalColors());
-        initChoice.setValue(neuralStyle.getInit());
-        poolingChoice.setValue(neuralStyle.getPooling());
-        normalizeGradients.setSelected(neuralStyle.isNormalizeGradients());
-        cpuMode.setSelected(neuralStyle.isCpu());
-        multiGpuSplit.setText(neuralStyle.getMultiGpuStrategy());
-        backendChoice.setValue(neuralStyle.getBackend());
-        optimizerChoice.setValue(neuralStyle.getOptimizer());
-        nCorrectionSlider.setValue(neuralStyle.getNCorrection());
-        learningRateSlider.setValue(neuralStyle.getLearningRate());
-        autotune.setSelected(neuralStyle.isAutotune());
-        chainLengthSlider.setValue(neuralStyle.getChainLength());
-        chainIterationRatioSlider.setValue(neuralStyle.getChainIterationRatio());
-        chainSizeRatioSlider.setValue(neuralStyle.getChainSizeRatio());
+        updateNeuralBooleans(selectedGpuIndices, this.gpuIndices);
+        updateNeuralBooleans(selectedStyleLayers, this.styleLayers);
+        updateNeuralBooleans(selectedContentLayers, this.contentLayers);
 
         // Set input folders and image selections last
         if (selectedStyleImages != null && selectedStyleImages.length > 0) {
@@ -879,34 +864,32 @@ public class MainController implements Initializable {
         }
     }
 
-    private NeuralQueue.NeuralQueueItem createQueueItem(File file) {
-        NeuralQueue.NeuralQueueItem queueItem = NeuralQueue.createQueueItem(file);
+    private void setActionCallback(NeuralQueue.NeuralQueueItem queueItem) {
         switch (queueItem.getType()) {
-
+            case NeuralQueue.QUEUED_PARENT:
             case NeuralQueue.QUEUED_STYLE:
                 queueItem.setActionCallback(() -> {
-                    NeuralStyle loadedStyle = FileUtils.loadStyle(file);
+                    NeuralStyleV3 loadedStyle = FileUtils.loadStyle(queueItem.getFile());
                     if (loadedStyle == null)
-                        showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
+                        showTooltipNextTo(loadStyleButton, resources.getString("loadStyleFailed"));
                     else {
                         loadStyle(loadedStyle);
-                        showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleSuccess"));
+                        showTooltipNextTo(loadStyleButton, resources.getString("loadStyleSuccess"));
                     }
                 });
                 break;
 
             case NeuralQueue.QUEUED_IMAGE:
                 queueItem.setActionCallback(() -> {
-                    initChoice.setValue("image");
-                    setInitImageFile(file);
-                    showTooltipNextTo(initImagePath, bundle.getString("outputTreeTableInitTooltip"));
+                    neuralStyle.getInit().setValue("image");
+                    neuralStyle.getInitImage().setValue(queueItem.getFile().getAbsolutePath());
+                    showTooltipNextTo(initImage, resources.getString("outputTreeTableInitTooltip"));
                 });
                 break;
 
             default:
                 break;
         }
-        return queueItem;
     }
 
     private void showTooltipNextTo(Region region, String text) {
@@ -919,11 +902,22 @@ public class MainController implements Initializable {
                 p.getY() + region.getScene().getY() + region.getScene().getWindow().getY());
     }
 
+    private void openImageInTab(File imageFile) {
+        Tab imageTab = new Tab(imageFile.getName());
+        FullImageView imagePreview = new FullImageView(
+                imageFile,
+                e -> updateStyleImageSelections(new File[]{imageFile}, new double[]{1.0}, styleImages),
+                e -> updateContentImageSelections(imageFile, contentImages),
+                e -> neuralStyle.getInitImage().setValue(imageFile.getAbsolutePath()),
+                resources
+        );
+        imageTab.setContent(imagePreview);
+        tabs.getTabs().add(0, imageTab);
+        tabs.getSelectionModel().selectFirst();
+    }
+
     private void checkInjections() {
-        assert thPathButton != null : "fx:id=\"thButton\" was not injected.";
-        assert thPath != null : "fx:id=\"thPath\" was not injected.";
-        assert neuralPathButton != null : "fx:id=\"neuralPathButton\" was not injected.";
-        assert neuralPath != null : "fx:id=\"neuralPath\" was not injected.";
+        assert maxIter != null : "fx:id=\"maxIter\" was not injected.";
         assert saveStyleButton != null : "fx:id=\"saveStyleButton\" was not injected.";
         assert loadStyleButton != null : "fx:id=\"loadStyleButton\" was not injected.";
         assert tabs != null : "fx:id=\"tabs\" was not injected.";
@@ -932,15 +926,13 @@ public class MainController implements Initializable {
         assert layersTab != null : "fx:id=\"layersTab\" was not injected.";
         assert styleFolderPath != null : "fx:id=\"styleFolderPath\" was not injected.";
         assert contentFolderPath != null : "fx:id=\"contentFolderPath\" was not injected.";
-        assert outputPath != null : "fx:id=\"outputPath\" was not injected.";
         assert outputName != null : "fx:id=\"outputName\" was not injected.";
         assert styleFolderButton != null : "fx:id=\"styleFolderButton\" was not injected.";
         assert contentFolderButton != null : "fx:id=\"contentFolderButton\" was not injected.";
-        assert outputFolderButton != null : "fx:id=\"outputFolderButton\" was not injected.";
         assert outputImageButton != null : "fx:id=\"outputImageButton\" was not injected.";
         assert styleMultipleSelect != null : "fx:id=\"styleMultipleSelect\" was not injected.";
-        assert styleImageList != null : "fx:id=\"styleImageList\" was not injected.";
-        assert contentImageList != null : "fx:id=\"contentImageList\" was not injected.";
+        assert styleImageGrid != null : "fx:id=\"styleImageGrid\" was not injected.";
+        assert contentImageGrid != null : "fx:id=\"contentImageGrid\" was not injected.";
         assert styleLayerAdd != null : "fx:id=\"styleLayerAdd\" was not injected.";
         assert styleLayerRemove != null : "fx:id=\"styleLayerRemove\" was not injected.";
         assert styleLayersTable != null : "fx:id=\"styleLayersTable\" was not injected.";
@@ -952,52 +944,9 @@ public class MainController implements Initializable {
         assert contentLayersTableSelected != null : "fx:id=\"contentLayersTableSelected\" was not injected.";
         assert contentLayersTableName != null : "fx:id=\"contentLayersTableName\" was not injected.";
         assert vramBar != null : "fx:id=\"vramBar\" was not injected.";
-        assert printIterSlider != null : "fx:id=\"printIterSlider\" was not injected.";
-        assert printIterField != null : "fx:id=\"printIterField\" was not injected.";
-        assert saveIterSlider != null : "fx:id=\"saveIterSlider\" was not injected.";
-        assert saveIterField != null : "fx:id=\"saveIterField\" was not injected.";
-        assert maxIterSlider != null : "fx:id=\"maxIterSlider\" was not injected.";
-        assert maxIterField != null : "fx:id=\"maxIterField\" was not injected.";
-        assert seedSlider != null : "fx:id=\"seedSlider\" was not injected.";
-        assert seedField != null : "fx:id=\"seedField\" was not injected.";
-        assert styleSizeSlider != null : "fx:id=\"styleSizeSlider\" was not injected.";
-        assert styleSizeField != null : "fx:id=\"styleSizeField\" was not injected.";
-        assert outputSizeSlider != null : "fx:id=\"outputSizeSlider\" was not injected.";
-        assert outputSizeField != null : "fx:id=\"outputSizeField\" was not injected.";
-        assert styleWeightSlider != null : "fx:id=\"styleWeightSlider\" was not injected.";
-        assert styleWeightField != null : "fx:id=\"styleWeightField\" was not injected.";
-        assert contentWeightSlider != null : "fx:id=\"contentWeightSlider\" was not injected.";
-        assert contentWeightField != null : "fx:id=\"contentWeightField\" was not injected.";
-        assert tvWeightSlider != null : "fx:id=\"tvWeightSlider\" was not injected.";
-        assert tvWeightField != null : "fx:id=\"tvWeightField\" was not injected.";
-        assert initChoice != null : "fx:id=\"initChoice\" was not injected.";
-        assert initImageButton != null : "fx:id=\"initImageButton\" was not injected.";
-        assert initImagePath != null : "fx:id=\"initImagePath\" was not injected.";
-        assert poolingChoice != null : "fx:id=\"poolingChoice\" was not injected.";
-        assert originalColors != null : "fx:id=\"originalColors\" was not injected.";
-        assert normalizeGradients != null : "fx:id=\"normalizeGradients\" was not injected.";
-        assert cpuMode != null : "fx:id=\"cpuMode\" was not injected.";
         assert gpuTable != null : "fx:id=\"gpuTable\" was not injected.";
         assert gpuTableSelected != null : "fx:id=\"gpuTableSelected\" was not injected.";
         assert gpuTableIndex != null : "fx:id=\"gpuTableIndex\" was not injected.";
-        assert multiGpuSplit != null : "fx:id=\"multiGpuSplit\" was not injected.";
-        assert backendChoice != null : "fx:id=\"backendChoice\" was not injected.";
-        assert optimizerChoice != null : "fx:id=\"optimizerChoice\" was not injected.";
-        assert nCorrectionSlider != null : "fx:id=\"nCorrectionSlider\" was not injected.";
-        assert nCorrectionField != null : "fx:id=\"nCorrectionField\" was not injected.";
-        assert learningRateSlider != null : "fx:id=\"learningRateSlider\" was not injected.";
-        assert learningRateField != null : "fx:id=\"learningRateField\" was not injected.";
-        assert autotune != null : "fx:id=\"autotune\" was not injected.";
-        assert chainLengthSlider != null : "fx:id=\"chainLengthSlider\" was not injected.";
-        assert chainLengthField != null : "fx:id=\"chainLengthField\" was not injected.";
-        assert chainIterationRatioSlider != null : "fx:id=\"chainIterationRatioSlider\" was not injected.";
-        assert chainIterationRatioField != null : "fx:id=\"chainIterationRatioField\" was not injected.";
-        assert chainSizeRatioSlider != null : "fx:id=\"chainSizeRatioSlider\" was not injected.";
-        assert chainSizeRatioField != null : "fx:id=\"chainSizeRatioField\" was not injected.";
-        assert protoFileButton != null : "fx:id=\"protoFileButton\" was not injected.";
-        assert protoFilePath != null : "fx:id=\"protoFilePath\" was not injected.";
-        assert modelFileButton != null : "fx:id=\"modelFileButton\" was not injected.";
-        assert modelFilePath != null : "fx:id=\"modelFilePath\" was not injected.";
         assert queueButton != null : "fx:id=\"queueButton\" was not injected.";
         assert startButton != null : "fx:id=\"startButton\" was not injected.";
         assert stopButton != null : "fx:id=\"stopButton\" was not injected.";
@@ -1023,64 +972,46 @@ public class MainController implements Initializable {
         contentImages = FXCollections.observableArrayList(neuralImage ->
                 new Observable[] {neuralImage.selectedProperty()});
         gpuIndices = FXCollections.observableArrayList(gpuIndex ->
-                new Observable[] {gpuIndex.selectedProperty()});
+                new Observable[] {gpuIndex.valueProperty()});
         styleLayers = FXCollections.observableArrayList(neuralLayer ->
-                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
+                new Observable[] {neuralLayer.valueProperty(), neuralLayer.nameProperty()});
         contentLayers = FXCollections.observableArrayList(neuralLayer ->
-                new Observable[] {neuralLayer.selectedProperty(), neuralLayer.nameProperty()});
+                new Observable[] {neuralLayer.valueProperty(), neuralLayer.nameProperty()});
 
-        setDefaultNamedSelections();
+        setDefaultNeuralBooleans();
     }
 
     private void setupButtonListeners() {
-        log.log(Level.FINER, "Setting TH listener.");
-        EventStreams.eventsOf(thPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing th file chooser.");
-            fileChooser.setTitle(bundle.getString("thPathChooser"));
-            File thPath = fileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "th file chosen: {0}", thPath);
-            setThPath(thPath);
-        });
-
-        log.log(Level.FINER, "Setting Neural Path listener.");
-        EventStreams.eventsOf(neuralPathButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing neural-style folder chooser.");
-            directoryChooser.setTitle(bundle.getString("neuralPathChooser"));
-            File neuralStylePath = directoryChooser.showDialog(stage);
-            log.log(Level.FINE, "neural-style folder chosen: {0}", neuralStylePath);
-            setNeuralPath(neuralStylePath);
-        });
-
         log.log(Level.FINER, "Setting Style Save listener.");
         EventStreams.eventsOf(saveStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing save style file chooser.");
-            fileChooser.setTitle(bundle.getString("saveStyleChooser"));
-            File styleFile = fileChooser.showSaveDialog(stage);
+            FileView.fileChooser.setTitle(resources.getString("saveStyleChooser"));
+            File styleFile = FileView.fileChooser.showSaveDialog(stage);
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
-                fileChooser.setInitialDirectory(styleFile.getParentFile());
-                File savedStyle = FileUtils.saveOutputStyle(neuralStyle, styleFile);
+                FileView.fileChooser.setInitialDirectory(styleFile.getParentFile());
+                File savedStyle = FileUtils.saveOutputStyle(neuralStyle.getNeuralStyle(), styleFile);
                 if (savedStyle == null)
-                    showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleFailed"));
+                    showTooltipNextTo(saveStyleButton, resources.getString("saveStyleFailed"));
                 else
-                    showTooltipNextTo(saveStyleButton, bundle.getString("saveStyleSuccess"));
+                    showTooltipNextTo(saveStyleButton, resources.getString("saveStyleSuccess"));
             }
         });
 
         log.log(Level.FINER, "Setting Style Load listener.");
         EventStreams.eventsOf(loadStyleButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing save style file chooser.");
-            fileChooser.setTitle(bundle.getString("loadStyleChooser"));
-            File styleFile = fileChooser.showOpenDialog(stage);
+            FileView.fileChooser.setTitle(resources.getString("loadStyleChooser"));
+            File styleFile = FileView.fileChooser.showOpenDialog(stage);
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
-                fileChooser.setInitialDirectory(styleFile.getParentFile());
-                NeuralStyle loadedStyle = FileUtils.loadStyle(styleFile);
+                FileView.fileChooser.setInitialDirectory(styleFile.getParentFile());
+                NeuralStyleV3 loadedStyle = FileUtils.loadStyle(styleFile);
                 if (loadedStyle == null)
-                    showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleFailed"));
+                    showTooltipNextTo(loadStyleButton, resources.getString("loadStyleFailed"));
                 else {
                     loadStyle(loadedStyle);
-                    showTooltipNextTo(loadStyleButton, bundle.getString("loadStyleSuccess"));
+                    showTooltipNextTo(loadStyleButton, resources.getString("loadStyleSuccess"));
                 }
             }
         });
@@ -1088,8 +1019,8 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Style Folder listener.");
         EventStreams.eventsOf(styleFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing style folder chooser.");
-            directoryChooser.setTitle(bundle.getString("styleFolderChooser"));
-            File styleFolder = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(resources.getString("styleFolderChooser"));
+            File styleFolder = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Style folder chosen: {0}", styleFolder);
             if (styleFolder != null) {
                 setStyleFolder(styleFolder);
@@ -1099,23 +1030,11 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Content Folder listener.");
         EventStreams.eventsOf(contentFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing content folder chooser.");
-            directoryChooser.setTitle(bundle.getString("contentFolderChooser"));
-            File contentFolder = directoryChooser.showDialog(stage);
+            DirectoryView.directoryChooser.setTitle(resources.getString("contentFolderChooser"));
+            File contentFolder = DirectoryView.directoryChooser.showDialog(stage);
             log.log(Level.FINE, "Content folder chosen: {0}", contentFolder);
             if (contentFolder != null) {
                 setContentFolder(contentFolder);
-            }
-        });
-
-        log.log(Level.FINER, "Setting Output Folder listener.");
-        EventStreams.eventsOf(outputFolderButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing output folder chooser.");
-            directoryChooser.setTitle(bundle.getString("outputFolderChooser"));
-            File outputFolder = directoryChooser.showDialog(stage);
-            log.log(Level.FINE, "Output folder chosen: {0}", outputFolder);
-            if (outputFolder != null) {
-                setOutputFolder(outputFolder);
-                toggleStyleButtons();
             }
         });
 
@@ -1124,10 +1043,10 @@ public class MainController implements Initializable {
             log.log(Level.FINE, "Output Image button hit, checking images.");
 
             // Check for generated image iterations to show
-            File outputFolder = neuralStyle.getOutputFolder();
+            File outputFolder = new File(neuralStyle.getOutputFolder().getValue());
 
             if (outputFolder == null) {
-                showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoOutputFolder"));
+                showTooltipNextTo(outputImageButton, resources.getString("outputImageNoOutputFolder"));
             } else {
                 File imageFile = getOutputImage(outputImageButton);
                 if (imageFile == null)
@@ -1139,10 +1058,10 @@ public class MainController implements Initializable {
 
                 File[] savedFiles = FileUtils.saveTempOutputsTo(imageFile, styleFile, outputFolder, possibleName);
                 if (savedFiles == null || savedFiles.length <= 0) {
-                    showTooltipNextTo(outputImageButton, bundle.getString("outputImageNoSavedImage"));
+                    showTooltipNextTo(outputImageButton, resources.getString("outputImageNoSavedImage"));
                 } else {
                     showTooltipNextTo(outputImageButton,
-                            bundle.getString("outputImageSavedImage") + "\n" + savedFiles[0].getName());
+                            resources.getString("outputImageSavedImage") + "\n" + savedFiles[0].getName());
                 }
             }
         });
@@ -1170,9 +1089,10 @@ public class MainController implements Initializable {
         log.log(Level.FINER, "Setting Command listener.");
         EventStreams.eventsOf(commandButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Command button hit.");
-            if (neuralStyle.checkArguments()) {
-                neuralStyle.generateUniqueName();
-                String[] command = neuralStyle.buildCommand();
+            NeuralStyleV3 style = neuralStyle.getNeuralStyle();
+            if (style.checkArguments()) {
+                style.generateUniqueName();
+                String[] command = style.buildCommand();
                 StringBuilder builder = new StringBuilder();
                 for (String commandPart : command) {
                     if (commandPart.contains(" "))
@@ -1186,7 +1106,7 @@ public class MainController implements Initializable {
                 content.putString(builder.toString());
                 clipboard.setContent(content);
             } else {
-                showTooltipNextTo(commandButton, bundle.getString("commandButtonInvalid"));
+                showTooltipNextTo(commandButton, resources.getString("commandButtonInvalid"));
             }
         });
 
@@ -1198,36 +1118,9 @@ public class MainController implements Initializable {
         EventStreams.eventsOf(imageViewModeActual, ActionEvent.ACTION).subscribe(actionEvent ->
                 outputImageView.scaleImageViewport(1));
 
-        log.log(Level.FINER, "Setting Init Image listener.");
-        EventStreams.eventsOf(initImageButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing init image file chooser.");
-            fileChooser.setTitle(bundle.getString("initImageChooser"));
-            File initImageFile = fileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "init image file chosen: {0}", initImageFile);
-            setInitImageFile(initImageFile);
-        });
-
-        log.log(Level.FINER, "Setting Proto File listener.");
-        EventStreams.eventsOf(protoFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing proto file chooser.");
-            fileChooser.setTitle(bundle.getString("protoFileChooser"));
-            File protoFile = fileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "Proto file chosen: {0}", protoFile);
-            setProtoFile(protoFile);
-        });
-
-        log.log(Level.FINER, "Setting Model File listener.");
-        EventStreams.eventsOf(modelFileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
-            log.log(Level.FINER, "Showing model file chooser.");
-            fileChooser.setTitle(bundle.getString("modelFileChooser"));
-            File modelFile = fileChooser.showOpenDialog(stage);
-            log.log(Level.FINE, "Model file chosen: {0}", modelFile);
-            setModelFile(modelFile);
-        });
-
         log.log(Level.FINER, "Setting Style Layer Add listener.");
         EventStreams.eventsOf(styleLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> styleLayers.add(new NamedSelection("newLayer", false)));
+                actionEvent -> styleLayers.add(new NeuralBoolean("newLayer", false)));
 
         log.log(Level.FINER, "Setting Style Layer Remove listener.");
         EventStreams.eventsOf(styleLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1235,7 +1128,7 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting Content Layer Add listener.");
         EventStreams.eventsOf(contentLayerAdd, ActionEvent.ACTION).subscribe(
-                actionEvent -> contentLayers.add(new NamedSelection("newLayer", false)));
+                actionEvent -> contentLayers.add(new NeuralBoolean("newLayer", false)));
 
         log.log(Level.FINER, "Setting Content Layer Remove listener.");
         EventStreams.eventsOf(contentLayerRemove, ActionEvent.ACTION).subscribe(
@@ -1244,183 +1137,108 @@ public class MainController implements Initializable {
 
     private void setupFieldListeners() {
         // useful to keep sliders synced to text fields
-        StringConverter<Number> intConverter = new StringConverter<Number>() {
-            @Override
-            public String toString(Number t) {
-                return String.valueOf(t.intValue());
-            }
+        StringConverter<Number> intConverter = NeuralInt.INT_CONVERTER;
+        StringConverter<Number> doubleConverter = NeuralDouble.DOUBLE_CONVERTER;
 
-            @Override
-            public Number fromString(String string) {
-                try {
-                    return Integer.parseInt(string);
-                } catch (Exception e) {
-                    return 0;
-                }
-            }
-        };
-        StringConverter<Number> doubleConverter = new StringConverter<Number>() {
-            @Override
-            public String toString(Number t) {
-                return String.valueOf(t.doubleValue());
-            }
+        chainLength.linkToInt(neuralStyle.getChainLength());
+        maxIter.linkToInt(neuralStyle.getIterations());
+        printIter.linkToInt(neuralStyle.getIterationsPrint());
+        saveIter.linkToInt(neuralStyle.getIterationsSave());
+        sizeOutput.linkToInt(neuralStyle.getOutputSize());
+        sizeStyle.linkToDouble(neuralStyle.getStyleSize());
+        seed.linkToInt(neuralStyle.getSeed());
+        weightContent.linkToInt(neuralStyle.getContentWeight());
+        weightStyle.linkToInt(neuralStyle.getStyleWeight());
+        init.link(neuralStyle.getInit());
 
-            @Override
-            public Number fromString(String string) {
-                try {
-                    return Double.parseDouble(string);
-                } catch (Exception e) {
-                    return 0;
-                }
-            }
-        };
-
-        // keep print slider and text field synced and the slider updates the style
-        printIterField.textProperty().bindBidirectional(printIterSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(printIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterationsPrint(intConverter.fromString(numberChange).intValue()));
-
-        // keep save slider and text field synced and the slider updates the style
-        saveIterField.textProperty().bindBidirectional(saveIterSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(saveIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterationsSave(intConverter.fromString(numberChange).intValue()));
-
-        // keep max slider and text field synced and the slider updates the style
-        maxIterField.textProperty().bindBidirectional(maxIterSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(maxIterField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setIterations(intConverter.fromString(numberChange).intValue()));
-
-        // keep seed slider and text field synced and the slider updates the style
-        seedField.textProperty().bindBidirectional(seedSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(seedField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setSeed(intConverter.fromString(numberChange).intValue()));
-
-        // keep output size slider and text field synced and the slider updates the style
-        outputSizeField.textProperty().bindBidirectional(outputSizeSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(outputSizeField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setOutputSize(intConverter.fromString(numberChange).intValue()));
-
-        // keep style size slider and text field synced and the slider updates the style
-        styleSizeField.textProperty().bindBidirectional(styleSizeSlider.valueProperty(), doubleConverter);
-        EventStreams.valuesOf(styleSizeField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setStyleSize(doubleConverter.fromString(numberChange).doubleValue()));
-
-        // keep output weight slider and text field synced and the slider updates the style
-        contentWeightField.textProperty().bindBidirectional(contentWeightSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(contentWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setContentWeight(intConverter.fromString(numberChange).intValue()));
-
-        // keep style weight slider and text field synced and the slider updates the style
-        styleWeightField.textProperty().bindBidirectional(styleWeightSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(styleWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setStyleWeight(intConverter.fromString(numberChange).intValue()));
-
-        // keep TV weight slider and text field synced and the slider updates the style
-        tvWeightField.textProperty().bindBidirectional(tvWeightSlider.valueProperty(), doubleConverter);
-        EventStreams.valuesOf(tvWeightField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setTvWeight(doubleConverter.fromString(numberChange).doubleValue()));
-
-        // init choicebox updates the style and toggles init path
-        EventStreams.valuesOf(initChoice.valueProperty()).subscribe(init -> {
-            neuralStyle.setInit(init);
-            boolean notInitImage = !init.equalsIgnoreCase("image");
-            initImageButton.setDisable(notInitImage);
-            initImagePath.setDisable(notInitImage);
+        initImage.link(neuralStyle.getInitImage());
+        EventStreams.valuesOf(neuralStyle.getInit().valueProperty()).subscribe(init -> {
+            boolean notInitImage = !"image".equalsIgnoreCase(init);
+            initImage.setDisable(notInitImage);
+            if (notInitImage) neuralStyle.getInitImage().setValue("");
         });
 
-        // pooling choicebox updates the style
-        EventStreams.valuesOf(poolingChoice.valueProperty()).subscribe(stringChange ->
-                neuralStyle.setPooling(stringChange));
+        initImageViewLoader = new AsyncImageProperty(350, 350);
+        initImageView.imageProperty().bind(initImageViewLoader);
+        EventStreams.valuesOf(neuralStyle.getInitImage().valueProperty()).subscribe(newInitImagePath -> {
+            if (newInitImagePath == null || newInitImagePath.isEmpty()) {
+                initImageView.setVisible(false);
+            } else {
+                initImageView.setVisible(true);
+                initImageViewLoader.imageFileProperty().set(new File(newInitImagePath));
+            }
+        });
 
-        // original colors checkbox updates the style
-        EventStreams.valuesOf(originalColors.selectedProperty()).subscribe(booleanChange ->
-                neuralStyle.setOriginalColors(booleanChange));
+        originalColors.link(neuralStyle.getOriginalColors());
+        normalizeGradients.link(neuralStyle.getNormalizeGradients());
+        tvWeight.linkToDouble(neuralStyle.getTvWeight());
+        pooling.link(neuralStyle.getPooling());
 
-        // normalize gradients checkbox updates the style
-        EventStreams.valuesOf(normalizeGradients.selectedProperty()).subscribe(booleanChange ->
-                neuralStyle.setNormalizeGradients(booleanChange));
-
-        // CPU checkbox updates the style and toggles GPU
-        EventStreams.valuesOf(cpuMode.selectedProperty()).subscribe(useCpu -> {
-            neuralStyle.setCpu(useCpu);
+        cpu.link(neuralStyle.getCpu());
+        multiGpuStrategy.link(neuralStyle.getMultiGpuStrategy());
+        EventStreams.valuesOf(neuralStyle.getCpu().valueProperty()).subscribe(useCpu -> {
             gpuTable.setDisable(useCpu);
-            multiGpuSplit.setDisable(useCpu);
+            multiGpuStrategy.setDisable(useCpu);
         });
 
-        // Multi-GPU updates the style
-        EventStreams.valuesOf(multiGpuSplit.textProperty()).subscribe(stringChange ->
-                neuralStyle.setMultiGpuStrategy(stringChange));
-
-        // backend choicebox updates the style and toggles autotune
-        EventStreams.valuesOf(backendChoice.valueProperty()).subscribe(backend -> {
-            neuralStyle.setBackend(backend);
-            if (backend.equalsIgnoreCase("cudnn")) {
+        backend.link(neuralStyle.getBackend());
+        autotune.link(neuralStyle.getAutotune());
+        EventStreams.valuesOf(neuralStyle.getBackend().valueProperty()).subscribe(backend -> {
+            if ("cudnn".equalsIgnoreCase(backend)) {
                 autotune.setDisable(false);
             } else {
                 autotune.setDisable(true);
-                autotune.setSelected(false);
+                neuralStyle.getAutotune().setValue(false);
             }
         });
 
-        // optimizer choicebox updates the style and toggles learning rate
-        EventStreams.valuesOf(optimizerChoice.valueProperty()).subscribe(optimizer -> {
-            neuralStyle.setOptimizer(optimizer);
-            if (optimizer.equalsIgnoreCase("adam")) {
-                nCorrectionSlider.setDisable(true);
-                nCorrectionField.setDisable(true);
-                nCorrectionField.setText("-1");
-                learningRateSlider.setDisable(false);
-                learningRateField.setDisable(false);
+        optimizer.link(neuralStyle.getOptimizer());
+        nCorrection.linkToDouble(neuralStyle.getnCorrection());
+        learningRate.linkToDouble(neuralStyle.getLearningRate());
+
+        EventStreams.valuesOf(neuralStyle.getOptimizer().valueProperty()).subscribe(optimizer -> {
+            if ("adam".equalsIgnoreCase(optimizer)) {
+                nCorrection.setDisable(true);
+                learningRate.setDisable(false);
+                neuralStyle.getnCorrection().reset();
             } else {
-                nCorrectionSlider.setDisable(false);
-                nCorrectionField.setDisable(false);
-                learningRateSlider.setDisable(true);
-                learningRateField.setDisable(true);
-                learningRateField.setText("10");
+                nCorrection.setDisable(false);
+                learningRate.setDisable(true);
+                neuralStyle.getLearningRate().reset();
             }
         });
 
-        // keep nCorrection slider and text field synced and the slider updates the style
-        nCorrectionField.textProperty().bindBidirectional(nCorrectionSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(nCorrectionField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setNCorrection(intConverter.fromString(numberChange).intValue()));
+        thFile.link(neuralStyle.getThPath());
+        neuralStyleFolder.link(neuralStyle.getNeuralStylePath());
+        protoFile.link(neuralStyle.getProtoFile());
+        modelFile.link(neuralStyle.getModelFile());
+        outputFolder.link(neuralStyle.getOutputFolder());
+        workingFolder.link(NeuralStyleWrapper.workingFolder);
 
-        // keep learning rate slider and text field synced and the slider updates the style
-        learningRateField.textProperty().bindBidirectional(learningRateSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(learningRateField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setLearningRate(intConverter.fromString(numberChange).intValue()));
+        neuralStyle.getProtoFile().valueProperty().addListener((observable, oldValue, value) -> {
+            if (value != null && !value.isEmpty()) {
+                File pFile = new File(value);
+                File parentFile = pFile.getParentFile();
+                if (FileUtils.checkFolderExists(parentFile))
+                    FileView.fileChooser.setInitialDirectory(parentFile);
 
-        // autotune checkbox updates the style
-        EventStreams.valuesOf(autotune.selectedProperty())
-                .subscribe(booleanChange -> neuralStyle.setAutotune(booleanChange));
+                String[] newLayers = FileUtils.parseLoadcaffeProto(pFile);
 
-        // keep chain length slider and text field synced and the slider updates the style, some values toggle chain fields
-        chainLengthField.textProperty().bindBidirectional(chainLengthSlider.valueProperty(), intConverter);
-        EventStreams.valuesOf(chainLengthField.textProperty()).subscribe(numberChange -> {
-            int chainLength = intConverter.fromString(numberChange).intValue();
-            neuralStyle.setChainLength(chainLength);
-            if (chainLength <= 1) {
-                chainIterationRatioField.setDisable(true);
-                chainIterationRatioSlider.setDisable(true);
-                chainSizeRatioField.setDisable(true);
-                chainSizeRatioSlider.setDisable(true);
+                if (newLayers == null) {
+                    showTooltipNextTo(protoFile, resources.getString("protoFileInvalid"));
+                    updateLayers(new String[]{});
+                } else if (newLayers.length <= 0) {
+                    showTooltipNextTo(protoFile, resources.getString("protoFileNoLayers"));
+                    updateLayers(new String[]{});
+                } else {
+                    showTooltipNextTo(protoFile, resources.getString("protoFileNewLayers"));
+                    updateLayers(newLayers);
+                }
             } else {
-                chainIterationRatioField.setDisable(false);
-                chainIterationRatioSlider.setDisable(false);
-                chainSizeRatioField.setDisable(false);
-                chainSizeRatioSlider.setDisable(false);
+                setDefaultNeuralBooleans();
             }
         });
 
-        // keep chain iteration ratio slider and text field synced and the slider updates the style
-        chainIterationRatioField.textProperty().bindBidirectional(chainIterationRatioSlider.valueProperty(), doubleConverter);
-        EventStreams.valuesOf(chainIterationRatioField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setChainIterationRatio(doubleConverter.fromString(numberChange).doubleValue()));
-
-        // keep chain size ratio slider and text field synced and the slider updates the style
-        chainSizeRatioField.textProperty().bindBidirectional(chainSizeRatioSlider.valueProperty(), doubleConverter);
-        EventStreams.valuesOf(chainSizeRatioField.textProperty()).subscribe(numberChange ->
-                neuralStyle.setChainSizeRatio(doubleConverter.fromString(numberChange).doubleValue()));
     }
 
     private void setupServiceListeners() {
@@ -1430,39 +1248,39 @@ public class MainController implements Initializable {
             switch (state) {
                 case SCHEDULED:
                     log.log(Level.FINER, "Neural service: Scheduled.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusScheduled"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusScheduled"));
                     startButton.setDisable(true);
                     stopButton.setDisable(false);
                     progress.setProgress(0);
                     break;
                 case READY:
                     log.log(Level.FINER, "Neural service: Ready.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusReady"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusReady"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
                     break;
                 case RUNNING:
                     log.log(Level.FINER, "Neural service: Running.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusRunning"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusRunning"));
                     startButton.setDisable(true);
                     stopButton.setDisable(false);
                     break;
                 case SUCCEEDED:
                     log.log(Level.FINER, "Neural service: Succeeded.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusFinished"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusFinished"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
                     progress.setProgress(100);
                     break;
                 case CANCELLED:
                     log.log(Level.FINER, "Neural service: Cancelled.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusCancelled"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusCancelled"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
                     break;
                 case FAILED:
                     log.log(Level.FINER, "Neural service: Failed.");
-                    statusLabel.setText(bundle.getString("neuralServiceStatusFailed"));
+                    statusLabel.setText(resources.getString("neuralServiceStatusFailed"));
                     startButton.setDisable(false);
                     stopButton.setDisable(true);
                     break;
@@ -1470,12 +1288,18 @@ public class MainController implements Initializable {
         });
 
         log.log(Level.FINER, "Setting Image Output Service listener.");
-        EventStreams.nonNullValuesOf(imageOutputService.valueProperty()).subscribe(valueProperty -> {
+        EventStreams.nonNullValuesOf(imageOutputService.valueProperty()).subscribe(newResults -> {
             log.log(Level.FINER, "Received updated Image Outputs from Service.");
-            Map<String, Set<String>> results = imageOutputService.getValue();
-            updateNeuralOutputs(results);
+            updateNeuralOutputs(newResults);
             updateImageView();
         });
+        EventStreams.valuesOf(NeuralStyleWrapper.workingFolder.valueProperty()).subscribe(newFolder -> {
+            log.log(Level.FINE, "New Working Folder, restarting output Service.");
+            imageOutputService.cancel();
+            outputRoot.getChildren().clear();
+            startOutputService();
+        });
+        startOutputService();
 
         log.log(Level.FINER, "Setting progress listener.");
         EventStreams.nonNullValuesOf(neuralService.progressProperty())
@@ -1492,21 +1316,6 @@ public class MainController implements Initializable {
                 });
     }
 
-    private void setupOutputImageListeners() {
-        imageView.fitWidthProperty().bind(imageViewSizer.widthProperty());
-        imageView.fitHeightProperty().bind(imageViewSizer.heightProperty());
-
-        log.log(Level.FINER, "Setting image timer.");
-        imageOutputTimer = FxTimer.createPeriodic(Duration.ofMillis(250), () -> {
-            log.log(Level.FINER, "Timer: checking service");
-
-            if (imageOutputService != null && !imageOutputService.isRunning()) {
-                imageOutputService.reset();
-                imageOutputService.start();
-            }
-        });
-    }
-
     private void setupNvidiaListener() {
         log.log(Level.FINER, "Setting nvidia ram listener.");
         EventStreams.nonNullValuesOf(nvidiaService.progressProperty())
@@ -1515,47 +1324,43 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting nvidia timer.");
         nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), () -> {
-            log.log(Level.FINER, "Timer: checking service");
+            log.log(Level.FINEST, "Timer: checking service");
             if (nvidiaService == null || nvidiaService.isRunning())
                 return;
 
-            log.log(Level.FINER, "Timer: starting service");
+            log.log(Level.FINEST, "Timer: starting service");
             nvidiaService.restart();
             nvidiaTimer.restart();
         });
         nvidiaTimer.restart();
     }
 
-    private void setupStyleImageList() {
-        log.log(Level.FINER, "Setting style image list.");
-        styleImageList.setItems(styleImages);
-        styleImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupStyleImageGrid() {
+        log.log(Level.FINER, "Setting style image grid.");
+        styleImageGrid.setItems(styleImages);
 
-        log.log(Level.FINER, "Setting style image list selection mode listener.");
-        EventStreams.valuesOf(styleMultipleSelect.selectedProperty()).subscribe(booleanChange -> {
-            if (booleanChange)
-                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-            else {
+        log.log(Level.FINER, "Setting style image grid multi-selection listener.");
+        EventStreams.changesOf(styleMultipleSelect.selectedProperty()).subscribe(selectedChange -> {
+            if (!selectedChange.getNewValue()) {
                 for (NeuralImage neuralImage : styleImages)
-                    neuralImage.setSelected(false);
-                styleImageList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                    if (neuralImage.isSelected()) neuralImage.setSelected(false);
             }
         });
 
-        log.log(Level.FINER, "Setting style image list selection listener.");
-        EventStreams.changesOf(styleImageList.getSelectionModel().selectedItemProperty())
+        log.log(Level.FINER, "Setting style image grid selection listener.");
+        EventStreams.changesOf(styleImageGrid.selectedItemProperty())
                 .subscribe(neuralImageChange -> {
                     if (!styleMultipleSelect.isSelected()) {
                         NeuralImage oldNeuralImage = neuralImageChange.getOldValue();
                         if (oldNeuralImage != null)
                             oldNeuralImage.setSelected(false);
-                        NeuralImage newNeuralImage = neuralImageChange.getNewValue();
-                        if (newNeuralImage != null)
-                            newNeuralImage.setSelected(true);
                     }
+                    NeuralImage newNeuralImage = neuralImageChange.getNewValue();
+                    if (newNeuralImage != null)
+                        newNeuralImage.setSelected(true);
                 });
 
-        log.log(Level.FINER, "Setting style image list selection listener.");
+        log.log(Level.FINER, "Setting style image grid selection listener.");
         EventStreams.changesOf(styleImages).subscribe(change -> {
             log.log(Level.FINE, "styleImages changed");
 
@@ -1575,84 +1380,83 @@ public class MainController implements Initializable {
             toggleStyleButtons();
         });
 
-        log.log(Level.FINER, "Setting style image list shortcut listener");
-        EventStreams.eventsOf(styleImageList, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            if (styleMultipleSelect.isSelected()) {
-                ObservableList<NeuralImage> selectedStyleImages =
-                        styleImageList.getSelectionModel().getSelectedItems();
-                for (NeuralImage neuralImage : selectedStyleImages)
-                    neuralImage.setSelected(!neuralImage.isSelected());
-            }
-        });
+        log.log(Level.FINER, "Setting style image grid column factory.");
+        styleImageGrid.setCellFactory(v -> {
+            final NeuralImageCell neuralImageCell = new NeuralImageCell(styleMultipleSelect.selectedProperty());
+            Cellable<NeuralImage> cell = new Cellable<NeuralImage>() {
+                @Override
+                public void updateItem(NeuralImage item, boolean empty) {
+                    neuralImageCell.setNeuralImage(item);
+                }
 
-        log.log(Level.FINER, "Setting style image list column factory.");
-        styleImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
-            @Override
-            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
-                return new ListCell<NeuralImage>() {
-                    NeuralImageCell neuralImageCell = new NeuralImageCell(true);
-
-                    @Override
-                    public void updateItem(NeuralImage neuralImage, boolean empty) {
-                        super.updateItem(neuralImage, empty);
-                        neuralImageCell.setEditable(styleMultipleSelect.isSelected());
-
-                        neuralImageCell.setNeuralImage(neuralImage);
-
-                        if (empty || neuralImage == null) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            neuralImageCell.setNeuralImage(neuralImage);
-                            setText(null);
-                            setGraphic(neuralImageCell.getCellLayout());
-                        }
+                @Override
+                public void actionItem(NeuralImage item, MouseButton mouseButton) {
+                    switch (mouseButton) {
+                        case PRIMARY:
+                            styleImageGrid.selectedItemProperty().set(item);
+                            break;
+                        case MIDDLE:
+                            openImageInTab(item.getImageFile());
+                            break;
+                        case SECONDARY:
+                            neuralStyle.getInitImage().setValue(item.getImageFile().getAbsolutePath());
+                            break;
                     }
-                };
-            }
+                }
+            };
+            return new CellNode<>(neuralImageCell, cell);
         });
     }
 
-    private void setupContentImageList() {
-        log.log(Level.FINER, "Setting content image list.");
-        contentImageList.setItems(contentImages);
-        contentImageList.setFixedCellSize(NeuralImage.THUMBNAIL_SIZE);
+    private void setupContentImageGrid() {
+        log.log(Level.FINER, "Setting content image grid.");
+        contentImageGrid.setItems(contentImages);
 
-        log.log(Level.FINER, "Setting content image list selection listener.");
-        EventStreams.valuesOf(contentImageList.getSelectionModel().selectedItemProperty())
-                .subscribe(newSelection -> {
-                    log.log(Level.FINE, "Content image changed: " + newSelection);
-                    if (newSelection == null)
+        log.log(Level.FINER, "Setting content image grid selection listener.");
+        EventStreams.changesOf(contentImageGrid.selectedItemProperty())
+                .subscribe(neuralImageChange -> {
+                    log.log(Level.FINE, "contentImage changed");
+
+                    NeuralImage oldNeuralImage = neuralImageChange.getOldValue();
+                    if (oldNeuralImage != null)
+                        oldNeuralImage.setSelected(false);
+
+                    NeuralImage newNeuralImage = neuralImageChange.getNewValue();
+                    if (newNeuralImage != null) {
+                        newNeuralImage.setSelected(true);
+                        neuralStyle.setContentImage(newNeuralImage.getImageFile());
+                    } else {
                         neuralStyle.setContentImage(null);
-                    else
-                        neuralStyle.setContentImage(newSelection.getImageFile());
+                    }
+
                     toggleStyleButtons();
                 });
 
-        log.log(Level.FINER, "Setting content image list column factory.");
-        contentImageList.setCellFactory(new Callback<ListView<NeuralImage>, ListCell<NeuralImage>>() {
-            @Override
-            public ListCell<NeuralImage> call(ListView<NeuralImage> param) {
-                return new ListCell<NeuralImage>() {
-                    NeuralImageCell neuralImageCell = new NeuralImageCell(false);
+        log.log(Level.FINER, "Setting content image grid column factory.");
+        contentImageGrid.setCellFactory(v -> {
+            final NeuralImageCell neuralImageCell = new NeuralImageCell(null);
+            Cellable<NeuralImage> cell = new Cellable<NeuralImage>() {
+                @Override
+                public void updateItem(NeuralImage item, boolean empty) {
+                    neuralImageCell.setNeuralImage(item);
+                }
 
-                    @Override
-                    public void updateItem(NeuralImage neuralImage, boolean empty) {
-                        super.updateItem(neuralImage, empty);
-
-                        neuralImageCell.setNeuralImage(neuralImage);
-
-                        if (empty || neuralImage == null) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            neuralImageCell.setNeuralImage(neuralImage);
-                            setText(null);
-                            setGraphic(neuralImageCell.getCellLayout());
-                        }
+                @Override
+                public void actionItem(NeuralImage item, MouseButton mouseButton) {
+                    switch (mouseButton) {
+                        case PRIMARY:
+                            contentImageGrid.selectedItemProperty().set(item);
+                            break;
+                        case MIDDLE:
+                            openImageInTab(item.getImageFile());
+                            break;
+                        case SECONDARY:
+                            neuralStyle.getInitImage().setValue(item.getImageFile().getAbsolutePath());
+                            break;
                     }
-                };
-            }
+                }
+            };
+            return new CellNode<>(neuralImageCell, cell);
         });
     }
 
@@ -1665,8 +1469,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(gpuIndices).subscribe(change -> {
             log.log(Level.FINE, "gpuIndices changed");
 
-            List<NamedSelection> selectedGpuIndices = gpuIndices.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedGpuIndices = gpuIndices.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newGpuIndices = new String[selectedGpuIndices.size()];
@@ -1679,14 +1483,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting GPU index table shortcut listener");
         EventStreams.eventsOf(gpuTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedGpuIndices =
+            ObservableList<NeuralBoolean> selectedGpuIndices =
                     gpuTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection gpuIndex : selectedGpuIndices)
-                gpuIndex.setSelected(!gpuIndex.isSelected());
+            for (NeuralBoolean gpuIndex : selectedGpuIndices)
+                gpuIndex.setValue(!gpuIndex.getValue());
         });
 
         log.log(Level.FINER, "Setting GPU index table column factories.");
-        gpuTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        gpuTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         gpuTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(gpuTableSelected));
 
         gpuTableIndex.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1701,8 +1505,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(styleLayers).subscribe(change -> {
             log.log(Level.FINE, "styleLayers changed");
 
-            List<NamedSelection> selectedStyleLayers = styleLayers.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedStyleLayers = styleLayers.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newStyleLayers = new String[selectedStyleLayers.size()];
@@ -1715,14 +1519,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         EventStreams.eventsOf(styleLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedStyleLayers =
+            ObservableList<NeuralBoolean> selectedStyleLayers =
                     styleLayersTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection neuralLayer : selectedStyleLayers)
-                neuralLayer.setSelected(!neuralLayer.isSelected());
+            for (NeuralBoolean neuralLayer : selectedStyleLayers)
+                neuralLayer.setValue(!neuralLayer.getValue());
         });
 
         log.log(Level.FINER, "Setting style layer table column factories.");
-        styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        styleLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         styleLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(styleLayersTableSelected));
 
         styleLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1738,8 +1542,8 @@ public class MainController implements Initializable {
         EventStreams.changesOf(contentLayers).subscribe(change -> {
             log.log(Level.FINE, "contentLayers changed");
 
-            List<NamedSelection> selectedContentLayers = contentLayers.stream()
-                    .filter(NamedSelection::isSelected)
+            List<NeuralBoolean> selectedContentLayers = contentLayers.stream()
+                    .filter(NeuralBoolean::getValue)
                     .collect(Collectors.toList());
 
             String[] newContentLayers = new String[selectedContentLayers.size()];
@@ -1752,14 +1556,14 @@ public class MainController implements Initializable {
 
         log.log(Level.FINER, "Setting style layer table shortcut listener");
         EventStreams.eventsOf(contentLayersTable, KeyEvent.KEY_RELEASED).filter(spaceBar::match).subscribe(keyEvent -> {
-            ObservableList<NamedSelection> selectedStyleLayers =
+            ObservableList<NeuralBoolean> selectedStyleLayers =
                     contentLayersTable.getSelectionModel().getSelectedItems();
-            for (NamedSelection neuralLayer : selectedStyleLayers)
-                neuralLayer.setSelected(!neuralLayer.isSelected());
+            for (NeuralBoolean neuralLayer : selectedStyleLayers)
+                neuralLayer.setValue(!neuralLayer.getValue());
         });
 
         log.log(Level.FINER, "Setting content layer table column factories.");
-        contentLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        contentLayersTableSelected.setCellValueFactory(new PropertyValueFactory<>("value"));
         contentLayersTableSelected.setCellFactory(CheckBoxTableCell.forTableColumn(contentLayersTableSelected));
 
         contentLayersTableName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1778,34 +1582,36 @@ public class MainController implements Initializable {
         outputTreeTableButton.setCellValueFactory(param ->
                 new ReadOnlyObjectWrapper<>(param.getValue().getValue()));
         outputTreeTableButton.setCellFactory(
-                new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>,
-                        TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>>() {
+                new Callback<>() {
                     @Override
                     public TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>
                     call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
-                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem>() {
+                        return new TreeTableCell<>() {
                             Button button;
-                            Subscription subscribe;
+                            NeuralQueue.NeuralQueueItem queueItem;
+
                             {
                                 button = new Button();
                                 setText(null);
-                                setGraphic(button);
+                                setGraphic(null);
+                                setAlignment(Pos.CENTER_RIGHT);
+                                queueItem = null;
+                                EventStreams.eventsOf(button, ActionEvent.ACTION)
+                                        .subscribe(actionEvent -> {
+                                            if (queueItem != null)
+                                                queueItem.doAction();
+                                        });
                             }
 
                             @Override
                             public void updateItem(NeuralQueue.NeuralQueueItem queueItem, boolean empty) {
                                 super.updateItem(queueItem, empty);
+                                this.queueItem = queueItem;
                                 if (empty || queueItem == null) {
                                     setText(null);
                                     setGraphic(null);
-                                    if (subscribe != null) {
-                                        subscribe.unsubscribe();
-                                        subscribe = null;
-                                    }
                                 } else {
                                     button.setText(queueItem.getActionText());
-                                    subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
-                                            .subscribe(actionEvent -> queueItem.doAction());
                                     setText(null);
                                     setGraphic(button);
                                 }
@@ -1818,12 +1624,11 @@ public class MainController implements Initializable {
 
         outputTreeTableStatus.setCellValueFactory(param -> param.getValue().getValue().getStatus());
         outputTreeTableStatus.setCellFactory(
-                new Callback<TreeTableColumn<NeuralQueue.NeuralQueueItem, String>,
-                        TreeTableCell<NeuralQueue.NeuralQueueItem, String>>() {
+                new Callback<>() {
                     @Override
                     public TreeTableCell<NeuralQueue.NeuralQueueItem, String>
                     call(TreeTableColumn<NeuralQueue.NeuralQueueItem, String> param) {
-                        return new TreeTableCell<NeuralQueue.NeuralQueueItem, String>() {
+                        return new TreeTableCell<>() {
                             @Override
                             public void updateItem(String queueStatus, boolean empty) {
                                 super.updateItem(queueStatus, empty);
@@ -1834,22 +1639,27 @@ public class MainController implements Initializable {
                                 } else {
                                     NeuralQueue.NeuralQueueItem queueItem = this.getTreeTableRow().getItem();
                                     String status = queueItem.getStatus().getValue();
-                                    setText(status);
                                     setGraphic(null);
 
-                                    if (queueItem.getType() == NeuralQueue.QUEUED_STYLE &&
-                                            status.equalsIgnoreCase(bundle.getString("neuralQueueItemQueued"))) {
-                                        final ContextMenu cellMenu = new ContextMenu();
+                                    switch (queueItem.getType()) {
+                                        case NeuralQueue.QUEUED_STYLE:
+                                            setText(status);
+                                            if (status.equalsIgnoreCase(resources.getString("neuralQueueItemQueued"))) {
+                                                final ContextMenu cellMenu = new ContextMenu();
 
-                                        final MenuItem cancelMenuItem =
-                                                new MenuItem(bundle.getString("neuralQueueItemCancel"));
-                                        cancelMenuItem.setOnAction(event ->
-                                                queueItem.changeStatus(NeuralStyle.CANCELLED));
+                                                final MenuItem cancelMenuItem =
+                                                        new MenuItem(resources.getString("neuralQueueItemCancel"));
+                                                cancelMenuItem.setOnAction(event ->
+                                                        queueItem.changeStatus(NeuralStyleV3.CANCELLED));
 
-                                        cellMenu.getItems().addAll(cancelMenuItem);
-                                        setContextMenu(cellMenu);
-                                    } else {
-                                        setContextMenu(null);
+                                                cellMenu.getItems().addAll(cancelMenuItem);
+                                                setContextMenu(cellMenu);
+                                            }
+                                            break;
+                                        default:
+                                            setText(status);
+                                            setContextMenu(null);
+                                            break;
                                     }
                                 }
                             }
@@ -1857,4 +1667,5 @@ public class MainController implements Initializable {
                     }
                 });
     }
+
 }

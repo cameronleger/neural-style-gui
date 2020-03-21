@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar neural-style-gui-*-jfx.jar
+java -jar neural-style-gui-*.jar

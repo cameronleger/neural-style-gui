@@ -1,7 +1,7 @@
 package com.cameronleger.neuralstylegui.model;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyle;
+import com.cameronleger.neuralstyle.NeuralStyleV3;
 import javafx.beans.property.*;
 import org.apache.commons.io.FilenameUtils;
 
@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ResourceBundle;
 
 public final class NeuralQueue {
+    public final static int QUEUED_PARENT = 0;
     public final static int QUEUED_STYLE = 1;
     public final static int QUEUED_IMAGE = 2;
 
@@ -41,13 +42,21 @@ public final class NeuralQueue {
         ObjectProperty<File> file = new SimpleObjectProperty<>();
         StringProperty name = new SimpleStringProperty("");
         StringProperty status = new SimpleStringProperty("");
+        int statusCode = -100;
         String actionText = "";
         NeuralQueueActionCallback actionCallback;
+        String baseName = "";
+        long chainIteration = 0;
+        long imageIteration = 0;
 
         NeuralQueueItem(File file) {
             if (file != null) {
                 this.file.setValue(file);
-                this.name.setValue(file.getName());
+                FileUtils.NeuralFilePortions portions = new FileUtils.NeuralFilePortions(file);
+                this.baseName = portions.baseName;
+                this.chainIteration = portions.chainIteration;
+                this.imageIteration = portions.imageIteration;
+                this.name.setValue(FileUtils.getFileName(file));
             }
         }
 
@@ -71,6 +80,10 @@ public final class NeuralQueue {
             return status;
         }
 
+        public int getStatusCode() {
+            return statusCode;
+        }
+
         public String getActionText() {
             return actionText;
         }
@@ -87,6 +100,26 @@ public final class NeuralQueue {
         public void changeStatus(int newStatus) {
             return;
         }
+
+        public String getBaseName() {
+            return baseName;
+        }
+
+        public long getChainIteration() {
+            return chainIteration;
+        }
+
+        public long getImageIteration() {
+            return imageIteration;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof NeuralQueueItem) {
+                return ((NeuralQueueItem) obj).getName().get().equals(this.getName().get());
+            } else return false;
+        }
+
     }
 
     private static class NeuralQueueFakeItem extends NeuralQueueItem {
@@ -96,7 +129,7 @@ public final class NeuralQueue {
     }
 
     private static class NeuralQueueStyleItem extends NeuralQueueItem {
-        private NeuralStyle style;
+        private NeuralStyleV3 style;
 
         NeuralQueueStyleItem(File file) {
             super(file);
@@ -111,44 +144,55 @@ public final class NeuralQueue {
             updateStyle();
         }
 
-        private void updateStyle() {
-            style = FileUtils.loadStyle(file.getValue());
+        private void updateStatusText() {
             if (style == null)
                 this.status.setValue(bundle.getString("neuralQueueItemInvalidFile"));
             else {
                 String statusValue = "";
+                this.statusCode = style.getQueueStatus();
                 switch (style.getQueueStatus()) {
-                    case NeuralStyle.INVALID_FILE:
+                    case NeuralStyleV3.INVALID_FILE:
                         statusValue = bundle.getString("neuralQueueItemInvalidFile");
                         break;
-                    case NeuralStyle.INVALID_ARGUMENTS:
+                    case NeuralStyleV3.INVALID_ARGUMENTS:
                         statusValue = bundle.getString("neuralQueueItemInvalidArguments");
                         break;
-                    case NeuralStyle.QUEUED:
+                    case NeuralStyleV3.QUEUED:
                         statusValue = bundle.getString("neuralQueueItemQueued");
                         break;
-                    case NeuralStyle.IN_PROGRESS:
+                    case NeuralStyleV3.IN_PROGRESS:
                         statusValue = bundle.getString("neuralQueueItemInProgress");
                         break;
-                    case NeuralStyle.CANCELLED:
+                    case NeuralStyleV3.CANCELLED:
                         statusValue = bundle.getString("neuralQueueItemCancelled");
                         break;
-                    case NeuralStyle.FAILED:
+                    case NeuralStyleV3.FAILED:
                         statusValue = bundle.getString("neuralQueueItemFailed");
                         break;
-                    case NeuralStyle.FINISHED:
+                    case NeuralStyleV3.FINISHED:
                         statusValue = bundle.getString("neuralQueueItemFinished");
+                        break;
+                    case NeuralStyleV3.PARENT:
+                        this.type = QUEUED_PARENT;
+                        statusValue = bundle.getString("neuralQueueItemParent");
                         break;
                 }
                 this.status.setValue(statusValue);
             }
         }
 
+        private void updateStyle() {
+            style = FileUtils.loadStyle(file.getValue());
+            updateStatusText();
+        }
+
         @Override
         public void changeStatus(int newStatus) {
             if (style != null) {
                 style.setQueueStatus(newStatus);
-                FileUtils.saveOutputStyle(style);
+                updateStatusText();
+                if (this.type == QUEUED_STYLE)
+                    FileUtils.saveOutputStyle(style);
             }
         }
     }

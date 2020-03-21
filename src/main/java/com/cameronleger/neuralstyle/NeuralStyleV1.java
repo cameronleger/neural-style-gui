@@ -255,8 +255,8 @@ public class NeuralStyleV1 {
         this.modelFile = modelFile;
     }
 
-    public NeuralStyle upgrade() {
-        NeuralStyle newStyle = new NeuralStyle();
+    public NeuralStyleV2 upgrade() {
+        NeuralStyleV2 newStyle = new NeuralStyleV2();
         newStyle.setNeuralStylePath(this.neuralStylePath);
         newStyle.setStyleImages(this.styleImages);
         newStyle.setStyleWeights(this.styleWeights);
