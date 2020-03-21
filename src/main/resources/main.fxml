@@ -35,14 +35,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <SplitPane dividerPositions="0.25" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="720.0" prefWidth="1280.0" stylesheets="@main.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cameronleger.neuralstylegui.MainController">
    <items>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="520.0" minWidth="-Infinity" prefWidth="420.0" SplitPane.resizableWithParent="false">
          <children>
             <HBox alignment="CENTER">
                <children>
-                  <Button fx:id="saveStyleButton" mnemonicParsing="false" text="%saveStyleButton" />
-                  <Button fx:id="loadStyleButton" mnemonicParsing="false" text="%loadStyleButton">
+                  <Button fx:id="saveStyleButton" mnemonicParsing="false">
+                      <graphic><FontIcon iconLiteral="fas-save"/></graphic>
+                  </Button>
+                  <Button fx:id="loadStyleButton" mnemonicParsing="false">
+                      <graphic><FontIcon iconLiteral="fas-folder-open"/></graphic>
                      <HBox.margin>
                         <Insets left="4.0" />
                      </HBox.margin>
@@ -197,16 +201,19 @@
                         <Insets />
                      </HBox.margin>
                   </Button>
-                  <Button fx:id="startButton" disable="true" mnemonicParsing="false" text="%startButton">
+                  <Button fx:id="startButton" disable="true" mnemonicParsing="false">
+                      <graphic><FontIcon iconLiteral="fas-play"/></graphic>
                      <HBox.margin>
                         <Insets left="4.0" />
                      </HBox.margin></Button>
-                  <Button fx:id="stopButton" cancelButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="%stopButton">
+                  <Button fx:id="stopButton" cancelButton="true" disable="true" layoutX="10.0" layoutY="10.0" mnemonicParsing="false">
+                      <graphic><FontIcon iconLiteral="fas-stop"/></graphic>
                      <HBox.margin>
                         <Insets left="4.0" />
                      </HBox.margin>
                   </Button>
                   <Button fx:id="commandButton" disable="true" layoutX="119.0" layoutY="10.0" mnemonicParsing="false" text="%commandButton">
+                      <graphic><FontIcon iconLiteral="fas-clipboard"/></graphic>
                      <HBox.margin>
                         <Insets left="8.0" />
                      </HBox.margin>
@@ -317,8 +324,12 @@
                                     <Font name="System Bold" size="13.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="styleLayerAdd" mnemonicParsing="false" text="%layersAddButton" GridPane.rowIndex="1" />
-                              <Button fx:id="styleLayerRemove" mnemonicParsing="false" text="%layersRemoveButton" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                               <Button fx:id="styleLayerAdd" mnemonicParsing="false" GridPane.rowIndex="1">
+                                   <graphic><FontIcon iconLiteral="fas-plus"/></graphic>
+                               </Button>
+                               <Button fx:id="styleLayerRemove" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                   <graphic><FontIcon iconLiteral="fas-minus"/></graphic>
+                               </Button>
                               <TableView fx:id="styleLayersTable" editable="true" GridPane.columnSpan="2" GridPane.rowIndex="2">
                                 <columns>
                                   <TableColumn fx:id="styleLayersTableSelected" maxWidth="150.0" minWidth="150.0" prefWidth="-1.0" text="%layersColumnSelected" />
@@ -336,8 +347,12 @@
                                     <Font name="System Bold" size="13.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="contentLayerAdd" mnemonicParsing="false" text="%layersAddButton" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                              <Button fx:id="contentLayerRemove" mnemonicParsing="false" text="%layersRemoveButton" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                               <Button fx:id="contentLayerAdd" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                   <graphic><FontIcon iconLiteral="fas-plus"/></graphic>
+                               </Button>
+                               <Button fx:id="contentLayerRemove" mnemonicParsing="false" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                   <graphic><FontIcon iconLiteral="fas-minus"/></graphic>
+                               </Button>
                               <TableView fx:id="contentLayersTable" editable="true" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="2">
                                  <columns>
                                     <TableColumn fx:id="contentLayersTableSelected" maxWidth="150.0" minWidth="150.0" prefWidth="-1.0" text="%layersColumnSelected" />
@@ -370,7 +385,8 @@
                                           <Insets left="4.0" />
                                        </HBox.margin>
                                     </Button>
-                                    <Button fx:id="outputImageButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%outputImageButton">
+                                    <Button fx:id="outputImageButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false">
+                                        <graphic><FontIcon iconLiteral="fas-save"/></graphic>
                                        <HBox.margin>
                                           <Insets left="8.0" />
                                        </HBox.margin>

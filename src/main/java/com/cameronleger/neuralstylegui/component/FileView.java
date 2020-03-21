@@ -72,6 +72,8 @@ public class FileView extends HBox {
         EventStreams.eventsOf(fileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing file chooser.");
             fileChooser.setTitle(title);
+            if (!filePathText.getText().isEmpty())
+                fileChooser.setInitialDirectory(new File(filePathText.getText()));
             File chosenFile = fileChooser.showOpenDialog(null);
             log.log(Level.FINE, "file chosen: {0}", chosenFile);
             if (chosenFile != null) {

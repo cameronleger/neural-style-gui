@@ -73,6 +73,8 @@ public class DirectoryView extends HBox {
         EventStreams.eventsOf(fileButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINER, "Showing directory chooser.");
             directoryChooser.setTitle(title);
+            if (!filePathText.getText().isEmpty())
+                directoryChooser.setInitialDirectory(new File(filePathText.getText()));
             File chosenFolder = directoryChooser.showDialog(null);
             log.log(Level.FINE, "directory chosen: {0}", chosenFolder);
             if (chosenFolder != null) {

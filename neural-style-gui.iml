@@ -23,5 +23,8 @@
     <orderEntry type="library" name="Maven: org.openjfx:javafx-base:linux:11" level="project" />
     <orderEntry type="library" name="Maven: org.openjfx:javafx-fxml:11" level="project" />
     <orderEntry type="library" name="Maven: org.openjfx:javafx-fxml:linux:11" level="project" />
+    <orderEntry type="library" name="Maven: org.kordamp.ikonli:ikonli-javafx:11.3.5" level="project" />
+    <orderEntry type="library" name="Maven: org.kordamp.ikonli:ikonli-core:11.3.5" level="project" />
+    <orderEntry type="library" name="Maven: org.kordamp.ikonli:ikonli-fontawesome5-pack:11.3.5" level="project" />
   </component>
 </module>

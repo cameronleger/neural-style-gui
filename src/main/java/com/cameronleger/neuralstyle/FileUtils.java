@@ -347,9 +347,14 @@ public class FileUtils {
     }
 
     public static boolean isFileBeingWritten(File fileToCheck) {
-        // try 4 times over 400ms to see if the file size stagnates
-        int retries = 4;
-        int sleep = 100;
+        long modified = fileToCheck.lastModified();
+        long now = System.currentTimeMillis();
+        if (now - modified >= 1000)
+            return false;
+
+        // try 5 times over 200ms to see if the file size stagnates
+        int retries = 5;
+        int sleep = 40;
         long previousFileSize = fileToCheck.length();
         while (retries > 0) {
             try {

@@ -65,7 +65,7 @@ public class OutputService extends Service<List<NeuralQueueFile>> {
                     try {
                         key = watcher.take();
                     } catch (InterruptedException e) {
-                        log.log(Level.SEVERE, "Interrupted, cancelling", e);
+                        log.log(Level.INFO, "Interrupted, cancelling");
                         cancel();
                         continue;
                     }

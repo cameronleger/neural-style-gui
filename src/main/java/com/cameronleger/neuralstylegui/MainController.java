@@ -72,7 +72,7 @@ public class MainController {
     private ObservableList<NeuralBoolean> gpuIndices;
     private ObservableList<NeuralBoolean> styleLayers;
     private ObservableList<NeuralBoolean> contentLayers;
-    private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(createQueueItem(null));
+    private final TreeItem<NeuralQueue.NeuralQueueItem> outputRoot = new TreeItem<>(NeuralQueue.createQueueItem(null));
 
     private final KeyCombination spaceBar = new KeyCodeCombination(KeyCode.SPACE);
 
@@ -650,6 +650,7 @@ public class MainController {
                 for (NeuralQueue.NeuralQueueItem parent : parents) {
                     TreeItem<NeuralQueue.NeuralQueueItem> parentTree = new TreeItem<>(parent);
                     if (!parentTreeItems.contains(parentTree)) {
+                        setActionCallback(parent);
                         parentTreeItems.add(parentTree);
                     }
                 }
@@ -667,6 +668,7 @@ public class MainController {
                         ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyles = parent.get().getChildren();
                         TreeItem<NeuralQueue.NeuralQueueItem> styleTree = new TreeItem<>(style);
                         if (!parentStyles.contains(styleTree)) {
+                            setActionCallback(style);
                             parentStyles.add(styleTree);
                         }
                     }
@@ -691,6 +693,7 @@ public class MainController {
                             ObservableList<TreeItem<NeuralQueue.NeuralQueueItem>> parentStyleImages = style.get().getChildren();
                             TreeItem<NeuralQueue.NeuralQueueItem> imageTree = new TreeItem<>(image);
                             if (!parentStyleImages.contains(imageTree)) {
+                                setActionCallback(image);
                                 parentStyleImages.add(imageTree);
                             }
                         }
@@ -861,13 +864,12 @@ public class MainController {
         }
     }
 
-    private NeuralQueue.NeuralQueueItem createQueueItem(File file) {
-        NeuralQueue.NeuralQueueItem queueItem = NeuralQueue.createQueueItem(file);
+    private void setActionCallback(NeuralQueue.NeuralQueueItem queueItem) {
         switch (queueItem.getType()) {
-
+            case NeuralQueue.QUEUED_PARENT:
             case NeuralQueue.QUEUED_STYLE:
                 queueItem.setActionCallback(() -> {
-                    NeuralStyleV3 loadedStyle = FileUtils.loadStyle(file);
+                    NeuralStyleV3 loadedStyle = FileUtils.loadStyle(queueItem.getFile());
                     if (loadedStyle == null)
                         showTooltipNextTo(loadStyleButton, resources.getString("loadStyleFailed"));
                     else {
@@ -880,7 +882,7 @@ public class MainController {
             case NeuralQueue.QUEUED_IMAGE:
                 queueItem.setActionCallback(() -> {
                     neuralStyle.getInit().setValue("image");
-                    neuralStyle.getInitImage().setValue(file.getAbsolutePath());
+                    neuralStyle.getInitImage().setValue(queueItem.getFile().getAbsolutePath());
                     showTooltipNextTo(initImage, resources.getString("outputTreeTableInitTooltip"));
                 });
                 break;
@@ -888,7 +890,6 @@ public class MainController {
             default:
                 break;
         }
-        return queueItem;
     }
 
     private void showTooltipNextTo(Region region, String text) {
@@ -1323,11 +1324,11 @@ public class MainController {
 
         log.log(Level.FINER, "Setting nvidia timer.");
         nvidiaTimer = FxTimer.createPeriodic(Duration.ofMillis(1000), () -> {
-            log.log(Level.FINER, "Timer: checking service");
+            log.log(Level.FINEST, "Timer: checking service");
             if (nvidiaService == null || nvidiaService.isRunning())
                 return;
 
-            log.log(Level.FINER, "Timer: starting service");
+            log.log(Level.FINEST, "Timer: starting service");
             nvidiaService.restart();
             nvidiaTimer.restart();
         });
@@ -1587,29 +1588,30 @@ public class MainController {
                     call(TreeTableColumn<NeuralQueue.NeuralQueueItem, NeuralQueue.NeuralQueueItem> param) {
                         return new TreeTableCell<>() {
                             Button button;
-                            Subscription subscribe;
+                            NeuralQueue.NeuralQueueItem queueItem;
 
                             {
                                 button = new Button();
                                 setText(null);
                                 setGraphic(null);
                                 setAlignment(Pos.CENTER_RIGHT);
+                                queueItem = null;
+                                EventStreams.eventsOf(button, ActionEvent.ACTION)
+                                        .subscribe(actionEvent -> {
+                                            if (queueItem != null)
+                                                queueItem.doAction();
+                                        });
                             }
 
                             @Override
                             public void updateItem(NeuralQueue.NeuralQueueItem queueItem, boolean empty) {
                                 super.updateItem(queueItem, empty);
-                                if (subscribe != null) {
-                                    subscribe.unsubscribe();
-                                    subscribe = null;
-                                }
+                                this.queueItem = queueItem;
                                 if (empty || queueItem == null) {
                                     setText(null);
                                     setGraphic(null);
                                 } else {
                                     button.setText(queueItem.getActionText());
-                                    subscribe = EventStreams.eventsOf(button, ActionEvent.ACTION)
-                                            .subscribe(actionEvent -> queueItem.doAction());
                                     setText(null);
                                     setGraphic(button);
                                 }

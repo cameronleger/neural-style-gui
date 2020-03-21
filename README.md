@@ -9,18 +9,18 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 
 # Requirements
 * [Neural-Style](https://github.com/jcjohnson/neural-style)
-* Java 13
-* JavaFX 13 (included with Oracle, separate package for OpenJDK)
+* Java 11
+* JavaFX 11 (included with Oracle, separate package for OpenJDK)
 
 # Features
 * All Neural Style settings are supported, and most are grouped in a settings pane
-* Image lists for quick preview and selection of Style & Content images
+* Image grids for quick preview and selection of Style & Content images
 * Style image list supports single selection or multiple selections and weights
 * Layer selections, including parsing available layers from chosen Model/Proto files and adding/removing layers
 * Saving/Loading of all style settings, including input images, to a JSON format
 * Shortcuts for common operations
 * Immediate image feedback during iterations supports zoom/pan
-* Easy chaining of multiple Neural Style outputs for better large image quality
+* Easy chaining of multiple Neural Style outputs for better large image quality, tweaking almost any parameter across the different runs
 * Quick permanent saving of feedback images
 * Output Queue for batching of style outputs
 * View session output image history
@@ -32,29 +32,31 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 Unzip the release to a folder of your choice (or build from source and check the **target/jfx/app** folder). Run the neural-style-gui.sh file or run **java -jar neural-style-gui-*-jfx.jar** with any additional options you desire.
 
 # Minimum Required Steps
-1. Set the Neural Style path
+1. Set the Neural Style path in the Files Tab
 2. Modify Advanced settings based on your machine, i.e., CPU or GPU and backend
 3. Set the Style Folder path to a folder containing style images
-4. Select a style image in the Style Image List
+4. Select a style image in the Style Image Grid
 5. Set the Content Folder path to a folder containing content images
-6. Select a content image in the Content Image List
+6. Select a content image in the Content Image Grid
 7. Press Queue
 8. Press Start!
 
 # Usage
-After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application. If you're getting a File Not Found exception for the 'th' command because it's not properly in your PATH, you can set the path to 'th' below the Neural Style path.
+After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application. If you're getting a File Not Found exception for the 'th' command because it's not properly in your PATH, you can set the path to 'th' above the Neural Style path.
 
-The Chaining section of the Settings Pane allows you to quickly run multiple Neural Style commands that feed into each other with the previous result. A few settings that are commonly changed in this method are available. First, pick how many times to run the network. Then, the ratios determine those settings' values for each run. Basically, the current settings will apply to the final image in the chain, and for each result before the final image the values are multiplied by the ratio. For example, with a 0.5 Size Ratio over 3 runs for a final result of 1200px, the runs will start at 300px before going to 600px and finally 1200px. This can allow you to make higher quality and larger images than with a single run with single settings, and sometimes faster because less iterations are typically used with this.
+The Chaining parameter in the Basic Settings Pane allows you to quickly run multiple Neural Style commands that feed into each other with the previous result (i.e. the first chain will use the Initialization Image setting you chose, but each chain after that will use the last iteration image of the previous chain). Each numeric Parameter has a "Ratio" field that adjusts the Parameter for each Chain run. The normal value you specify is for the _last_ or _final_ run; the ratio value multiplies with that value for each chain by _walking backwards_. For example, with a 0.5 Size Ratio over 3 runs for a final result of 1200px, the runs will start at 300px before going to 600px and finally 1200px. This can allow you to make higher quality and larger images than with a single run with single settings, and almost always faster because less iterations are typically used with this.
 
 The Progress Update and Image Update inputs under the Advanced Tab allow you to configure how often the Progress Bar and Output Images update.
 
-The rest of the settings are better explained in the [Neural-Style](https://github.com/jcjohnson/neural-style) readme, but each input has helpful information in a tooltip if you hover over it for long enough. Numeric inputs can be controlled by their slider or input field; the input fields have unrestricted ranges while the sliders have reasonable ranges for each setting.
+The rest of the settings are better explained in the [Neural-Style](https://github.com/jcjohnson/neural-style) readme, but each input has helpful information in a tooltip if you hover over it for long enough. Numeric inputs can be controlled by their slider or input field; the input fields have unrestricted ranges while the sliders have reasonable ranges for each setting. All inputs also have a "Reset" button for using the default value.
 
 Choosing different Proto & Model Files will additionally try to parse the layer information and update the Layers tab with the appropriate layers.
 
-The Input Tab and Style List can be quickly accessed with the shortcut Ctrl+S. In the default Single Selection mode, selecting a Style image will suffice. For Multiple Selection mode, pressing the space-bar on any selected Style image will toggle the Selected checkbox for that item. Weights can be adjusted by double-clicking the numerical value if using Multiple Selection mod. I find the best way to work with this list is to use the arrow keys for navigation and the space-bar for selection.
+For both Grids in the Input Tab, Middle-Clicking a Style/Content Image will open a larger version in a new tab.
 
-The Input Tab and Content List can be quickly accessed with the shortcut Ctrl+C. Because only one image can be selected here, the list's selection is used for image selection, so no checkbox is necessary.
+The Input Tab and Style Grid can be quickly accessed with the shortcut Ctrl+S. In the default Single Selection mode, selecting a Style image will suffice. For Multiple Selection mode, pressing the space-bar on any selected Style image will toggle the Selected checkbox for that item. Weights can be adjusted by double-clicking the numerical value if using Multiple Selection mod.
+
+The Input Tab and Content Grid can be quickly accessed with the shortcut Ctrl+C. Because only one image can be selected here, the grid's selection is used for image selection, so no checkbox is necessary.
 
 The Layers Tab and Lists are normally filled with the default values for the default Proto & Model files, but they will update based on other Proto & Model file selections. It's possible to add or remove layers from these lists with the relevant buttons. Layers can be renamed by double-clicking their names.
 
@@ -79,6 +81,7 @@ The Neural Style Log Tab will show the output from the most recent running proce
 * Large performance improvements for Output monitoring
 * Fixed a bug with Output-related Buttons loading Styles improperly
 * Layout Tweaks
+* Icons
 ### 1.2.1
 * Fixed an issue where 'nvidia-smi' was not available
 * New optional path to set 'th' in case it cannot be found

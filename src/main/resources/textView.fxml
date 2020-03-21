@@ -6,11 +6,14 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <fx:root maxWidth="-Infinity" prefHeight="30.0" prefWidth="400.0" spacing="4.0" type="HBox" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <Label fx:id="label" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="110.0" text="Label" />
       <TextField fx:id="value" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-        <Button fx:id="resetButton" mnemonicParsing="false" text="D" />
+        <Button fx:id="resetButton" mnemonicParsing="false">
+            <graphic><FontIcon iconLiteral="fas-undo"/></graphic>
+        </Button>
     </children>
     <padding>
         <Insets bottom="2.0" left="4.0" right="4.0" top="2.0" />
