@@ -6,13 +6,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.*;
 
 public class NeuralStyleV2 implements Cloneable {
-    public final static int INVALID_ARGUMENTS = -2;
-    public final static int INVALID_FILE = -1;
     public final static int QUEUED = 0;
-    public final static int IN_PROGRESS = 1;
-    public final static int CANCELLED = 2;
-    public final static int FAILED = 3;
-    public final static int FINISHED = 4;
     private int queueStatus = QUEUED;
 
     private File thPath;
@@ -398,11 +392,6 @@ public class NeuralStyleV2 implements Cloneable {
         newStyle.setThPath(this.thPath);
 
         return newStyle;
-    }
-
-    public void generateUniqueName() {
-        FileUtils.generateUniqueText();
-        outputFile = FileUtils.getTempOutputImage();
     }
 
     protected Object clone() throws CloneNotSupportedException {

@@ -1,25 +1,9 @@
 package com.cameronleger.neuralstyle;
 
 import java.io.File;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 
 public class NeuralStyleV3 implements Cloneable {
     private int version = 3;
-
-    public final static int INVALID_ARGUMENTS = -2;
-    public final static int INVALID_FILE = -1;
-    public final static int QUEUED = 0;
-    public final static int IN_PROGRESS = 1;
-    public final static int CANCELLED = 2;
-    public final static int FAILED = 3;
-    public final static int FINISHED = 4;
-    public final static int PARENT = 5;
-    private int queueStatus = QUEUED;
 
     private File thPath;
     private File neuralStylePath;
@@ -89,68 +73,28 @@ public class NeuralStyleV3 implements Cloneable {
     private int learningRate = 10;
     private double learningRateRatio = 1.0;
 
-    public int getQueueStatus() {
-        return queueStatus;
-    }
-
-    public void setQueueStatus(int queueStatus) {
-        this.queueStatus = queueStatus;
-    }
-
-    public File getThPath() {
-        return thPath;
-    }
-
     public void setThPath(File thPath) {
         this.thPath = thPath;
-    }
-
-    public File getNeuralStylePath() {
-        return neuralStylePath;
     }
 
     public void setNeuralStylePath(File neuralStylePath) {
         this.neuralStylePath = neuralStylePath;
     }
 
-    public File[] getStyleImages() {
-        return styleImages;
-    }
-
     public void setStyleImages(File[] styleImages) {
         this.styleImages = styleImages;
-    }
-
-    public double[] getStyleWeights() {
-        return styleWeights;
     }
 
     public void setStyleWeights(double[] styleWeights) {
         this.styleWeights = styleWeights;
     }
 
-    public File getContentImage() {
-        return contentImage;
-    }
-
     public void setContentImage(File contentImage) {
         this.contentImage = contentImage;
     }
 
-    public File getOutputFolder() {
-        return outputFolder;
-    }
-
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
-    }
-
-    public File getOutputFile() {
-        return outputFile;
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
     }
 
     public String getInit() {
@@ -161,72 +105,36 @@ public class NeuralStyleV3 implements Cloneable {
         this.init = init;
     }
 
-    public File getInitImage() {
-        return initImage;
-    }
-
     public void setInitImage(File initImage) {
         this.initImage = initImage;
-    }
-
-    public String getPooling() {
-        return pooling;
     }
 
     public void setPooling(String pooling) {
         this.pooling = pooling;
     }
 
-    public String[] getStyleLayers() {
-        return styleLayers;
-    }
-
     public void setStyleLayers(String[] styleLayers) {
         this.styleLayers = styleLayers;
-    }
-
-    public String[] getContentLayers() {
-        return contentLayers;
     }
 
     public void setContentLayers(String[] contentLayers) {
         this.contentLayers = contentLayers;
     }
 
-    public boolean isOriginalColors() {
-        return originalColors;
-    }
-
     public void setOriginalColors(boolean originalColors) {
         this.originalColors = originalColors;
-    }
-
-    public boolean isNormalizeGradients() {
-        return normalizeGradients;
     }
 
     public void setNormalizeGradients(boolean normalizeGradients) {
         this.normalizeGradients = normalizeGradients;
     }
 
-    public boolean isCpu() {
-        return cpu;
-    }
-
     public void setCpu(boolean cpu) {
         this.cpu = cpu;
     }
 
-    public String[] getGpu() {
-        return gpu;
-    }
-
     public void setGpu(String[] gpu) {
         this.gpu = gpu;
-    }
-
-    public String getMultiGpuStrategy() {
-        return multiGpuStrategy;
     }
 
     public void setMultiGpuStrategy(String multiGpuStrategy) {
@@ -241,40 +149,20 @@ public class NeuralStyleV3 implements Cloneable {
         this.backend = backend;
     }
 
-    public String getOptimizer() {
-        return optimizer;
-    }
-
     public void setOptimizer(String optimizer) {
         this.optimizer = optimizer;
-    }
-
-    public boolean isAutotune() {
-        return autotune;
     }
 
     public void setAutotune(boolean autotune) {
         this.autotune = autotune;
     }
 
-    public File getProtoFile() {
-        return protoFile;
-    }
-
     public void setProtoFile(File protoFile) {
         this.protoFile = protoFile;
     }
 
-    public File getModelFile() {
-        return modelFile;
-    }
-
     public void setModelFile(File modelFile) {
         this.modelFile = modelFile;
-    }
-
-    public int getChainLength() {
-        return chainLength;
     }
 
     public void setChainLength(int chainLength) {
@@ -289,385 +177,106 @@ public class NeuralStyleV3 implements Cloneable {
         this.iterations = iterations;
     }
 
-    public double getIterationsRatio() {
-        return iterationsRatio;
-    }
-
     public void setIterationsRatio(double iterationsRatio) {
         this.iterationsRatio = iterationsRatio;
-    }
-
-    public int getIterationsPrint() {
-        return iterationsPrint;
     }
 
     public void setIterationsPrint(int iterationsPrint) {
         this.iterationsPrint = iterationsPrint;
     }
 
-    public double getIterationsPrintRatio() {
-        return iterationsPrintRatio;
-    }
-
-    public void setIterationsPrintRatio(double iterationsPrintRatio) {
-        this.iterationsPrintRatio = iterationsPrintRatio;
-    }
-
-    public int getIterationsSave() {
-        return iterationsSave;
-    }
-
     public void setIterationsSave(int iterationsSave) {
         this.iterationsSave = iterationsSave;
-    }
-
-    public double getIterationsSaveRatio() {
-        return iterationsSaveRatio;
-    }
-
-    public void setIterationsSaveRatio(double iterationsSaveRatio) {
-        this.iterationsSaveRatio = iterationsSaveRatio;
-    }
-
-    public int getSeed() {
-        return seed;
     }
 
     public void setSeed(int seed) {
         this.seed = seed;
     }
 
-    public double getSeedRatio() {
-        return seedRatio;
-    }
-
-    public void setSeedRatio(double seedRatio) {
-        this.seedRatio = seedRatio;
-    }
-
-    public int getOutputSize() {
-        return outputSize;
-    }
-
     public void setOutputSize(int outputSize) {
         this.outputSize = outputSize;
-    }
-
-    public double getOutputSizeRatio() {
-        return outputSizeRatio;
     }
 
     public void setOutputSizeRatio(double outputSizeRatio) {
         this.outputSizeRatio = outputSizeRatio;
     }
 
-    public double getStyleSize() {
-        return styleSize;
-    }
-
     public void setStyleSize(double styleSize) {
         this.styleSize = styleSize;
-    }
-
-    public double getStyleSizeRatio() {
-        return styleSizeRatio;
-    }
-
-    public void setStyleSizeRatio(double styleSizeRatio) {
-        this.styleSizeRatio = styleSizeRatio;
-    }
-
-    public int getContentWeight() {
-        return contentWeight;
     }
 
     public void setContentWeight(int contentWeight) {
         this.contentWeight = contentWeight;
     }
 
-    public double getContentWeightRatio() {
-        return contentWeightRatio;
-    }
-
-    public void setContentWeightRatio(double contentWeightRatio) {
-        this.contentWeightRatio = contentWeightRatio;
-    }
-
-    public int getStyleWeight() {
-        return styleWeight;
-    }
-
     public void setStyleWeight(int styleWeight) {
         this.styleWeight = styleWeight;
-    }
-
-    public double getStyleWeightRatio() {
-        return styleWeightRatio;
-    }
-
-    public void setStyleWeightRatio(double styleWeightRatio) {
-        this.styleWeightRatio = styleWeightRatio;
-    }
-
-    public double getTvWeight() {
-        return tvWeight;
     }
 
     public void setTvWeight(double tvWeight) {
         this.tvWeight = tvWeight;
     }
 
-    public double getTvWeightRatio() {
-        return tvWeightRatio;
-    }
-
-    public void setTvWeightRatio(double tvWeightRatio) {
-        this.tvWeightRatio = tvWeightRatio;
-    }
-
-    public int getnCorrection() {
-        return nCorrection;
-    }
-
     public void setnCorrection(int nCorrection) {
         this.nCorrection = nCorrection;
-    }
-
-    public double getnCorrectionRatio() {
-        return nCorrectionRatio;
-    }
-
-    public void setnCorrectionRatio(double nCorrectionRatio) {
-        this.nCorrectionRatio = nCorrectionRatio;
-    }
-
-    public int getLearningRate() {
-        return learningRate;
     }
 
     public void setLearningRate(int learningRate) {
         this.learningRate = learningRate;
     }
 
-    public double getLearningRateRatio() {
-        return learningRateRatio;
-    }
+    public NeuralStyleV4 upgrade() {
+        NeuralStyleV4 newStyle = new NeuralStyleV4();
+        newStyle.setRunnerPath(this.thPath);
+        newStyle.setNeuralStylePath(new File(this.neuralStylePath, "neural_style.lua"));
+        newStyle.setStyleImages(this.styleImages);
+        newStyle.setStyleWeights(this.styleWeights);
+        newStyle.setContentImage(this.contentImage);
+        newStyle.setOutputFolder(this.outputFolder);
+        newStyle.setOutputFile(this.outputFile);
+        newStyle.setInit(this.init);
+        newStyle.setInitImage(this.initImage);
+        newStyle.setPooling(this.pooling);
+        newStyle.setStyleLayers(this.styleLayers);
+        newStyle.setContentLayers(this.contentLayers);
+        newStyle.setOriginalColors(this.originalColors);
+        newStyle.setNormalizeGradients(this.normalizeGradients);
+        newStyle.setCpu(this.cpu);
+        newStyle.setGpu(this.gpu);
+        newStyle.setMultiGpuStrategy(this.multiGpuStrategy);
+        newStyle.setBackend(this.backend);
+        newStyle.setOptimizer(this.optimizer);
+        newStyle.setAutotune(this.autotune);
+        newStyle.setProtoFile(this.protoFile);
+        newStyle.setModelFile(this.modelFile);
+        newStyle.setChainLength(this.chainLength);
+        newStyle.setIterations(this.iterations);
+        newStyle.setIterationsRatio(this.iterationsRatio);
+        newStyle.setIterationsPrint(this.iterationsPrint);
+        newStyle.setIterationsPrintRatio(this.iterationsPrintRatio);
+        newStyle.setIterationsSave(this.iterationsSave);
+        newStyle.setIterationsSaveRatio(this.iterationsSaveRatio);
+        newStyle.setSeed(this.seed);
+        newStyle.setSeedRatio(this.seedRatio);
+        newStyle.setOutputSize(this.outputSize);
+        newStyle.setOutputSizeRatio(this.outputSizeRatio);
+        newStyle.setStyleSize(this.styleSize);
+        newStyle.setStyleSizeRatio(this.styleSizeRatio);
+        newStyle.setContentWeight(this.contentWeight);
+        newStyle.setContentWeightRatio(this.contentWeightRatio);
+        newStyle.setStyleWeight(this.styleWeight);
+        newStyle.setStyleWeightRatio(this.styleWeightRatio);
+        newStyle.setTvWeight(this.tvWeight);
+        newStyle.setTvWeightRatio(this.tvWeightRatio);
+        newStyle.setnCorrection(this.nCorrection);
+        newStyle.setnCorrectionRatio(this.nCorrectionRatio);
+        newStyle.setLearningRate(this.learningRate);
+        newStyle.setLearningRateRatio(this.learningRateRatio);
 
-    public void setLearningRateRatio(double learningRateRatio) {
-        this.learningRateRatio = learningRateRatio;
-    }
-
-    public void generateUniqueName() {
-        FileUtils.generateUniqueText();
-        outputFile = FileUtils.getTempOutputImage();
+        return newStyle;
     }
 
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
-    }
-
-    private double applyRatio(int i, double value, double ratio) {
-        int ratioPower = chainLength - i;
-        return Math.pow(ratio, ratioPower) * value;
-    }
-
-    private int applyRatio(int i, int value, double ratio) {
-        return (int) Math.round(applyRatio(i, (double) value, ratio));
-    }
-
-    public NeuralStyleV3 chained(int i) throws CloneNotSupportedException {
-        NeuralStyleV3 chained = (NeuralStyleV3) this.clone();
-        chained.setQueueStatus(QUEUED);
-
-        if (i > 1) {
-            chained.setInit("image");
-            chained.setInitImage(FileUtils.getTempOutputImage(i - 1));
-        }
-        chained.setOutputFile(FileUtils.getTempOutputImage(i));
-
-        chained.setIterations(applyRatio(i, chained.getIterations(), getIterationsRatio()));
-        chained.setIterationsPrint(applyRatio(i, chained.getIterationsPrint(), getIterationsPrintRatio()));
-        chained.setIterationsSave(applyRatio(i, chained.getIterationsSave(), getIterationsSaveRatio()));
-        chained.setSeed(applyRatio(i, chained.getSeed(), getSeedRatio()));
-        chained.setOutputSize(applyRatio(i, chained.getOutputSize(), getOutputSizeRatio()));
-        chained.setStyleSize(applyRatio(i, chained.getStyleSize(), getStyleSizeRatio()));
-        chained.setContentWeight(applyRatio(i, chained.getContentWeight(), getContentWeightRatio()));
-        chained.setStyleWeight(applyRatio(i, chained.getStyleWeight(), getStyleWeightRatio()));
-        chained.setTvWeight(applyRatio(i, chained.getTvWeight(), getTvWeightRatio()));
-        chained.setnCorrection(applyRatio(i, chained.getnCorrection(), getnCorrectionRatio()));
-        chained.setLearningRate(applyRatio(i, chained.getLearningRate(), getLearningRateRatio()));
-
-        return chained;
-    }
-
-    public List<NeuralStyleV3> getQueueItems() {
-        List<NeuralStyleV3> queueItems = new ArrayList<>();
-
-        try {
-            NeuralStyleV3 parent = (NeuralStyleV3) this.clone();
-            parent.setQueueStatus(PARENT);
-            queueItems.add(parent);
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-
-        for (int i = 1; i <= chainLength; i++) {
-            try {
-                queueItems.add(this.chained(i));
-            } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return queueItems;
-    }
-
-    public boolean checkArguments() {
-        if (outputFile == null)
-            generateUniqueName();
-        return styleImages != null && styleImages.length > 0 &&
-                styleWeights != null && styleWeights.length == styleImages.length &&
-                styleLayers != null && styleLayers.length > 0 &&
-                contentLayers != null && contentLayers.length > 0 &&
-                (cpu || gpu.length > 0) &&
-                FileUtils.checkFilesExists(styleImages) &&
-                FileUtils.checkFileExists(contentImage) &&
-                FileUtils.checkFolderExists(neuralStylePath) &&
-                FileUtils.checkFolderExists(NeuralStyleWrapper.getWorkingFolder());
-    }
-
-    public String[] buildCommand() {
-        // Format decimals without scientific notation and with a period
-        DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-        df.setMaximumFractionDigits(340);
-
-        StringBuilder styleImagesBuilder = new StringBuilder();
-        for (int i = 0; i < styleImages.length; i++) {
-            styleImagesBuilder.append(styleImages[i].getAbsolutePath());
-            if (i != styleImages.length - 1)
-                styleImagesBuilder.append(",");
-        }
-
-        StringBuilder styleWeightsBuilder = new StringBuilder();
-        for (int i = 0; i < styleWeights.length; i++) {
-            styleWeightsBuilder.append(df.format(styleWeights[i]));
-            if (i != styleWeights.length - 1)
-                styleWeightsBuilder.append(",");
-        }
-
-        StringBuilder styleLayersBuilder = new StringBuilder();
-        for (int i = 0; i < styleLayers.length; i++) {
-            styleLayersBuilder.append(styleLayers[i]);
-            if (i != styleLayers.length - 1)
-                styleLayersBuilder.append(",");
-        }
-
-        StringBuilder contentLayersBuilder = new StringBuilder();
-        for (int i = 0; i < contentLayers.length; i++) {
-            contentLayersBuilder.append(contentLayers[i]);
-            if (i != contentLayers.length - 1)
-                contentLayersBuilder.append(",");
-        }
-
-        StringBuilder gpuIndicesBuilder = new StringBuilder();
-        for (int i = 0; i < gpu.length; i++) {
-            gpuIndicesBuilder.append(gpu[i]);
-            if (i != gpu.length - 1)
-                gpuIndicesBuilder.append(",");
-        }
-
-        String th = "th";
-        if (thPath != null)
-            th = thPath.getAbsolutePath();
-
-        ArrayList<String> commandList = new ArrayList<>(
-                Arrays.asList(th,
-                        "neural_style.lua",
-                        "-style_image",
-                        styleImagesBuilder.toString(),
-                        "-style_blend_weights",
-                        styleWeightsBuilder.toString(),
-                        "-content_image",
-                        contentImage.getAbsolutePath(),
-                        "-output_image",
-                        outputFile.getAbsolutePath(),
-                        "-print_iter",
-                        String.valueOf(iterationsPrint),
-                        "-save_iter",
-                        String.valueOf(iterationsSave),
-                        "-num_iterations",
-                        String.valueOf(iterations),
-                        "-seed",
-                        String.valueOf(seed),
-                        "-style_layers",
-                        styleLayersBuilder.toString(),
-                        "-content_layers",
-                        contentLayersBuilder.toString(),
-                        "-image_size",
-                        String.valueOf(outputSize),
-                        "-style_scale",
-                        df.format(styleSize),
-                        "-content_weight",
-                        String.valueOf(contentWeight),
-                        "-style_weight",
-                        String.valueOf(styleWeight),
-                        "-tv_weight",
-                        df.format(tvWeight),
-                        "-init",
-                        init,
-                        "-pooling",
-                        pooling,
-                        "-backend",
-                        backend,
-                        "-optimizer",
-                        optimizer,
-                        "-learning_rate",
-                        String.valueOf(learningRate)));
-
-        commandList.add("-original_colors");
-        if (originalColors)
-            commandList.add("1");
-        else
-            commandList.add("0");
-
-        if (normalizeGradients)
-            commandList.add("-normalize_gradients");
-
-        if (autotune)
-            commandList.add("-cudnn_autotune");
-
-        commandList.add("-gpu");
-        if (cpu)
-            commandList.add("-1");
-        else {
-            commandList.add(gpuIndicesBuilder.toString());
-            if (multiGpuStrategy != null && !multiGpuStrategy.isEmpty()) {
-                commandList.add("-multigpu_strategy");
-                commandList.add(multiGpuStrategy);
-            }
-        }
-
-        if (init.equals("image") && FileUtils.checkFileExists(initImage)) {
-            commandList.add("-init_image");
-            commandList.add(initImage.getAbsolutePath());
-        }
-
-        if (nCorrection > 0) {
-            commandList.add("-lbfgs_num_correction");
-            commandList.add(String.valueOf(nCorrection));
-        }
-
-        if (FileUtils.checkFileExists(protoFile)) {
-            commandList.add("-proto_file");
-            commandList.add(protoFile.getAbsolutePath());
-        }
-
-        if (FileUtils.checkFileExists(modelFile)) {
-            commandList.add("-model_file");
-            commandList.add(modelFile.getAbsolutePath());
-        }
-
-        String[] command = new String[commandList.size()];
-        return commandList.toArray(command);
     }
 }

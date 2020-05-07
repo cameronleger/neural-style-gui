@@ -1,7 +1,7 @@
 package com.cameronleger.neuralstylegui.model;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyleV3;
+import com.cameronleger.neuralstyle.NeuralStyleV4;
 import javafx.beans.property.*;
 import org.apache.commons.io.FilenameUtils;
 
@@ -129,7 +129,7 @@ public final class NeuralQueue {
     }
 
     private static class NeuralQueueStyleItem extends NeuralQueueItem {
-        private NeuralStyleV3 style;
+        private NeuralStyleV4 style;
 
         NeuralQueueStyleItem(File file) {
             super(file);
@@ -151,28 +151,28 @@ public final class NeuralQueue {
                 String statusValue = "";
                 this.statusCode = style.getQueueStatus();
                 switch (style.getQueueStatus()) {
-                    case NeuralStyleV3.INVALID_FILE:
+                    case NeuralStyleV4.INVALID_FILE:
                         statusValue = bundle.getString("neuralQueueItemInvalidFile");
                         break;
-                    case NeuralStyleV3.INVALID_ARGUMENTS:
+                    case NeuralStyleV4.INVALID_ARGUMENTS:
                         statusValue = bundle.getString("neuralQueueItemInvalidArguments");
                         break;
-                    case NeuralStyleV3.QUEUED:
+                    case NeuralStyleV4.QUEUED:
                         statusValue = bundle.getString("neuralQueueItemQueued");
                         break;
-                    case NeuralStyleV3.IN_PROGRESS:
+                    case NeuralStyleV4.IN_PROGRESS:
                         statusValue = bundle.getString("neuralQueueItemInProgress");
                         break;
-                    case NeuralStyleV3.CANCELLED:
+                    case NeuralStyleV4.CANCELLED:
                         statusValue = bundle.getString("neuralQueueItemCancelled");
                         break;
-                    case NeuralStyleV3.FAILED:
+                    case NeuralStyleV4.FAILED:
                         statusValue = bundle.getString("neuralQueueItemFailed");
                         break;
-                    case NeuralStyleV3.FINISHED:
+                    case NeuralStyleV4.FINISHED:
                         statusValue = bundle.getString("neuralQueueItemFinished");
                         break;
-                    case NeuralStyleV3.PARENT:
+                    case NeuralStyleV4.PARENT:
                         this.type = QUEUED_PARENT;
                         statusValue = bundle.getString("neuralQueueItemParent");
                         break;

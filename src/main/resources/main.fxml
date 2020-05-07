@@ -173,8 +173,8 @@
                            <content>
                               <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                  <children>
-                                    <FileView fx:id="thFile" layoutX="14.0" layoutY="14.0" maxWidth="1.7976931348623157E308" title="%thPathHint" tooltip="%thPathHint" />
-                                    <DirectoryView fx:id="neuralStyleFolder" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
+                                    <FileView fx:id="runnerFile" layoutX="14.0" layoutY="14.0" maxWidth="1.7976931348623157E308" title="%runnerPathHint" tooltip="%runnerPathHint" />
+                                    <FileView fx:id="neuralStyleFile" maxWidth="1.7976931348623157E308" title="%neuralPathHint" tooltip="%neuralPathHint" />
                                     <FileView fx:id="protoFile" maxWidth="1.7976931348623157E308" title="%protoFilePathHint" tooltip="%protoFilePathHint" />
                                     <FileView fx:id="modelFile" maxWidth="1.7976931348623157E308" title="%modelFilePathHint" tooltip="%modelFilePathHint" />
                                     <DirectoryView fx:id="outputFolder" maxWidth="1.7976931348623157E308" title="%outputFolderHint" tooltip="%outputFolderHint" />
