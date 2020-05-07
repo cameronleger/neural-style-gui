@@ -8,7 +8,9 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 ![Log Tab of Neural-Style-GUI](/screenshots/log.png?raw=true "Log Tab of Neural-Style-GUI")
 
 # Requirements
-* [Neural-Style](https://github.com/jcjohnson/neural-style)
+* AND/OR
+    * [neural-style](https://github.com/jcjohnson/neural-style) which requires Torch and is probably Linux-specific
+    * [neural-style-pt](https://github.com/ProGamerGov/neural-style-pt) which requires PyTorch and may work on Windows
 * Java 11
 * JavaFX 11 (included with Oracle, separate package for OpenJDK)
 
@@ -29,10 +31,11 @@ Neural Style GUI is designed for rapid prototyping art from Neural Style. To tha
 * Log of Neural Style command output
 
 # Starting
-Unzip the release to a folder of your choice (or build from source and check the **target/jfx/app** folder). Run the neural-style-gui.sh file or run **java -jar neural-style-gui-*-jfx.jar** with any additional options you desire.
+1. Unzip the release to a folder of your choice (or build from source and check the **shade** folder).
+2. Run the neural-style-gui.sh or neural-style-gui.bat file. Alternatively, run **java -jar neural-style-gui-*.jar** with any additional options you desire.
 
 # Minimum Required Steps
-1. Set the Neural Style path in the Files Tab
+1. Set the Runner and Neural Style paths in the Files Tab.
 2. Modify Advanced settings based on your machine, i.e., CPU or GPU and backend
 3. Set the Style Folder path to a folder containing style images
 4. Select a style image in the Style Image Grid
@@ -42,7 +45,9 @@ Unzip the release to a folder of your choice (or build from source and check the
 8. Press Start!
 
 # Usage
-After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application. If you're getting a File Not Found exception for the 'th' command because it's not properly in your PATH, you can set the path to 'th' above the Neural Style path.
+After you have performed the Minimum Required Steps and chosen an Output Folder path, you may want to use the Save button in the Settings Pane to save all of this information into a 'default' settings file that you can load next time you run the application.
+
+If you're getting a File Not Found exception for the 'th' command because it's not properly in your PATH, you can set the path to 'th' above the Neural Style path.
 
 The Chaining parameter in the Basic Settings Pane allows you to quickly run multiple Neural Style commands that feed into each other with the previous result (i.e. the first chain will use the Initialization Image setting you chose, but each chain after that will use the last iteration image of the previous chain). Each numeric Parameter has a "Ratio" field that adjusts the Parameter for each Chain run. The normal value you specify is for the _last_ or _final_ run; the ratio value multiplies with that value for each chain by _walking backwards_. For example, with a 0.5 Size Ratio over 3 runs for a final result of 1200px, the runs will start at 300px before going to 600px and finally 1200px. This can allow you to make higher quality and larger images than with a single run with single settings, and almost always faster because less iterations are typically used with this.
 
@@ -67,6 +72,10 @@ In the Output Tab and next to the Image is the Output Queue Tree. Any started pr
 The Neural Style Log Tab will show the output from the most recent running process. This is rarely used, but it's helpful to understand why a process might have failed, usually because of out-of-memory errors.
 
 # Changelog
+### 1.4.0
+* Support for [neural-style-pt](https://github.com/ProGamerGov/neural-style-pt)
+* Cross-platform JAR (since neural-style-pt works on Windows!)
+* Logging improvements
 ### 1.3.0
 * JDK 11
 * Overhauled Parameters

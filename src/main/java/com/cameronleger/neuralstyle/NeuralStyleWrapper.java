@@ -30,7 +30,7 @@ public class NeuralStyleWrapper {
         return new File(workingFolder.getValue());
     }
 
-    private NeuralString thPath = new NeuralString("thPath", "th", "");
+    private NeuralString runnerPath = new NeuralString("runnerPath", "Runner", "th");
     private NeuralString neuralStylePath = new NeuralString("neuralStylePath", "Neural Style", "");
     private NeuralString outputFolder = new NeuralString("outputFolder", "Output Dir.", "");
 
@@ -51,7 +51,7 @@ public class NeuralStyleWrapper {
     private NeuralChoice pooling = new NeuralChoice("pooling", "Pooling", "max", new String[]{"max", "avg"});
     private NeuralBoolean cpu = new NeuralBoolean("cpu", "CPU", false);
     private NeuralString multiGpuStrategy = new NeuralString("multiGpuStrategy", "Multi GPU Split");
-    private NeuralChoice backend = new NeuralChoice("backend", "Backend", "nn", new String[]{"nn", "cudnn", "clnn"});
+    private NeuralChoice backend = new NeuralChoice("backend", "Backend", "nn", new String[]{"nn", "cudnn", "clnn", "mkl", "mkldnn", "openmp"});
     private NeuralBoolean autotune = new NeuralBoolean("autotune", "Autotune", false);
     private NeuralChoice optimizer = new NeuralChoice("optimizer", "Optimizer", "lbfgs", new String[]{"lbfgs", "adam"});
     private NeuralDouble nCorrection = new NeuralDouble("nCorrection", "nCorrection", -1);
@@ -92,9 +92,9 @@ public class NeuralStyleWrapper {
         return file.getAbsolutePath();
     }
 
-    public NeuralStyleV3 getNeuralStyle() {
-        NeuralStyleV3 s = new NeuralStyleV3();
-        s.setThPath(file(thPath.getValue()));
+    public NeuralStyleV4 getNeuralStyle() {
+        NeuralStyleV4 s = new NeuralStyleV4();
+        s.setRunnerPath(file(runnerPath.getValue()));
         s.setNeuralStylePath(file(neuralStylePath.getValue()));
         s.setStyleImages(styleImages);
         s.setStyleWeights(styleWeights);
@@ -141,8 +141,8 @@ public class NeuralStyleWrapper {
         return s;
     }
 
-    public void loadNeuralStyle(NeuralStyleV3 s) {
-        thPath.setValue(file(s.getThPath()));
+    public void loadNeuralStyle(NeuralStyleV4 s) {
+        runnerPath.setValue(file(s.getRunnerPath()));
         neuralStylePath.setValue(file(s.getNeuralStylePath()));
         styleImages = s.getStyleImages();
         styleWeights = s.getStyleWeights();
@@ -196,12 +196,12 @@ public class NeuralStyleWrapper {
                 (cpu.getValue() || gpu.length > 0) &&
                 FileUtils.checkFilesExists(styleImages) &&
                 FileUtils.checkFileExists(contentImage) &&
-                FileUtils.checkFolderExists(file(neuralStylePath.getValue())) &&
+                FileUtils.checkFileExists(file(neuralStylePath.getValue())) &&
                 FileUtils.checkFolderExists(NeuralStyleWrapper.getWorkingFolder());
     }
 
-    public NeuralString getThPath() {
-        return thPath;
+    public NeuralString getRunnerPath() {
+        return runnerPath;
     }
 
     public NeuralString getNeuralStylePath() {

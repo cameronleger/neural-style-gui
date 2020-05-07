@@ -1,8 +1,7 @@
 package com.cameronleger.neuralstylegui;
 
 import com.cameronleger.neuralstyle.FileUtils;
-import com.cameronleger.neuralstyle.NeuralStyleV2;
-import com.cameronleger.neuralstyle.NeuralStyleV3;
+import com.cameronleger.neuralstyle.NeuralStyleV4;
 import com.cameronleger.neuralstylegui.component.*;
 import com.cameronleger.neuralstylegui.helper.AsyncImageProperty;
 import com.cameronleger.neuralstylegui.helper.MovingImageView;
@@ -42,7 +41,6 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.apache.commons.io.FilenameUtils;
 import org.reactfx.EventStreams;
-import org.reactfx.Subscription;
 import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
 
@@ -188,9 +186,9 @@ public class MainController {
     @FXML
     private NumberView learningRate;
     @FXML
-    private FileView thFile;
+    private FileView runnerFile;
     @FXML
-    private DirectoryView neuralStyleFolder;
+    private FileView neuralStyleFile;
     @FXML
     private FileView protoFile;
     @FXML
@@ -275,7 +273,7 @@ public class MainController {
         neuralService.addLogHandler(new TextAreaLogHandler(logTextArea));
 
         log.log(Level.FINER, "Loading last used style.");
-        NeuralStyleV3 loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
+        NeuralStyleV4 loadedNeuralStyle = FileUtils.loadStyle(FileUtils.getLastUsedOutputStyle());
         if (loadedNeuralStyle != null)
             loadStyle(loadedNeuralStyle);
     }
@@ -316,9 +314,9 @@ public class MainController {
 
     private void queueStyle() {
         log.log(Level.FINE, "Queueing neural style.");
-        NeuralStyleV3 style = neuralStyle.getNeuralStyle();
+        NeuralStyleV4 style = neuralStyle.getNeuralStyle();
         style.generateUniqueName();
-        for (NeuralStyleV3 ns : style.getQueueItems())
+        for (NeuralStyleV4 ns : style.getQueueItems())
             FileUtils.saveOutputStyle(ns);
         FileUtils.saveLastUsedOutputStyle(style);
     }
@@ -709,22 +707,22 @@ public class MainController {
                     .collect(Collectors.toSet());
             if (styleStatuses.size() == 1)
                 parentTree.getValue().changeStatus(styleStatuses.stream().findFirst().get());
-            else if (styleStatuses.contains(NeuralStyleV3.IN_PROGRESS))
-                parentTree.getValue().changeStatus(NeuralStyleV3.IN_PROGRESS);
-            else if (styleStatuses.contains(NeuralStyleV3.QUEUED))
-                parentTree.getValue().changeStatus(NeuralStyleV3.QUEUED);
-            else if (styleStatuses.contains(NeuralStyleV3.FAILED))
-                parentTree.getValue().changeStatus(NeuralStyleV3.FAILED);
-            else if (styleStatuses.contains(NeuralStyleV3.CANCELLED))
-                parentTree.getValue().changeStatus(NeuralStyleV3.CANCELLED);
-            else if (styleStatuses.contains(NeuralStyleV3.INVALID_ARGUMENTS))
-                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_ARGUMENTS);
-            else if (styleStatuses.contains(NeuralStyleV3.INVALID_FILE))
-                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
-            else if (styleStatuses.contains(NeuralStyleV3.FINISHED))
-                parentTree.getValue().changeStatus(NeuralStyleV3.FINISHED);
+            else if (styleStatuses.contains(NeuralStyleV4.IN_PROGRESS))
+                parentTree.getValue().changeStatus(NeuralStyleV4.IN_PROGRESS);
+            else if (styleStatuses.contains(NeuralStyleV4.QUEUED))
+                parentTree.getValue().changeStatus(NeuralStyleV4.QUEUED);
+            else if (styleStatuses.contains(NeuralStyleV4.FAILED))
+                parentTree.getValue().changeStatus(NeuralStyleV4.FAILED);
+            else if (styleStatuses.contains(NeuralStyleV4.CANCELLED))
+                parentTree.getValue().changeStatus(NeuralStyleV4.CANCELLED);
+            else if (styleStatuses.contains(NeuralStyleV4.INVALID_ARGUMENTS))
+                parentTree.getValue().changeStatus(NeuralStyleV4.INVALID_ARGUMENTS);
+            else if (styleStatuses.contains(NeuralStyleV4.INVALID_FILE))
+                parentTree.getValue().changeStatus(NeuralStyleV4.INVALID_FILE);
+            else if (styleStatuses.contains(NeuralStyleV4.FINISHED))
+                parentTree.getValue().changeStatus(NeuralStyleV4.FINISHED);
             else
-                parentTree.getValue().changeStatus(NeuralStyleV3.INVALID_FILE);
+                parentTree.getValue().changeStatus(NeuralStyleV4.INVALID_FILE);
         }
     }
 
@@ -732,7 +730,7 @@ public class MainController {
         List<TreeItem<NeuralQueue.NeuralQueueItem>> inProgressItems =
                 outputTreeTable.getRoot().getChildren().stream()
                         .flatMap(p -> p.getChildren().stream())
-                        .filter(s -> s.getValue().getStatusCode() == NeuralStyleV3.IN_PROGRESS)
+                        .filter(s -> s.getValue().getStatusCode() == NeuralStyleV4.IN_PROGRESS)
                         .collect(Collectors.toList());
         if (!inProgressItems.isEmpty())
             return inProgressItems.get(0);
@@ -740,7 +738,7 @@ public class MainController {
         List<TreeItem<NeuralQueue.NeuralQueueItem>> allItems =
                 outputTreeTable.getRoot().getChildren().stream()
                         .flatMap(p -> p.getChildren().stream())
-                        .filter(s -> s.getValue().getStatusCode() != NeuralStyleV3.FAILED)
+                        .filter(s -> s.getValue().getStatusCode() != NeuralStyleV4.FAILED)
                         .collect(Collectors.toList());
         if (!allItems.isEmpty())
             return allItems.get(allItems.size() - 1);
@@ -833,7 +831,7 @@ public class MainController {
         }
     }
 
-    private void loadStyle(NeuralStyleV3 loadedNeuralStyle) {
+    private void loadStyle(NeuralStyleV4 loadedNeuralStyle) {
         neuralStyle.loadNeuralStyle(loadedNeuralStyle);
 
         // Retrieve these before paths because that will change them
@@ -869,7 +867,7 @@ public class MainController {
             case NeuralQueue.QUEUED_PARENT:
             case NeuralQueue.QUEUED_STYLE:
                 queueItem.setActionCallback(() -> {
-                    NeuralStyleV3 loadedStyle = FileUtils.loadStyle(queueItem.getFile());
+                    NeuralStyleV4 loadedStyle = FileUtils.loadStyle(queueItem.getFile());
                     if (loadedStyle == null)
                         showTooltipNextTo(loadStyleButton, resources.getString("loadStyleFailed"));
                     else {
@@ -1006,7 +1004,7 @@ public class MainController {
             log.log(Level.FINE, "Style file chosen: {0}", styleFile);
             if (styleFile != null) {
                 FileView.fileChooser.setInitialDirectory(styleFile.getParentFile());
-                NeuralStyleV3 loadedStyle = FileUtils.loadStyle(styleFile);
+                NeuralStyleV4 loadedStyle = FileUtils.loadStyle(styleFile);
                 if (loadedStyle == null)
                     showTooltipNextTo(loadStyleButton, resources.getString("loadStyleFailed"));
                 else {
@@ -1089,7 +1087,7 @@ public class MainController {
         log.log(Level.FINER, "Setting Command listener.");
         EventStreams.eventsOf(commandButton, ActionEvent.ACTION).subscribe(actionEvent -> {
             log.log(Level.FINE, "Command button hit.");
-            NeuralStyleV3 style = neuralStyle.getNeuralStyle();
+            NeuralStyleV4 style = neuralStyle.getNeuralStyle();
             if (style.checkArguments()) {
                 style.generateUniqueName();
                 String[] command = style.buildCommand();
@@ -1208,8 +1206,8 @@ public class MainController {
             }
         });
 
-        thFile.link(neuralStyle.getThPath());
-        neuralStyleFolder.link(neuralStyle.getNeuralStylePath());
+        runnerFile.link(neuralStyle.getRunnerPath());
+        neuralStyleFile.link(neuralStyle.getNeuralStylePath());
         protoFile.link(neuralStyle.getProtoFile());
         modelFile.link(neuralStyle.getModelFile());
         outputFolder.link(neuralStyle.getOutputFolder());
@@ -1650,7 +1648,7 @@ public class MainController {
                                                 final MenuItem cancelMenuItem =
                                                         new MenuItem(resources.getString("neuralQueueItemCancel"));
                                                 cancelMenuItem.setOnAction(event ->
-                                                        queueItem.changeStatus(NeuralStyleV3.CANCELLED));
+                                                        queueItem.changeStatus(NeuralStyleV4.CANCELLED));
 
                                                 cellMenu.getItems().addAll(cancelMenuItem);
                                                 setContextMenu(cellMenu);
